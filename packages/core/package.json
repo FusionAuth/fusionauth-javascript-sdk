@@ -1,0 +1,10 @@
+{
+  "name": "@fusionauth-sdk/core",
+  "version": "0.1.0",
+  "description": "The core functionality for the FusionAuth SDKs.",
+  "main": "index.js",
+  "author": "FusionAuth",
+  "license": "Apache",
+  "private": true,
+  "type": "module"
+}

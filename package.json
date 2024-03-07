@@ -6,5 +6,9 @@
   "repository": "git@github.com:FusionAuth/fusionauth-javascript-sdk.git",
   "author": "FusionAuth",
   "license": "Apache",
-  "private": true
+  "private": true,
+  "workspaces": [
+    "packages/core",
+    "packages/test-package"
+  ]
 }
