@@ -1,8 +1,8 @@
-export * from './providers/FusionAuthProvider';
+export * from './components/providers/FusionAuthProvider';
 
-export * from './components/FusionAuthLoginButton';
-export * from './components/FusionAuthLogoutButton';
-export * from './components/FusionAuthRegisterButton';
-export * from './components/RequireAuth';
-export * from './components/Unauthenticated';
-export * from './components/withFusionAuth';
+export * from './components/ui/FusionAuthLoginButton';
+export * from './components/ui/FusionAuthLogoutButton';
+export * from './components/ui/FusionAuthRegisterButton';
+export * from './components/ui/RequireAuth';
+export * from './components/ui/Unauthenticated';
+export * from './components/ui/withFusionAuth';
