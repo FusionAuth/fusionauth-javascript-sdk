@@ -1,5 +1,11 @@
 {
   "compilerOptions": {
+		"paths": {
+			"#/*": ["./src/*"],
+			"#components/*": ["./src/components/*"],
+			"#styles/*": ["./src/styles/*"],
+			"#testing-tools/*": ["./src/testing-tools/*"]
+		},
     "esModuleInterop": true,
     "skipLibCheck": true,
     "target": "es2022",

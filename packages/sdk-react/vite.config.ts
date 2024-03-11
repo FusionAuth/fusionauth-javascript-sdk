@@ -28,4 +28,12 @@ export default defineConfig({
 		globals: true,
 		setupFiles: "./src/testing-tools/setup.ts",
 	},
+	resolve: {
+		alias: {
+			"#": resolve(__dirname, "./src"),
+			"#components": resolve(__dirname, "./src/components"),
+			"#styles": resolve(__dirname, "./src/styles"),
+			"#testing-tools": resolve(__dirname, "./src/testing-tools"),
+		},
+	},
 })
