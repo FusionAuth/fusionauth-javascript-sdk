@@ -2,7 +2,7 @@ import { vi } from "vitest";
 
 export const mockFetchJson = (json: any) => {
     // @ts-ignore
-    jest.spyOn(global, 'fetch').mockResolvedValue({
+    vi.spyOn(global, 'fetch').mockResolvedValue({
         json: vi.fn().mockResolvedValue(json),
     });
 };

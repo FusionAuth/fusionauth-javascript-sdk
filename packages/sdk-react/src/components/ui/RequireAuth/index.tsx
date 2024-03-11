@@ -1,5 +1,5 @@
 import { FC, PropsWithChildren } from 'react';
-import { useFusionAuth } from '../providers/FusionAuthProvider';
+import { useFusionAuth } from '#components/providers/FusionAuthProvider';
 
 interface Props extends PropsWithChildren {
     withRole?: string | string[];
