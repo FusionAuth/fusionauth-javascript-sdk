@@ -10,7 +10,12 @@
   "tabWidth": 4,
   "overrides": [
     {
-      "files": ["*.json", "*.yml", "*.css", "*.scss"],
+      "files": [
+        "*.json",
+        "*.yml",
+        "*.css",
+        "*.scss"
+      ],
       "options": {
         "tabWidth": 2
       }

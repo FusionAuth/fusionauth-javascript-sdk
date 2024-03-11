@@ -9,7 +9,7 @@
   ],
   "parser": "@typescript-eslint/parser",
   "parserOptions": {
-    "project": ["./tsconfig.json", "./tsconfig.eslint.json"]
+    "project": ["./tsconfig.json", "./packages/*/tsconfig.json"]
   },
   "plugins": ["react", "@typescript-eslint"],
   "ignorePatterns": [
@@ -19,6 +19,7 @@
     "dist/**"
   ],
   "rules": {
+    "react/react-in-jsx-scope": "off",
     "react/prop-types": "off",
     // Note: disable the base rule as it can report incorrect errors
     "no-unused-vars": "off",

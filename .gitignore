@@ -8,3 +8,5 @@ yarn-error.log
 .idea/usage.statistics.xml
 .idea/shelf/*
 .idea/**/*.iml
+
+.vscode
