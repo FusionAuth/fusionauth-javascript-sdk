@@ -13,3 +13,4 @@ yarn-error.log
 
 .eslintcache
 packages/sdk-angular/.angular/cache
+tsconfig.tsbuildinfo
