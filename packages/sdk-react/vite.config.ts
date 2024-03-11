@@ -21,7 +21,11 @@ export default defineConfig({
   },
   plugins: [
     react(),
-    dts({ rollupTypes: true }),
+    dts({ rollupTypes: true, insertTypesEntry: true, }),
   ],
-  // test: {},
+	test: {
+		environment: "jsdom",
+		globals: true,
+		setupFiles: "./src/testing-tools/setup.ts",
+	},
 })

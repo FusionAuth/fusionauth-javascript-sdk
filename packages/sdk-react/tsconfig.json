@@ -20,6 +20,7 @@
     "allowImportingTsExtensions": true,
     "noEmit": true,
     "jsx": "react-jsx",
+    "types": ["node"]
   },
-  "include": ["src", "src/styles"]
+  "include": ["src", "src/testing-tools"]
 }
