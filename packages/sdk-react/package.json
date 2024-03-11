@@ -1,5 +1,5 @@
 {
-  "name": "@fusionauth/react-sdk",
+  "name": "@fusionauth/react-sdk-old",
   "version": "1.0.6",
   "description": "FusionAuth solves the problem of building essential security without adding risk or distracting from your primary application",
   "scripts": {

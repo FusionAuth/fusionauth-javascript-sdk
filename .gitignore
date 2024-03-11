@@ -1,5 +1,7 @@
 node_modules
 
+dist
+
 yarn-error.log
 
 .idea/workspace.xml
