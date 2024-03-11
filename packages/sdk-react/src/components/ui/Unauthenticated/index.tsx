@@ -1,5 +1,5 @@
 import { FC, PropsWithChildren } from 'react';
-import { useFusionAuth } from '../providers/FusionAuthProvider';
+import { useFusionAuth } from '#components/providers/FusionAuthProvider';
 
 export const Unauthenticated: FC<PropsWithChildren> = props => {
     const { isAuthenticated } = useFusionAuth();
