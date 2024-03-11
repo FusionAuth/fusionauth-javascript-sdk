@@ -1,4 +1,4 @@
-import { FC, PropsWithChildren } from 'react';
+import React, { FC, PropsWithChildren } from 'react';
 import { useFusionAuth } from '../providers/FusionAuthProvider';
 
 interface Props extends PropsWithChildren {

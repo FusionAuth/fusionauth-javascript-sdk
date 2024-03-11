@@ -9,7 +9,6 @@
   "private": true,
   "workspaces": [
     "packages/core",
-    "packages/sdk-react",
-    "packages/sdk-react-v2"
+    "packages/sdk-react"
   ]
 }

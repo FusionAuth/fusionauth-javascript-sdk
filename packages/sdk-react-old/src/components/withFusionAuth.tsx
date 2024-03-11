@@ -1,4 +1,4 @@
-import type { ComponentType } from 'react';
+import React from 'react';
 import {
     FusionAuthContext,
     IFusionAuthContext,
@@ -11,7 +11,7 @@ export interface WithFusionAuthProps {
 export const withFusionAuth = <
     Props extends WithFusionAuthProps = WithFusionAuthProps,
 >(
-    Component: ComponentType<Props>,
+    Component: React.ComponentType<Props>,
 ) => {
     const displayName = Component.displayName;
 

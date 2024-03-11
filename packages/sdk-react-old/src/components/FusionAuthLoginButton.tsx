@@ -1,4 +1,4 @@
-import { FC } from 'react';
+import React, { FC } from 'react';
 import { useFusionAuth } from '../providers/FusionAuthProvider';
 import styles from '../styles/button.module.scss';
 import classNames from 'classnames';
@@ -9,20 +9,20 @@ interface Props {
     className?: string;
 }
 
-export const FusionAuthRegisterButton: FC<Props> = ({
+export const FusionAuthLoginButton: FC<Props> = ({
     state,
     text,
     className,
 }) => {
-    const { register } = useFusionAuth();
+    const { login } = useFusionAuth();
 
     return (
         <button
             className={classNames(styles.fusionAuthButton, className)}
             type="button"
-            onClick={() => register(state ?? '')}
+            onClick={() => login(state ?? '')}
         >
-            {text ?? 'Register Now'}
+            {text ?? 'Login'}
         </button>
     );
 };
