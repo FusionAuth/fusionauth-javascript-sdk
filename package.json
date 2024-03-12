@@ -9,7 +9,8 @@
   "private": true,
   "workspaces": [
     "packages/core",
-    "packages/sdk-react"
+    "packages/sdk-react",
+    "packages/sdk-angular"
   ],
   "devDependencies": {
     "@typescript-eslint/eslint-plugin": "^7.2.0",
@@ -29,9 +30,11 @@
   },
   "scripts": {
     "prepare": "husky",
-    "build:sdk-react": "yarn workspace @fusionauth/react-sdk build",
-    "test": "yarn run test:sdk-react",
+    "test": "yarn run test:sdk-react && yarn run test:sdk-angular",
     "test:sdk-react": "yarn workspace @fusionauth/react-sdk test",
+    "test:sdk-angular": "yarn workspace sdk-angular-workspace test:run",
+    "build:sdk-angular": "yarn workspace sdk-angular-workspace build",
+    "build:sdk-react": "yarn workspace @fusionauth/react-sdk build",
     "lint:fix": "eslint . --ext .ts,.tsx --fix",
     "lint:check": "eslint . --ext .ts,.tsx --max-warnings 0",
     "format:fix": "prettier --write .",
