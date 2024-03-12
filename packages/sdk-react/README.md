@@ -2,33 +2,33 @@ An SDK for using FusionAuth in React applications.
 
 # Table of Contents
 
--   [Overview](#overview)
+- [Overview](#overview)
 
--   [Getting Started](#getting-started)
+- [Getting Started](#getting-started)
 
-    -   [Installation](#installation)
+  - [Installation](#installation)
 
-    -   [Configuring Provider](#configuring-provider)
+  - [Configuring Provider](#configuring-provider)
 
-    -   [Server Code Requirements](#server-code-requirements)
+  - [Server Code Requirements](#server-code-requirements)
 
--   [Usage](#usage)
+- [Usage](#usage)
 
-    -   [Pre-built buttons](#pre-built-buttons)
+  - [Pre-built buttons](#pre-built-buttons)
 
-    -   [Programmatic usage](#programmatic-usage)
+  - [Programmatic usage](#programmatic-usage)
 
-    -   [Protecting content](#protecting-content)
+  - [Protecting content](#protecting-content)
 
-    -   [Known issues](#known-issues)
+  - [Known issues](#known-issues)
 
--   [Example App](#example-app)
+- [Example App](#example-app)
 
--   [Quickstart](#quickstart)
+- [Quickstart](#quickstart)
 
--   [Documentation](#documentation)
+- [Documentation](#documentation)
 
--   [Releases](#releases)
+- [Releases](#releases)
 
 <!--
 this tag, and the corresponding end tag, are used to delineate what is pulled into the FusionAuth docs site (the client libraries pages). Don't remove unless you also change the docs site.
@@ -52,23 +52,23 @@ then log in. After that, they are sent back to your React application.
 Once authentication succeeds, the following secure, HTTP-only cookies
 will be set:
 
--   `app.at` - an OAuth [Access
-    Token](https://fusionauth.io/docs/v1/tech/oauth/tokens#access-token)
+- `app.at` - an OAuth [Access
+  Token](https://fusionauth.io/docs/v1/tech/oauth/tokens#access-token)
 
--   `app.rt` - a [Refresh
-    Token](https://fusionauth.io/docs/v1/tech/oauth/tokens#refresh-token)
-    used to obtain a new `app.at`. This cookie will only be set if
-    refresh tokens are enabled on your FusionAuth instance.
+- `app.rt` - a [Refresh
+  Token](https://fusionauth.io/docs/v1/tech/oauth/tokens#refresh-token)
+  used to obtain a new `app.at`. This cookie will only be set if
+  refresh tokens are enabled on your FusionAuth instance.
 
 The access token can be presented to APIs to authorize the request and
 the refresh token can be used to get a new access token.
 
 There are 2 ways to interact with this SDK:
+
 1. Host your own server that performs the OAuth token exchange. See [Server Code
-Requirements](#server-code-requirements) for more details.
-    - Example app with server code: [fusionauth-example-react-sdk](https://github.com/FusionAuth/fusionauth-example-react-sdk)
+   Requirements](#server-code-requirements) for more details. - Example app with server code: [fusionauth-example-react-sdk](https://github.com/FusionAuth/fusionauth-example-react-sdk)
 2. Use the endpoints hosted by your FusionAuth instance to perform the OAuth token exchange for you.
-    - Example app without server code: [fusionauth-quickstart-javascript-react-web](https://github.com/FusionAuth/fusionauth-quickstart-javascript-react-web)
+   - Example app without server code: [fusionauth-quickstart-javascript-react-web](https://github.com/FusionAuth/fusionauth-quickstart-javascript-react-web)
 
 You can use this library against any version of FusionAuth or any OIDC
 compliant identity server.
@@ -149,11 +149,11 @@ This endpoint must:
 3.  If you wish to support refresh tokens, repeat step 2 for the
     `app.rt` cookie.
 
-4.  Save the expiration time in a readable `app.at_exp` cookie.  And save the `app.idt` id token in a readable cookie.
+4.  Save the expiration time in a readable `app.at_exp` cookie. And save the `app.idt` id token in a readable cookie.
 
 5.  Redirect browser back to encoded url saved in `state`.
 
-4.  Call
+6.  Call
     [/oauth2/userinfo](https://fusionauth.io/docs/v1/tech/oauth/endpoints#userinfo)
     to retrieve the user info object and respond back to the client with
     this object.
@@ -163,7 +163,7 @@ implementation](https://github.com/FusionAuth/fusionauth-example-react-sdk/blob/
 
 #### `GET /app/register`
 
-This endpoint is similar to `/login`.  It must:
+This endpoint is similar to `/login`. It must:
 
 1.  Generate PKCE code.
     a. The code verifier should be saved in a secure HTTP-only cookie.
@@ -399,8 +399,8 @@ Use backticks for code in this readme. This readme is included on the FusionAuth
 
 There are several linting packages run when you push to a branch. One is `prettier`. If this fails, you can fix the files from the command line:
 
-* npm run install
-* npm run prettier -- -w /path/to/file
+- npm run install
+- npm run prettier -- -w /path/to/file
 
 Doing this will overwrite your file, but fix prettier's objections.
 

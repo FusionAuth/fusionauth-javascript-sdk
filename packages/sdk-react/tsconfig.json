@@ -1,25 +1,16 @@
 {
+  "extends": "../../tsconfig.json",
   "compilerOptions": {
-    // Default
-    "target": "ES6",
-    "esModuleInterop": true,
-    "forceConsistentCasingInFileNames": true,
-    "strict": true,
-    "skipLibCheck": true,
-    // Added
-    "jsx": "react",
-    "module": "ES2015",
-    "declaration": true,
-    "declarationDir": "dist",
-    "sourceMap": true,
+    "rootDir": ".",
+    "baseUrl": ".",
+    "paths": {
+      "#/*": ["./src/*"],
+      "#components/*": ["./src/components/*"],
+      "#styles/*": ["./src/styles/*"],
+      "#testing-tools/*": ["./src/testing-tools/*"]
+    },
     "outDir": "dist",
-    "moduleResolution": "node",
-    "allowSyntheticDefaultImports": true,
-    "emitDeclarationOnly": false,
-    "noEmit": false,
-    "allowJs": true,
-    "checkJs": false
+    "jsx": "react-jsx"
   },
-  "include": ["./src"],
-  "exclude": ["./src/__tests__", "types"]
+  "include": ["src", "vite.config.ts"]
 }
