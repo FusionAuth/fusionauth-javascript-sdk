@@ -29,6 +29,7 @@
   },
   "scripts": {
     "prepare": "husky",
+    "build:sdk-react": "yarn workspace @fusionauth/react-sdk build",
     "test": "yarn run test:sdk-react",
     "test:sdk-react": "yarn workspace @fusionauth/react-sdk test",
     "lint:fix": "eslint . --ext .ts,.tsx --fix",
