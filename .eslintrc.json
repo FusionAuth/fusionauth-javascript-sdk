@@ -12,12 +12,7 @@
     "project": ["./tsconfig.json", "./packages/*/tsconfig.json"]
   },
   "plugins": ["react", "@typescript-eslint"],
-  "ignorePatterns": [
-    "build/**",
-    "node_modules/**",
-    ".eslintrc.json",
-    "dist/**"
-  ],
+  "ignorePatterns": ["build/**", "node_modules/**", ".eslintrc.json", "dist"],
   "rules": {
     "react/react-in-jsx-scope": "off",
     "react/prop-types": "off",

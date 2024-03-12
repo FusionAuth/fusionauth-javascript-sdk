@@ -30,7 +30,11 @@
   "scripts": {
     "prepare": "husky",
     "test": "yarn run test:sdk-react",
-    "test:sdk-react": "yarn workspace @fusionauth/react-sdk test"
+    "test:sdk-react": "yarn workspace @fusionauth/react-sdk test",
+    "lint:fix": "eslint . --ext .ts,.tsx --fix",
+    "lint:check": "eslint . --ext .ts,.tsx --max-warnings 0",
+    "format:fix": "prettier --write .",
+    "format:check": "prettier --check ."
   },
   "lint-staged": {
     "*.{ts,tsx}": "eslint --cache --fix",
