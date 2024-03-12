@@ -24,11 +24,16 @@
     "eslint-plugin-react-hooks": "^4.6.0",
     "eslint-plugin-react-refresh": "^0.4.5",
     "husky": "^9.0.11",
+    "lint-staged": "^15.2.2",
     "prettier": "^3.2.5"
   },
   "scripts": {
     "prepare": "husky",
     "test": "yarn run test:sdk-react",
     "test:sdk-react": "yarn workspace @fusionauth/react-sdk test"
+  },
+  "lint-staged": {
+    "*.{ts,tsx}": "eslint --cache --fix",
+    "*.{js,css,md,ts,tsx,yml}": "prettier --write"
   }
 }
