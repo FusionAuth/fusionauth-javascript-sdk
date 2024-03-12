@@ -23,6 +23,12 @@
     "eslint-plugin-react": "^7.34.0",
     "eslint-plugin-react-hooks": "^4.6.0",
     "eslint-plugin-react-refresh": "^0.4.5",
+    "husky": "^9.0.11",
     "prettier": "^3.2.5"
+  },
+  "scripts": {
+    "prepare": "husky",
+    "test": "yarn run test:sdk-react",
+    "test:sdk-react": "yarn workspace @fusionauth/react-sdk test"
   }
 }
