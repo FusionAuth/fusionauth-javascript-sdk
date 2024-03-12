@@ -1,3 +1,3 @@
-import { add } from "@fusionauth-sdk/core";
+import { add } from '@fusionauth-sdk/core';
 
-console.log(add(2, 2))
+console.log(add(2, 2));

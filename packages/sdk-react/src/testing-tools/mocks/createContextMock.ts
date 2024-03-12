@@ -2,13 +2,13 @@ import { IFusionAuthContext } from '../../components/providers/FusionAuthProvide
 import { vi } from 'vitest';
 
 export const createContextMock = (
-    context: Partial<IFusionAuthContext>,
+  context: Partial<IFusionAuthContext>,
 ): IFusionAuthContext => ({
-    login: context.login ?? vi.fn(),
-    logout: context.logout ?? vi.fn(),
-    register: context.register ?? vi.fn(),
-    isAuthenticated: context.isAuthenticated ?? false,
-    user: context.user ?? {},
-    refreshToken: context.refreshToken ?? vi.fn(),
-    isLoading: context.isLoading ?? false,
+  login: context.login ?? vi.fn(),
+  logout: context.logout ?? vi.fn(),
+  register: context.register ?? vi.fn(),
+  isAuthenticated: context.isAuthenticated ?? false,
+  user: context.user ?? {},
+  refreshToken: context.refreshToken ?? vi.fn(),
+  isLoading: context.isLoading ?? false,
 });

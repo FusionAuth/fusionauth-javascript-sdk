@@ -4,10 +4,10 @@ import { createContextMock } from './createContextMock';
 import { vi } from 'vitest';
 
 export const mockUseFusionAuth = (
-    context: Partial<IFusionAuthContext> = {},
+  context: Partial<IFusionAuthContext> = {},
 ) => {
-    const contextMock = createContextMock(context);
-    return vi
-        .spyOn(FusionAuthProvider, 'useFusionAuth')
-        .mockReturnValue(contextMock);
+  const contextMock = createContextMock(context);
+  return vi
+    .spyOn(FusionAuthProvider, 'useFusionAuth')
+    .mockReturnValue(contextMock);
 };

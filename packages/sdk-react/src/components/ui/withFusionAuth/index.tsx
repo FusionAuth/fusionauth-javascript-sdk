@@ -1,31 +1,31 @@
 import type { ComponentType } from 'react';
 import {
-    FusionAuthContext,
-    IFusionAuthContext,
+  FusionAuthContext,
+  IFusionAuthContext,
 } from '#components/providers/FusionAuthProvider';
 
 export interface WithFusionAuthProps {
-    fusionAuth: IFusionAuthContext;
+  fusionAuth: IFusionAuthContext;
 }
 
 export const withFusionAuth = <
-    Props extends WithFusionAuthProps = WithFusionAuthProps,
+  Props extends WithFusionAuthProps = WithFusionAuthProps,
 >(
-    Component: ComponentType<Props>,
+  Component: ComponentType<Props>,
 ) => {
-    const displayName = Component.displayName;
+  const displayName = Component.displayName;
 
-    const FusionAuthComponent = (
-        props: Omit<Props, keyof WithFusionAuthProps>,
-    ) => (
-        <FusionAuthContext.Consumer>
-            {(fusionAuth: IFusionAuthContext) => (
-                <Component {...(props as Props)} fusionAuth={fusionAuth} />
-            )}
-        </FusionAuthContext.Consumer>
-    );
+  const FusionAuthComponent = (
+    props: Omit<Props, keyof WithFusionAuthProps>,
+  ) => (
+    <FusionAuthContext.Consumer>
+      {(fusionAuth: IFusionAuthContext) => (
+        <Component {...(props as Props)} fusionAuth={fusionAuth} />
+      )}
+    </FusionAuthContext.Consumer>
+  );
 
-    FusionAuthComponent.displayName = displayName;
+  FusionAuthComponent.displayName = displayName;
 
-    return FusionAuthComponent;
+  return FusionAuthComponent;
 };

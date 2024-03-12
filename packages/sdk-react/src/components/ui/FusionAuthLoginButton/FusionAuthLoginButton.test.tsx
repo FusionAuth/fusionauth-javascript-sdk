@@ -7,18 +7,18 @@ import { mockUseFusionAuth } from '../../../testing-tools/mocks/mockUseFusionAut
 import { TEST_CONFIG } from '../../../testing-tools/mocks/testConfig';
 
 describe('FusionAuthLoginButton', () => {
-    test('Login button will call the useFusionAuth hook', () => {
-        const login = vi.fn();
-        mockUseFusionAuth({ login });
+  test('Login button will call the useFusionAuth hook', () => {
+    const login = vi.fn();
+    mockUseFusionAuth({ login });
 
-        const stateValue = 'state-value-for-login';
-        render(
-            <FusionAuthProvider {...TEST_CONFIG}>
-                <FusionAuthLoginButton state={stateValue} />
-            </FusionAuthProvider>,
-        );
+    const stateValue = 'state-value-for-login';
+    render(
+      <FusionAuthProvider {...TEST_CONFIG}>
+        <FusionAuthLoginButton state={stateValue} />
+      </FusionAuthProvider>,
+    );
 
-        fireEvent.click(screen.getByText('Login'));
-        expect(login).toHaveBeenCalledWith(stateValue);
-    });
+    fireEvent.click(screen.getByText('Login'));
+    expect(login).toHaveBeenCalledWith(stateValue);
+  });
 });
