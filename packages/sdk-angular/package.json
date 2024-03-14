@@ -4,8 +4,8 @@
   "scripts": {
     "ng": "ng",
     "build": "ng build",
-    "test:watch": "ng test",
-    "test:run": "ng test --watch=false --browsers=ChromeHeadless"
+    "test": "ng test --watch=false --browsers=ChromeHeadless",
+    "test:watch": "ng test"
   },
   "private": false,
   "dependencies": {
