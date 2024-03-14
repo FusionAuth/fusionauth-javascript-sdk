@@ -1,9 +1,4 @@
 {
-  "references": [
-    {
-      "path": "packages/sdk-react"
-    }
-  ],
   "compilerOptions": {
     "baseUrl": ".",
     "paths": {
@@ -28,7 +23,5 @@
     "allowImportingTsExtensions": true,
     "noEmit": true,
     "types": ["node"]
-  },
-  "files": [],
-  "include": []
+  }
 }

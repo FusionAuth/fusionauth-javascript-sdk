@@ -3,19 +3,15 @@
   "extends": [
     "eslint:recommended",
     "plugin:@typescript-eslint/eslint-recommended",
-    "plugin:@typescript-eslint/recommended",
-    "plugin:react-hooks/recommended",
-    "plugin:react/recommended"
+    "plugin:@typescript-eslint/recommended"
   ],
   "parser": "@typescript-eslint/parser",
   "parserOptions": {
     "project": ["./tsconfig.json", "./packages/*/tsconfig.json"]
   },
-  "plugins": ["react", "@typescript-eslint"],
+  "plugins": ["@typescript-eslint"],
   "ignorePatterns": ["build/**", "node_modules/**", ".eslintrc.json", "dist"],
   "rules": {
-    "react/react-in-jsx-scope": "off",
-    "react/prop-types": "off",
     // Note: disable the base rule as it can report incorrect errors
     "no-unused-vars": "off",
     "@typescript-eslint/ban-ts-comment": "off",
@@ -33,9 +29,5 @@
     ],
     "prefer-const": "warn"
   },
-  "settings": {
-    "react": {
-      "version": "detect"
-    }
-  }
+  "settings": {}
 }
