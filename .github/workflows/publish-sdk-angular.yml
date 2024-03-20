@@ -1,0 +1,40 @@
+name: Publish @fusionauth/angular-sdk
+
+on: workflow_dispatch
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [18.x, 20.x]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'npm'
+      - name: Angular SDK - Install packages
+        run: yarn install --frozen-lockfile
+      - name: Angular SDK - Test
+        run: yarn test:sdk-angular
+
+  publish-sdk-angular:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Use Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          registry-url: https://registry.npmjs.org/
+      - run: yarn install --frozen-lockfile
+      - name: Angular SDK - Build
+        run: yarn build:sdk-angular
+      - name: Angular SDK - Publish
+        working-directory: ./packages/sdk-angular/dist/fusionauth-angular-sdk
+        run: npm publish --dry-run
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
