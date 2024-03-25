@@ -3,7 +3,7 @@
   "version": "0.0.1",
   "scripts": {
     "ng": "ng",
-    "build": "ng build",
+    "build": "ng build && cp README.md dist/fusionauth-angular-sdk/README.md",
     "test": "ng test --watch=false --browsers=ChromeHeadless",
     "test:watch": "ng test"
   },
