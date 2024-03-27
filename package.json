@@ -9,6 +9,7 @@
   "private": true,
   "workspaces": [
     "packages/core",
+    "packages/lexicon",
     "packages/sdk-react",
     "packages/sdk-angular",
     "packages/sdk-vue"
