@@ -1,13 +1,15 @@
 import { Brand } from 'src/Tools';
 import { GUID } from 'src/GUID';
 
-export type User = {
+export type UserInfo = {
   applicationId: ApplicationId;
   birthdate: Date;
   email: Email;
   email_verified: boolean;
   family_name: string;
   given_name: string;
+  phone_number?: string;
+  picture?: string;
   roles: string[];
   scope: string;
   sid: SId;
