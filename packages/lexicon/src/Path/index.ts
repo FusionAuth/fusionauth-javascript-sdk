@@ -14,7 +14,7 @@ export const defaultPathValues = {
   tokenRefresh: '/app/refresh',
 };
 
-abstract class Path {
+export abstract class Path {
   private readonly defaultValue: string;
   private readonly value?: string;
 
