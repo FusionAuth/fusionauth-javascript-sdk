@@ -1,10 +1,6 @@
 import type { FusionAuth, FusionAuthConfig, UserInfo } from './types';
-import {
-  doRedirectForPath,
-  getExpTime,
-  getFormattedPath,
-  getURLForPath,
-} from './utils';
+import { doRedirectForPath, getFormattedPath, getURLForPath } from './utils';
+import { CookieHelpers } from '@fusionauth-sdk/core';
 
 const DEFAULT_ACCESS_TOKEN_EXPIRE_WINDOW = 30000;
 
@@ -19,7 +15,9 @@ export const createFusionAuth = (config: FusionAuthConfig): FusionAuth => {
   }
 
   function isLoggedIn(): boolean {
-    return (getExpTime() ?? 0) > new Date().getTime();
+    return (
+      (CookieHelpers.getAuthTokenExpirationTime() ?? 0) > new Date().getTime()
+    );
   }
 
   function login(state?: string): void {
@@ -35,7 +33,7 @@ export const createFusionAuth = (config: FusionAuthConfig): FusionAuth => {
   async function refreshToken(): Promise<void> {
     const timeWindow =
       config.accessTokenExpireWindow ?? DEFAULT_ACCESS_TOKEN_EXPIRE_WINDOW;
-    const expiresAt = getExpTime();
+    const expiresAt = CookieHelpers.getAuthTokenExpirationTime();
     if (!expiresAt || expiresAt > Date.now() + timeWindow) return;
 
     const tokenRefreshPath = getFormattedPath(
@@ -62,7 +60,7 @@ export const createFusionAuth = (config: FusionAuthConfig): FusionAuth => {
   }
 
   function autoRefresh(): void {
-    const expiresAt = getExpTime();
+    const expiresAt = CookieHelpers.getAuthTokenExpirationTime();
     if (!expiresAt) return;
 
     const refreshBuffer = (config.autoRefreshSecondsBeforeExpiry ?? 10) * 1000;

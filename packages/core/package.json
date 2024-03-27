@@ -1,10 +1,21 @@
 {
   "name": "@fusionauth-sdk/core",
-  "version": "0.1.0",
-  "description": "The core functionality for the FusionAuth SDKs.",
-  "main": "index.js",
-  "author": "FusionAuth",
-  "license": "Apache",
   "private": true,
-  "type": "module"
+  "description": "The core functionality shared by the FusionAuth React, Angular, and Vue SDKs.",
+  "version": "0.1.0",
+  "type": "module",
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc && vite build",
+    "dev:watch": "vite"
+  },
+  "devDependencies": {
+    "typescript": "^5.2.2",
+    "vite": "^5.2.0",
+    "vite-plugin-dts": "^3.8.0"
+  }
 }
