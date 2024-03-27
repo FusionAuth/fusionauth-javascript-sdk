@@ -31,7 +31,8 @@
   },
   "scripts": {
     "prepare": "husky",
-    "test": "yarn test:sdk-react && yarn test:sdk-angular && yarn test:sdk-vue",
+    "test": "yarn test:core && yarn test:sdk-react && yarn test:sdk-angular && yarn test:sdk-vue",
+    "test:core": "yarn workspace @fusionauth-sdk/core test",
     "test:sdk-angular": "yarn workspace sdk-angular-workspace test",
     "test:sdk-react": "yarn workspace @fusionauth/react-sdk test",
     "test:sdk-vue": "yarn workspace @fusionauth/vue-sdk test",
