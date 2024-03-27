@@ -1,0 +1,20 @@
+{
+  "name": "@fusionauth-sdk/lexicon",
+  "version": "0.1.0",
+  "description": "Useful types and classes for the FusionAuth SDKs.",
+  "main": "index.ts",
+  "author": "FusionAuth",
+  "license": "Apache",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "vitest --run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest --coverage"
+  },
+  "devDependencies": {
+    "vite": "^5.0.12",
+    "vite-plugin-dts": "^3.7.1",
+    "vitest": "^1.2.1"
+  }
+}
