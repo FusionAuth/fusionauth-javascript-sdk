@@ -1,3 +1,4 @@
+import { CookieHelpers } from '@fusionauth-sdk/core';
 import { FusionAuthConfig, UserInfo } from './types';
 
 /**
@@ -125,11 +126,7 @@ export class FusionAuthService {
     return url;
   }
 
-  private getExpTime(): number | null {
-    const expCookie = document.cookie
-      .split('; ')
-      .map(c => c.split('='))
-      .find(([name]) => name === 'app.at_exp');
-    return expCookie ? parseInt(expCookie?.[1] ?? '0') * 1000 : null;
+  private getExpTime() {
+    return CookieHelpers.getAuthTokenExpirationTime();
   }
 }

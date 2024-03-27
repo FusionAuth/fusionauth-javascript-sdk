@@ -3,7 +3,8 @@
   "version": "0.1.7",
   "peerDependencies": {
     "@angular/common": "^17.2.0",
-    "@angular/core": "^17.2.0"
+    "@angular/core": "^17.2.0",
+    "@fusionauth-sdk/core": "*"
   },
   "dependencies": {
     "tslib": "^2.3.0"
