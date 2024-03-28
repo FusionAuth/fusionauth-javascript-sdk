@@ -37,7 +37,8 @@
     "vue-tsc": "^1.8.5"
   },
   "dependencies": {
-    "query-string": "8.1.0"
+    "query-string": "8.1.0",
+    "@fusionauth-sdk/core": "*"
   },
   "files": [
     "dist/*"
