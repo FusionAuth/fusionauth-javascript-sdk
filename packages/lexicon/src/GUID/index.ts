@@ -39,11 +39,3 @@ export class GUID implements Validator {
     }
   }
 }
-
-const bar = GUID.from('invalid GUID');
-
-if (bar.isValid()) {
-  bar.value; // GUID.string
-} else {
-  bar; //
-}
