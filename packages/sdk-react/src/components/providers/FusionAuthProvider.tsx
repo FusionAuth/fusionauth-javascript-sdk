@@ -8,6 +8,7 @@ import React, {
   useState,
 } from 'react';
 import Cookies from 'js-cookie';
+import { TokenRefresher, UrlHelpers } from '@fusionauth-sdk/core';
 
 const DEFAULT_SCOPE = 'openid offline_access';
 // 30 sec window before making network refresh call
@@ -91,18 +92,18 @@ export const FusionAuthProvider: React.FC<FusionAuthConfig> = props => {
 
   const login = useCallback(
     (state = '') => {
-      const stateParam = setUpRedirect(state);
-      const fullUrl = generateServerUrl(
-        ServerFunctionType.login,
-        props.loginPath,
-        {
-          client_id: props.clientID,
+      setUpRedirect(state);
+      const url = UrlHelpers.generateUrl({
+        serverUrlString: props.serverUrl,
+        path: props.loginPath || `/app/${ServerFunctionType.login}`,
+        clientId: props.clientID,
+        params: {
+          redirectUri: props.redirectUri,
+          state,
           scope: props.scope ?? DEFAULT_SCOPE,
-          redirect_uri: props.redirectUri,
-          state: stateParam,
         },
-      );
-      window.location.assign(fullUrl);
+      });
+      window.location.assign(url);
     },
     [
       generateServerUrl,
@@ -155,38 +156,40 @@ export const FusionAuthProvider: React.FC<FusionAuthConfig> = props => {
     ],
   );
 
-  const refreshToken = useCallback(async () => {
-    const accessTokenExpires = Cookies.get(accessTokenExpireCookieName);
-    const timeWindow =
-      props.accessTokenExpireWindow ?? DEFAULT_ACCESS_TOKEN_EXPIRE_WINDOW;
-    const fallbackTokenRefreshPath = `/app/refresh/${props.clientID}`;
-    if (
-      accessTokenExpires === undefined ||
-      Number(accessTokenExpires) * 1000 < Date.now() + timeWindow
-    ) {
-      await fetch(
-        generateServerUrl(
-          ServerFunctionType.tokenRefresh,
-          // add fallback so the optional tokenRefreshPath prop isn't required to construct the refresh URL
-          props.tokenRefreshPath || fallbackTokenRefreshPath,
-        ),
-        {
-          method: 'POST',
-          headers: {
-            // some servers expect content-type, even with no body
-            'content-type': 'text/plain',
-          },
-          credentials: 'include',
-        },
-      );
-    }
+  const tokenRefresher = useMemo<TokenRefresher>(() => {
+    const url = UrlHelpers.generateUrl({
+      serverUrlString: props.serverUrl,
+      path: props.tokenRefreshPath || `/app/refresh`,
+      clientId: props.clientID,
+    });
+    return new TokenRefresher(url);
   }, [
-    accessTokenExpireCookieName,
-    props.accessTokenExpireWindow,
-    props.tokenRefreshPath,
+    props.serverUrl,
     props.clientID,
-    generateServerUrl,
+    props.tokenRefreshPath,
+    props.redirectUri,
   ]);
+
+  const tokenRefreshTimeout = useRef<NodeJS.Timeout | undefined>();
+  const initAutoTokenRefresh = useCallback(() => {
+    if (tokenRefreshTimeout.current) {
+      return;
+    }
+
+    tokenRefreshTimeout.current = tokenRefresher.initAutoRefresh(
+      props.accessTokenExpireWindow || DEFAULT_ACCESS_TOKEN_EXPIRE_WINDOW,
+      accessTokenExpireCookieName,
+    );
+  }, [tokenRefresher]);
+
+  useEffect(() => {
+    initAutoTokenRefresh();
+  }, [initAutoTokenRefresh]);
+
+  const refreshToken = useCallback(
+    async () => await tokenRefresher.refreshToken(),
+    [tokenRefresher],
+  );
 
   const setUserFromCookie = useCallback((cookie: string) => {
     try {
