@@ -27,7 +27,7 @@ export class UrlHelpers {
 }
 
 function _generateURLSearchParams(
-  params: Record<string, string>,
+  params: UrlGenerationParams,
 ): URLSearchParams {
   const urlSearchParams = new URLSearchParams();
 

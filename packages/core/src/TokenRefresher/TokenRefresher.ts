@@ -25,20 +25,21 @@ class TokenRefresher {
 
   /**
    * Checks for the 'app.at_exp' cookie and if present sets a timer to refresh the access token.
-   * Will attempt to refresh the configured seconds before the access token expires (default is ten seconds).
+   * Will attempt to refresh at the specified time before the access token expires (default is 10 seconds).
    */
   initAutoRefresh(
-    refreshBeforeSeconds: number = 10,
+    secondsBeforeRefresh: number = 10,
     authTokenExpirationCookieName?: string,
   ) {
     const tokenExpirationMoment = CookieHelpers.getAuthTokenExpirationTime(
       authTokenExpirationCookieName,
     );
-    const millisecondsBeforeRefresh = refreshBeforeSeconds * 1000;
 
     if (!tokenExpirationMoment) {
       return;
     }
+
+    const millisecondsBeforeRefresh = secondsBeforeRefresh * 1000;
 
     const now = new Date().getTime();
     const refreshTime = tokenExpirationMoment - millisecondsBeforeRefresh;
@@ -48,7 +49,7 @@ class TokenRefresher {
     const timeout = setTimeout(async () => {
       try {
         await this.refreshToken();
-        this.initAutoRefresh(refreshBeforeSeconds);
+        this.initAutoRefresh(secondsBeforeRefresh);
       } catch (e) {
         console.error(e);
       }

@@ -29,17 +29,17 @@ describe('UrlHelpers.generateUrl', () => {
   });
 
   it('Initialize automatic refresh', async () => {
-    const url = new URL('http://token-refresh-class.com/refresh-token');
-    const tokenRefresher = new TokenRefresher(url);
+    const tokenRefresher = new TokenRefresher(
+      new URL('http://token-refresh-class.com/refresh-token'),
+    );
 
     tokenRefresher.refreshToken = vi.fn();
 
     const expirationTime = new Date();
-    expirationTime.setHours(expirationTime.getHours() + 1); // 1 hour in the future
+    expirationTime.setHours(expirationTime.getHours() + 1);
+    document.cookie = `app.at_exp=${expirationTime.getTime() / 1000}`; // token will expire 1 hour in the future
 
-    document.cookie = `app.at_exp=${expirationTime.getTime() / 1000}`; // set cookie as epoch time
-
-    const timeout = tokenRefresher.initAutoRefresh(30); // refresh 30 seconds before expiration
+    const timeout = tokenRefresher.initAutoRefresh(30); // set autorefresh for 30 seconds before expiration
 
     vi.advanceTimersByTime(59 * 60 * 1000); // advance time 59 minutes
     expect(tokenRefresher.refreshToken).not.toHaveBeenCalled();

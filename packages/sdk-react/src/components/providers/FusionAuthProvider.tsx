@@ -12,7 +12,7 @@ import { TokenRefresher, UrlHelpers } from '@fusionauth-sdk/core';
 
 const DEFAULT_SCOPE = 'openid offline_access';
 // 30 sec window before making network refresh call
-const DEFAULT_ACCESS_TOKEN_EXPIRE_WINDOW = 30000;
+const DEFAULT_ACCESS_TOKEN_EXPIRE_WINDOW = 30;
 
 export interface IFusionAuthContext {
   login: (state?: string) => void;
@@ -44,6 +44,7 @@ export interface FusionAuthConfig extends PropsWithChildren {
   onRedirectSuccess?: RedirectSuccess;
   onRedirectFail?: RedirectFail;
   scope?: string;
+  /** The amount of seconds before the auth token is automatically refreshed. Default is 30. */
   accessTokenExpireWindow?: number;
   accessTokenExpireCookieName?: string;
   loginPath?: string;
@@ -67,10 +68,6 @@ export const FusionAuthProvider: React.FC<FusionAuthConfig> = props => {
       return props.accessTokenExpireCookieName;
     }
 
-    console.warn(
-      'Cannot set access token cookie name to empty string. Using default value.',
-    );
-
     return 'app.at_exp';
   }, [props.accessTokenExpireCookieName]);
 
@@ -92,18 +89,18 @@ export const FusionAuthProvider: React.FC<FusionAuthConfig> = props => {
 
   const login = useCallback(
     (state = '') => {
-      setUpRedirect(state);
-      const url = UrlHelpers.generateUrl({
-        serverUrlString: props.serverUrl,
-        path: props.loginPath || `/app/${ServerFunctionType.login}`,
-        clientId: props.clientID,
-        params: {
-          redirectUri: props.redirectUri,
-          state,
+      const stateParam = setUpRedirect(state);
+      const fullUrl = generateServerUrl(
+        ServerFunctionType.login,
+        props.loginPath,
+        {
+          client_id: props.clientID,
           scope: props.scope ?? DEFAULT_SCOPE,
+          redirect_uri: props.redirectUri,
+          state: stateParam,
         },
-      });
-      window.location.assign(url);
+      );
+      window.location.assign(fullUrl);
     },
     [
       generateServerUrl,
@@ -163,12 +160,7 @@ export const FusionAuthProvider: React.FC<FusionAuthConfig> = props => {
       clientId: props.clientID,
     });
     return new TokenRefresher(url);
-  }, [
-    props.serverUrl,
-    props.clientID,
-    props.tokenRefreshPath,
-    props.redirectUri,
-  ]);
+  }, [props.serverUrl, props.clientID, props.tokenRefreshPath]);
 
   const tokenRefreshTimeout = useRef<NodeJS.Timeout | undefined>();
   const initAutoTokenRefresh = useCallback(() => {
@@ -180,7 +172,11 @@ export const FusionAuthProvider: React.FC<FusionAuthConfig> = props => {
       props.accessTokenExpireWindow || DEFAULT_ACCESS_TOKEN_EXPIRE_WINDOW,
       accessTokenExpireCookieName,
     );
-  }, [tokenRefresher]);
+  }, [
+    tokenRefresher,
+    accessTokenExpireCookieName,
+    props.accessTokenExpireWindow,
+  ]);
 
   useEffect(() => {
     initAutoTokenRefresh();
