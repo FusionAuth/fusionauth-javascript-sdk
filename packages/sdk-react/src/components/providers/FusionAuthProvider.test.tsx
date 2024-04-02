@@ -1,4 +1,4 @@
-import React, { PropsWithChildren } from 'react';
+import { PropsWithChildren } from 'react';
 import { waitFor, renderHook } from '@testing-library/react';
 import { describe, afterEach, test, expect, beforeEach, vi } from 'vitest';
 
@@ -38,10 +38,16 @@ describe('FusionAuthProvider', () => {
       wrapper,
     });
 
-    result.current.login('state');
+    const stateValue = 'state-value';
+    result.current.login(stateValue);
 
-    const expectedUrl =
-      'http://localhost:9000/app/login?client_id=85a03867-dccf-4882-adde-1a79aeec50df&scope=openid+offline_access&redirect_uri=http%3A%2F%2Flocalhost&state=00000000000000000000000000000000000000000000000000000000%3Astate';
+    const expectedUrl = new URL(TEST_CONFIG.serverUrl);
+    expectedUrl.pathname = '/app/login';
+    expectedUrl.searchParams.set('client_id', TEST_CONFIG.clientID);
+    expectedUrl.searchParams.set('redirect_uri', TEST_CONFIG.redirectUri);
+    expectedUrl.searchParams.set('scope', 'openid offline_access');
+    expectedUrl.searchParams.set('state', stateValue);
+
     expect(mockedLocation.assign).toHaveBeenCalledWith(expectedUrl);
   });
 
@@ -94,7 +100,7 @@ describe('FusionAuthProvider', () => {
     expect(result.current.isLoading).toBe(true);
     expect(result.current.user).toEqual({});
     expect(result.current.isAuthenticated).toBe(false);
-    expect(fetch).toHaveBeenCalledWith(serverUrl + mePath, {
+    expect(fetch).toHaveBeenCalledWith(new URL(serverUrl + mePath), {
       credentials: 'include',
     });
 
@@ -146,8 +152,13 @@ describe('FusionAuthProvider', () => {
 
     result.current.logout();
 
-    const expectedUrl =
-      'http://localhost:9000/app/logout?client_id=85a03867-dccf-4882-adde-1a79aeec50df&post_logout_redirect_uri=http%3A%2F%2Flocalhost';
+    const expectedUrl = new URL(TEST_CONFIG.serverUrl);
+    expectedUrl.pathname = '/app/logout';
+    expectedUrl.searchParams.set('client_id', TEST_CONFIG.clientID);
+    expectedUrl.searchParams.set(
+      'post_logout_redirect_uri',
+      TEST_CONFIG.redirectUri,
+    );
 
     expect(mockedLocation.assign).toHaveBeenCalledWith(expectedUrl);
   });
@@ -165,11 +176,16 @@ describe('FusionAuthProvider', () => {
     const { result } = renderHook(() => useFusionAuth(), {
       wrapper,
     });
+    const stateValue = 'my-state-value';
+    result.current.register(stateValue);
 
-    result.current.register('state');
+    const expectedUrl = new URL(TEST_CONFIG.serverUrl);
+    expectedUrl.pathname = '/app/register';
+    expectedUrl.searchParams.set('client_id', TEST_CONFIG.clientID);
+    expectedUrl.searchParams.set('redirect_uri', TEST_CONFIG.redirectUri);
+    expectedUrl.searchParams.set('scope', 'openid offline_access');
+    expectedUrl.searchParams.set('state', stateValue);
 
-    const expectedUrl =
-      'http://localhost:9000/app/register?client_id=85a03867-dccf-4882-adde-1a79aeec50df&redirect_uri=http%3A%2F%2Flocalhost&scope=openid+offline_access&state=00000000000000000000000000000000000000000000000000000000%3Astate';
     expect(mockedLocation.assign).toHaveBeenCalledWith(expectedUrl);
   });
 

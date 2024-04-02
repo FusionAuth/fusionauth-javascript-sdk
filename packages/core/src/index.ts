@@ -1,3 +1,3 @@
 export * from './CookieHelpers';
-export * from './UrlHelpers';
+export * from './UrlHelper';
 export * from './TokenRefresher';
