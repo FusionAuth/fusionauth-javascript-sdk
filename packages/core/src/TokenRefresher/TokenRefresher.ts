@@ -1,5 +1,6 @@
 import { CookieHelpers } from 'src/CookieHelpers';
 
+/** A class responsible for handling access token refresh. */
 class TokenRefresher {
   url: URL;
 
