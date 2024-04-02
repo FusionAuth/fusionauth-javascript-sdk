@@ -71,20 +71,20 @@ describe('EmptyCookie', () => {
   it('can be filled', () => {
     const someCookie = CookieJar.get('user');
 
-    if (someCookie.isEmpty()) {
-      const newCookie = someCookie.fillWith('bar');
-
-      expect(newCookie.isNotEmpty()).toBe(true);
-
-      if (newCookie.isNotEmpty()) {
-        expect(newCookie.value()).toBe('bar');
-        cleanUp(newCookie);
-      } else {
-        throw new Error('Cookie should be filled.');
-      }
-    } else {
+    if (someCookie.isNotEmpty()) {
       throw new Error('Cookie should be empty.');
     }
+
+    const newCookie = someCookie.fillWith('bar');
+
+    expect(newCookie.isNotEmpty()).toBe(true);
+
+    if (newCookie.isEmpty()) {
+      throw new Error('Cookie should be not be empty.');
+    }
+
+    expect(newCookie.value()).toBe('bar');
+    cleanUp(newCookie);
   });
 });
 
