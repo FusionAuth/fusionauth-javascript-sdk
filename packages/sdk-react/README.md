@@ -88,9 +88,9 @@ yarn add @fusionauth/react-sdk
 
 ### Configuring Provider
 
-To configure the SDK, wrap your app with `FusionAuthProvider`:
+To configure the SDK, define your [`FusionAuthConfig`](#fusionauthconfig) and wrap your app with `FusionAuthProvider`:
 
-```react
+```typescript
 import React from 'react';
 import { createRoot } from 'react-dom/client';
 import { FusionAuthProvider } from '@fusionauth/react-sdk';
@@ -108,6 +108,36 @@ const root = createRoot(container!);
             <App />
         </FusionAuthProvider>
     );
+```
+
+#### FusionAuthConfig
+
+The configuration object to be passed into your `FusionAuthProvider`
+
+```typescript
+interface FusionAuthConfig {
+  // required
+  clientID: string;
+  serverUrl: string;
+  redirectUri: string;
+
+  // redirect handlers
+  onRedirectSuccess?: (state?: string) => void;
+  onRedirectFail?: (error: any) => void;
+
+  // options
+  scope?: string;
+  shouldAutoRefreshAccessToken?: boolean
+  accessTokenExpireWindow?: number;
+  accessTokenExpireCookieName?: string;
+
+  // optional custom path names
+  loginPath?: string;
+  logoutPath?: string;
+  registerPath?: string;
+  tokenRefreshPath?: string;
+  mePath?: string;
+}
 ```
 
 ## Usage
