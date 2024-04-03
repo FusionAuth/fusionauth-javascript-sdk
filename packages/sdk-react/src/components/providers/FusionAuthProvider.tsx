@@ -22,6 +22,7 @@ export interface IFusionAuthContext {
   isLoading: boolean;
   isAuthenticated: boolean;
   refreshToken: () => Promise<void>;
+  initAutoTokenRefresh: () => void;
 }
 
 export const FusionAuthContext = React.createContext<IFusionAuthContext>({
@@ -32,6 +33,7 @@ export const FusionAuthContext = React.createContext<IFusionAuthContext>({
   isLoading: false,
   isAuthenticated: false,
   refreshToken: () => Promise.resolve(),
+  initAutoTokenRefresh: () => {},
 });
 
 export type RedirectSuccess = (state: string) => void;
@@ -44,7 +46,9 @@ export interface FusionAuthConfig extends PropsWithChildren {
   onRedirectSuccess?: RedirectSuccess;
   onRedirectFail?: RedirectFail;
   scope?: string;
-  /** The amount of seconds before the auth token is automatically refreshed. Default is 30. */
+  /** Enables automatic token refreshing. Defaults to false. */
+  shouldAutoRefreshAccessToken?: boolean;
+  /** The number of seconds before the access token expiry when the auto refresh functionality kicks in if enabled. Default is 30. */
   accessTokenExpireWindow?: number;
   accessTokenExpireCookieName?: string;
   loginPath?: string;
@@ -150,8 +154,10 @@ export const FusionAuthProvider: React.FC<FusionAuthConfig> = props => {
   ]);
 
   useEffect(() => {
-    initAutoTokenRefresh();
-  }, [initAutoTokenRefresh]);
+    if (props.shouldAutoRefreshAccessToken) {
+      initAutoTokenRefresh();
+    }
+  }, [initAutoTokenRefresh, props.shouldAutoRefreshAccessToken]);
 
   const refreshToken = useCallback(
     async () => await tokenRefresher.refreshToken(),
@@ -235,8 +241,18 @@ export const FusionAuthProvider: React.FC<FusionAuthConfig> = props => {
       isLoading,
       user,
       refreshToken,
+      initAutoTokenRefresh,
     }),
-    [login, logout, register, isAuthenticated, isLoading, refreshToken, user],
+    [
+      login,
+      logout,
+      register,
+      isAuthenticated,
+      isLoading,
+      refreshToken,
+      user,
+      initAutoTokenRefresh,
+    ],
   );
 
   return (

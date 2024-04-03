@@ -163,6 +163,7 @@ const renderWithContext = ({
     isLoading: false,
     isAuthenticated: true,
     refreshToken: () => Promise.resolve(),
+    initAutoTokenRefresh: () => {},
     ...context,
   };
 

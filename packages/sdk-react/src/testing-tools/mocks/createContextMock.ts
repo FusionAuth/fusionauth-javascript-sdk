@@ -10,5 +10,6 @@ export const createContextMock = (
   isAuthenticated: context.isAuthenticated ?? false,
   user: context.user ?? {},
   refreshToken: context.refreshToken ?? vi.fn(),
+  initAutoTokenRefresh: context.initAutoTokenRefresh ?? vi.fn(),
   isLoading: context.isLoading ?? false,
 });
