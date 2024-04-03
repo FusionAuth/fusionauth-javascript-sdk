@@ -96,6 +96,7 @@ import { FusionAuthModule } from '@fusionauth/angular-sdk';
       clientId: '', // Your FusionAuth client ID
       serverUrl: '', // The base URL of the server that performs the token exchange
       redirectUri: '', // The URI that the user is directed to after the login/register/logout action
+      shouldAutoRefresh: true // Tells your FusionAuthService to automatically handle refreshing the access token before expiry. Defaults to `false`.
     }),
   ],
   providers: [],
