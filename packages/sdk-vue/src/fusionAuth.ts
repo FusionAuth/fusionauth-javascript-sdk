@@ -13,6 +13,7 @@ export const createFusionAuth = (config: FusionAuthConfig): FusionAuth => {
     tokenRefreshPath: config.tokenRefreshPath,
   });
   const tokenRefresher = new TokenRefresher(urlHelper.getTokenRefreshUrl());
+  let refreshTimeout: NodeJS.Timeout | undefined;
 
   async function getUserInfo(): Promise<UserInfo> {
     const resp = await fetch(urlHelper.getMeUrl(), {
@@ -50,7 +51,10 @@ export const createFusionAuth = (config: FusionAuthConfig): FusionAuth => {
   }
 
   if (config.shouldAutoRefresh) {
-    initAutoRefresh();
+    if (refreshTimeout) {
+      clearTimeout(refreshTimeout);
+    }
+    refreshTimeout = initAutoRefresh();
   }
 
   return {
