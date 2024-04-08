@@ -8,7 +8,7 @@ import React, {
   useState,
 } from 'react';
 import Cookies from 'js-cookie';
-import { TokenRefresher, UrlHelpers } from '@fusionauth-sdk/core';
+import { TokenRefresher, UrlHelper } from '@fusionauth-sdk/core';
 
 const DEFAULT_SCOPE = 'openid offline_access';
 // 30 sec window before making network refresh call
@@ -55,7 +55,16 @@ export interface FusionAuthConfig extends PropsWithChildren {
 }
 
 export const FusionAuthProvider: React.FC<FusionAuthConfig> = props => {
-  const { children, onRedirectSuccess, onRedirectFail, mePath } = props;
+  const {
+    children,
+    onRedirectSuccess,
+    onRedirectFail,
+    mePath,
+    loginPath,
+    registerPath,
+    logoutPath,
+    tokenRefreshPath,
+  } = props;
 
   const [isLoading, setIsLoading] = useState(false);
 
@@ -71,44 +80,34 @@ export const FusionAuthProvider: React.FC<FusionAuthConfig> = props => {
     return 'app.at_exp';
   }, [props.accessTokenExpireCookieName]);
 
-  const generateServerUrl = useCallback(
-    (
-      serverEndpoint: ServerFunctionType,
-      propPathOverride?: string,
-      queryParams?: Record<string, string>,
-    ) => {
-      const query = new URLSearchParams(queryParams);
-      const queryString = query.toString().length > 0 ? `?${query}` : '';
-      const path = propPathOverride
-        ? propPathOverride
-        : `/app/${serverEndpoint}`;
-      return `${props.serverUrl}${path}${queryString}`;
-    },
-    [props.serverUrl],
+  const paths = useMemo(
+    () => ({
+      mePath,
+      loginPath,
+      registerPath,
+      logoutPath,
+      tokenRefreshPath,
+    }),
+    [mePath, loginPath, registerPath, logoutPath, tokenRefreshPath],
   );
+
+  const urlHelper = useMemo<UrlHelper>(() => {
+    return new UrlHelper({
+      serverUrlString: props.serverUrl,
+      clientId: props.clientID,
+      redirectUri: props.redirectUri,
+      scope: props.scope ?? DEFAULT_SCOPE,
+      ...paths,
+    });
+  }, [props.scope, props.serverUrl, props.clientID, props.redirectUri, paths]);
 
   const login = useCallback(
     (state = '') => {
-      const stateParam = setUpRedirect(state);
-      const fullUrl = generateServerUrl(
-        ServerFunctionType.login,
-        props.loginPath,
-        {
-          client_id: props.clientID,
-          scope: props.scope ?? DEFAULT_SCOPE,
-          redirect_uri: props.redirectUri,
-          state: stateParam,
-        },
-      );
-      window.location.assign(fullUrl);
+      setUpRedirect(state);
+      const loginUrl = urlHelper.getLoginUrl(state);
+      window.location.assign(loginUrl);
     },
-    [
-      generateServerUrl,
-      props.clientID,
-      props.redirectUri,
-      props.loginPath,
-      props.scope,
-    ],
+    [urlHelper],
   );
 
   const logout = useCallback(() => {
@@ -116,51 +115,23 @@ export const FusionAuthProvider: React.FC<FusionAuthConfig> = props => {
     Cookies.remove('user');
     Cookies.remove('lastState');
 
-    const queryParams = {
-      client_id: props.clientID,
-      post_logout_redirect_uri: props.redirectUri,
-    };
-
-    const fullUrl = generateServerUrl(
-      ServerFunctionType.logout,
-      props.logoutPath,
-      queryParams,
-    );
-    window.location.assign(fullUrl);
-  }, [generateServerUrl, props.clientID, props.logoutPath, props.redirectUri]);
+    const logoutUrl = urlHelper.getLogoutUrl();
+    window.location.assign(logoutUrl);
+  }, [urlHelper]);
 
   const register = useCallback(
     (state = '') => {
-      const stateParam = setUpRedirect(state);
-      const fullUrl = generateServerUrl(
-        ServerFunctionType.register,
-        props.registerPath,
-        {
-          client_id: props.clientID,
-          redirect_uri: props.redirectUri,
-          scope: props.scope ?? DEFAULT_SCOPE,
-          state: stateParam,
-        },
-      );
-      window.location.assign(fullUrl);
+      setUpRedirect(state);
+      const registerUrl = urlHelper.getRegisterUrl(state);
+      window.location.assign(registerUrl);
     },
-    [
-      generateServerUrl,
-      props.clientID,
-      props.redirectUri,
-      props.registerPath,
-      props.scope,
-    ],
+    [urlHelper],
   );
 
   const tokenRefresher = useMemo<TokenRefresher>(() => {
-    const url = UrlHelpers.generateUrl({
-      serverUrlString: props.serverUrl,
-      path: props.tokenRefreshPath || `/app/refresh`,
-      clientId: props.clientID,
-    });
-    return new TokenRefresher(url);
-  }, [props.serverUrl, props.clientID, props.tokenRefreshPath]);
+    const tokenRefreshUrl = urlHelper.getTokenRefreshUrl();
+    return new TokenRefresher(tokenRefreshUrl);
+  }, [urlHelper]);
 
   const tokenRefreshTimeout = useRef<NodeJS.Timeout | undefined>();
   const initAutoTokenRefresh = useCallback(() => {
@@ -204,12 +175,9 @@ export const FusionAuthProvider: React.FC<FusionAuthConfig> = props => {
     const lastState = Cookies.get('lastState');
 
     try {
-      const response = await fetch(
-        generateServerUrl(ServerFunctionType.me, mePath),
-        {
-          credentials: 'include',
-        },
-      );
+      const response = await fetch(urlHelper.getMeUrl(), {
+        credentials: 'include',
+      });
 
       if (!response.ok) {
         throw new Error(
@@ -234,7 +202,7 @@ export const FusionAuthProvider: React.FC<FusionAuthConfig> = props => {
 
     Cookies.remove('lastState');
     setIsLoading(false);
-  }, [generateServerUrl, mePath, onRedirectSuccess, onRedirectFail]);
+  }, [urlHelper, onRedirectSuccess, onRedirectFail]);
 
   const didAttemptToSetUser = useRef(false);
   useEffect(() => {
@@ -279,14 +247,6 @@ export const FusionAuthProvider: React.FC<FusionAuthConfig> = props => {
 };
 
 export const useFusionAuth = () => useContext(FusionAuthContext);
-
-enum ServerFunctionType {
-  login = 'login',
-  logout = 'logout',
-  register = 'register',
-  tokenRefresh = 'refresh',
-  me = 'me',
-}
 
 function setUpRedirect(state = '') {
   const stateParam = `${generateRandomString()}:${state}`;

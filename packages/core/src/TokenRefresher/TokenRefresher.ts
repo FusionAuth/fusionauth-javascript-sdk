@@ -29,10 +29,10 @@ class TokenRefresher {
    */
   initAutoRefresh(
     secondsBeforeRefresh: number = 10,
-    authTokenExpirationCookieName?: string,
+    accessTokenExpirationCookieName?: string,
   ) {
     const tokenExpirationMoment = CookieHelpers.getAuthTokenExpirationTime(
-      authTokenExpirationCookieName,
+      accessTokenExpirationCookieName,
     );
 
     if (!tokenExpirationMoment) {
