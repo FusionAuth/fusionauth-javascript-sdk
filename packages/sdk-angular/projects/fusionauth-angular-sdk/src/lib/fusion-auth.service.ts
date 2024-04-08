@@ -1,20 +1,44 @@
-import { CookieHelpers } from '@fusionauth-sdk/core';
+import { CookieHelpers, TokenRefresher, UrlHelper } from '@fusionauth-sdk/core';
 import { FusionAuthConfig, UserInfo } from './types';
 
 /**
  * Service class to use with FusionAuth backend endpoints.
  */
 export class FusionAuthService {
-  constructor(private config: FusionAuthConfig) {}
+  private urlHelper: UrlHelper;
+  private tokenRefresher: TokenRefresher;
+  private autoRefreshTimer?: NodeJS.Timeout;
+
+  constructor(private config: FusionAuthConfig) {
+    if (!config.redirectUri) {
+      throw Error('No `redirectUri` provided to FusionAuthService');
+    }
+
+    this.urlHelper = new UrlHelper({
+      serverUrlString: config.serverUrl,
+      clientId: config.clientId,
+      redirectUri: config.redirectUri,
+      mePath: config.mePath,
+      loginPath: config.loginPath,
+      registerPath: config.registerPath,
+      logoutPath: config.registerPath,
+      tokenRefreshPath: config.tokenRefreshPath,
+    });
+    this.tokenRefresher = new TokenRefresher(
+      this.urlHelper.getTokenRefreshUrl(),
+    );
+
+    if (this.config.shouldAutoRefresh) {
+      this.initAutoRefresh();
+    }
+  }
 
   /**
    * Calls the 'me' endpoint to retrieve user info.
    * @return {Promise<UserInfo>} the user info response.
    */
   async getUserInfo(): Promise<UserInfo> {
-    const path = this.config.mePath ? this.config.mePath : '/app/me';
-    const uri = this.getUrlForPath(path);
-    const resp = await fetch(uri.href, {
+    const resp = await fetch(this.urlHelper.getMeUrl(), {
       credentials: 'include',
     });
     return JSON.parse(await resp.text()) as UserInfo;
@@ -25,26 +49,13 @@ export class FusionAuthService {
    * Will attempt to refresh the configured seconds before the access token expires (default is ten seconds).
    */
   initAutoRefresh(): void {
-    const exp = this.getExpTime();
-    if (exp) {
-      const refreshBeforeSeconds = this.config.autoRefreshSecondsBeforeExpiry
-        ? this.config.autoRefreshSecondsBeforeExpiry
-        : 10;
-      const now = new Date().getTime();
-      const refreshTime = exp - refreshBeforeSeconds * 1000;
-      let timeTillThen = refreshTime - now;
-      if (timeTillThen <= 0) {
-        timeTillThen = 0;
-      }
-      setTimeout(async () => {
-        try {
-          await this.refreshToken();
-          this.initAutoRefresh();
-        } catch (e) {
-          console.error(e);
-        }
-      }, timeTillThen);
+    if (this.autoRefreshTimer) {
+      clearTimeout(this.autoRefreshTimer);
     }
+
+    this.autoRefreshTimer = this.tokenRefresher.initAutoRefresh(
+      this.config.autoRefreshSecondsBeforeExpiry,
+    );
   }
 
   /**
@@ -59,71 +70,31 @@ export class FusionAuthService {
    * Calls the configured 'refresh' endpoint to attempt to refresh the access token cookie.
    */
   async refreshToken(): Promise<void> {
-    const path = this.config.tokenRefreshPath
-      ? `${this.config.tokenRefreshPath}/${this.config.clientId}`
-      : `/app/refresh/${this.config.clientId}`;
-    const uri = this.getUrlForPath(path);
-    const resp = await fetch(uri.href, {
-      method: 'POST',
-      credentials: 'include',
-      headers: {
-        'Content-Type': 'text/plain',
-      },
-    });
-    if (!(resp.status >= 200 && resp.status < 300)) {
-      throw new Error('error refreshing access token in fusionauth');
-    }
+    return this.tokenRefresher.refreshToken();
   }
 
   /**
    * Invokes a redirect to the configured 'login' endpoint.
    */
   startLogin(state?: string): void {
-    const path = this.config.loginPath ? this.config.loginPath : '/app/login';
-    state
-      ? this.doRedirectForPath(path, { state })
-      : this.doRedirectForPath(path);
+    const loginUrl = this.urlHelper.getLoginUrl(state);
+    window.location.assign(loginUrl);
   }
 
   /**
    * Invokes a redirect to the configured 'refresh' endpoint.
    */
   startRegistration(state?: string): void {
-    const path = this.config.registerPath
-      ? this.config.registerPath
-      : '/app/register';
-    state
-      ? this.doRedirectForPath(path, { state })
-      : this.doRedirectForPath(path);
+    const registerUrl = this.urlHelper.getRegisterUrl(state);
+    window.location.assign(registerUrl);
   }
 
   /**
    * Invokes a redirect to the configured 'logout' endpoint.
    */
   logout(): void {
-    const path = this.config.logoutPath
-      ? this.config.logoutPath
-      : '/app/logout';
-    this.doRedirectForPath(path);
-  }
-
-  private doRedirectForPath(path: string, params: Record<string, any> = {}) {
-    path = path + `/${this.config.clientId}`;
-    if (this.config.redirectUri) {
-      params['redirect_uri'] = this.config.redirectUri;
-    }
-    const location = this.getUrlForPath(path, params);
-    window.location.assign(location);
-  }
-
-  private getUrlForPath(path: string, params: Record<string, any> = {}): URL {
-    const url = new URL(this.config.serverUrl);
-    url.pathname = path;
-    if (Object.entries(params).length > 0) {
-      const urlParams = new URLSearchParams(params);
-      url.search = urlParams.toString();
-    }
-    return url;
+    const logoutUrl = this.urlHelper.getLogoutUrl();
+    window.location.assign(logoutUrl);
   }
 
   private getExpTime() {

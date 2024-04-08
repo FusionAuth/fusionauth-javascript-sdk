@@ -3,7 +3,10 @@ export interface FusionAuthConfig {
   clientId: string;
   redirectUri?: string;
 
+  /** The number of seconds before the access token expiry when the auto refresh functionality kicks in if enabled. Default is 10. */
   autoRefreshSecondsBeforeExpiry?: number;
+  /** Enables automatic token refreshing. Defaults to false. */
+  shouldAutoRefresh?: boolean;
   loginPath?: string;
   logoutPath?: string;
   registerPath?: string;
