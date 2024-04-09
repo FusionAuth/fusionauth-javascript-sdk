@@ -13,15 +13,15 @@ export interface FusionAuthConfig {
   /**
    * The redirect URI of the application.
    */
-  redirectUri?: string;
+  redirectUri: string;
 
   /**
-   * The window in milliseconds before the access token expires that the SDK will attempt to refresh the token.
+   * Enables automatic token refreshing. Defaults to false.
    */
-  accessTokenExpireWindow?: number;
+  shouldAutoRefresh?: boolean;
 
   /**
-   * Specifies the number of seconds before the expiry of the access token when the auto refresh functionality should kick in.
+   * The number of seconds before the access token expiry when the auto refresh functionality kicks in if enabled. Default is 30.
    */
   autoRefreshSecondsBeforeExpiry?: number;
 
@@ -97,6 +97,12 @@ export interface FusionAuth {
    * Refreshes the access token.
    */
   refreshToken: () => Promise<void>;
+
+  /**
+   * Initializes automatic refreshing of the access token.
+   * Refresh is scheduled to happen at the configured `autoRefreshSecondsBeforeExpiry`.
+   */
+  initAutoRefresh: () => NodeJS.Timeout | undefined;
 
   /**
    * Initiates a registration using an optional state.

@@ -1,14 +1,22 @@
 import type { FusionAuth, FusionAuthConfig, UserInfo } from './types';
-import { doRedirectForPath, getFormattedPath, getURLForPath } from './utils';
-import { CookieHelpers } from '@fusionauth-sdk/core';
-
-const DEFAULT_ACCESS_TOKEN_EXPIRE_WINDOW = 30000;
+import { CookieHelpers, TokenRefresher, UrlHelper } from '@fusionauth-sdk/core';
 
 export const createFusionAuth = (config: FusionAuthConfig): FusionAuth => {
+  const urlHelper = new UrlHelper({
+    serverUrlString: config.serverUrl,
+    clientId: config.clientId,
+    redirectUri: config.redirectUri,
+    mePath: config.mePath,
+    loginPath: config.loginPath,
+    registerPath: config.registerPath,
+    logoutPath: config.logoutPath,
+    tokenRefreshPath: config.tokenRefreshPath,
+  });
+  const tokenRefresher = new TokenRefresher(urlHelper.getTokenRefreshUrl());
+  let refreshTimeout: NodeJS.Timeout | undefined;
+
   async function getUserInfo(): Promise<UserInfo> {
-    const path = getFormattedPath(config.mePath, '/app/me');
-    const uri = getURLForPath(config, path);
-    const resp = await fetch(uri, {
+    const resp = await fetch(urlHelper.getMeUrl(), {
       credentials: 'include',
     });
     return await resp.json();
@@ -21,65 +29,32 @@ export const createFusionAuth = (config: FusionAuthConfig): FusionAuth => {
   }
 
   function login(state?: string): void {
-    const path = getFormattedPath(config.loginPath, '/app/login');
-    doRedirectForPath(config, path, { state });
+    window.location.assign(urlHelper.getLoginUrl(state));
   }
 
   function logout(): void {
-    const path = getFormattedPath(config.logoutPath, '/app/logout');
-    doRedirectForPath(config, path);
+    window.location.assign(urlHelper.getLogoutUrl());
   }
 
   async function refreshToken(): Promise<void> {
-    const timeWindow =
-      config.accessTokenExpireWindow ?? DEFAULT_ACCESS_TOKEN_EXPIRE_WINDOW;
-    const expiresAt = CookieHelpers.getAuthTokenExpirationTime();
-    if (!expiresAt || expiresAt > Date.now() + timeWindow) return;
-
-    const tokenRefreshPath = getFormattedPath(
-      config.tokenRefreshPath,
-      '/app/refresh',
-    );
-    const path = `${tokenRefreshPath}/${config.clientId}`;
-    const uri = getURLForPath(config, path);
-    const resp = await fetch(uri, {
-      method: 'POST',
-      credentials: 'include',
-      headers: {
-        'Content-Type': 'text/plain',
-      },
-    });
-    if (!(resp.status >= 200 && resp.status < 300)) {
-      throw new Error('Error refreshing access token in fusionauth');
-    }
+    return await tokenRefresher.refreshToken();
   }
 
   function register(state?: string): void {
-    const path = config.registerPath ?? '/app/register';
-    doRedirectForPath(config, path, { state });
+    window.location.assign(urlHelper.getRegisterUrl(state));
   }
 
-  function autoRefresh(): void {
-    const expiresAt = CookieHelpers.getAuthTokenExpirationTime();
-    if (!expiresAt) return;
-
-    const refreshBuffer = (config.autoRefreshSecondsBeforeExpiry ?? 10) * 1000;
-    const refreshAt = expiresAt - refreshBuffer;
-    const timeToRefresh = Math.max(0, refreshAt - Date.now());
-    setTimeout(() => {
-      (async () => {
-        try {
-          await refreshToken();
-          autoRefresh();
-        } catch (e) {
-          console.error('Error refreshing access token in fusionauth', e);
-        }
-      })();
-    }, timeToRefresh);
+  function initAutoRefresh(): NodeJS.Timeout | undefined {
+    return tokenRefresher.initAutoRefresh(
+      config.autoRefreshSecondsBeforeExpiry ?? 30,
+    );
   }
 
-  if (config.autoRefreshSecondsBeforeExpiry) {
-    autoRefresh();
+  if (config.shouldAutoRefresh) {
+    if (refreshTimeout) {
+      clearTimeout(refreshTimeout);
+    }
+    refreshTimeout = initAutoRefresh();
   }
 
   return {
@@ -88,6 +63,7 @@ export const createFusionAuth = (config: FusionAuthConfig): FusionAuth => {
     login,
     logout,
     refreshToken,
+    initAutoRefresh,
     register,
   };
 };
