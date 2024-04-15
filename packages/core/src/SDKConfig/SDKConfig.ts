@@ -66,4 +66,10 @@ export type SDKConfig = {
    * The path to the me endpoint.
    */
   mePath?: string;
+
+  /**
+   * The name of the access token expiration moment cookie.
+   * Only set this if you are hosting server that uses a custom name for the 'app.at_exp' cookie.
+   */
+  accessTokenExpireCookieName?: string;
 };

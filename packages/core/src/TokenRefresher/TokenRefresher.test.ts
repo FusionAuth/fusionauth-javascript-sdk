@@ -1,8 +1,8 @@
 import { afterEach, describe, it, expect, vi, beforeEach } from 'vitest';
 
-import { TokenRefresher } from 'src/TokenRefresher';
+import { TokenRefresher } from '#/TokenRefresher';
 
-describe('UrlHelpers.generateUrl', () => {
+describe('TokenRefresher', () => {
   beforeEach(() => {
     vi.spyOn(window, 'fetch').mockResolvedValue({ status: 200 } as Response);
     vi.useFakeTimers();

@@ -1,10 +1,10 @@
 import { describe, it, expect } from 'vitest';
 
-import { UrlHelper, UrlHelperConfig } from 'src/UrlHelper';
+import { UrlHelper, UrlHelperConfig } from '#/UrlHelper';
 
 describe('UrlHelper', () => {
   const config: UrlHelperConfig = {
-    serverUrlString: 'http://my-server',
+    serverUrl: 'http://my-server',
     clientId: 'abc123',
     redirectUri: 'http://my-client',
   };
@@ -13,7 +13,7 @@ describe('UrlHelper', () => {
 
   it('me url', () => {
     const meUrl = urlHelper.getMeUrl();
-    expect(meUrl.origin).toBe(config.serverUrlString);
+    expect(meUrl.origin).toBe(config.serverUrl);
     expect(meUrl.pathname).toBe('/app/me');
     expect(meUrl.search).toBe('');
   });
@@ -21,7 +21,7 @@ describe('UrlHelper', () => {
   it('login url', () => {
     const stateValue = 'login-state-value';
     const loginUrl = urlHelper.getLoginUrl(stateValue);
-    expect(loginUrl.origin).toBe(config.serverUrlString);
+    expect(loginUrl.origin).toBe(config.serverUrl);
     expect(loginUrl.pathname).toBe('/app/login');
     expect(loginUrl.searchParams.get('client_id')).toBe(config.clientId);
     expect(loginUrl.searchParams.get('redirect_uri')).toBe(config.redirectUri);
@@ -31,7 +31,7 @@ describe('UrlHelper', () => {
   it('register url', () => {
     const stateValue = 'register-state-value';
     const registerUrl = urlHelper.getRegisterUrl(stateValue);
-    expect(registerUrl.origin).toBe(config.serverUrlString);
+    expect(registerUrl.origin).toBe(config.serverUrl);
     expect(registerUrl.pathname).toBe('/app/register');
     expect(registerUrl.searchParams.get('client_id')).toBe(config.clientId);
     expect(registerUrl.searchParams.get('redirect_uri')).toBe(
@@ -42,7 +42,7 @@ describe('UrlHelper', () => {
 
   it('logout url', () => {
     const logoutUrl = urlHelper.getLogoutUrl();
-    expect(logoutUrl.origin).toBe(config.serverUrlString);
+    expect(logoutUrl.origin).toBe(config.serverUrl);
     expect(logoutUrl.pathname).toBe('/app/logout');
     expect(logoutUrl.searchParams.get('client_id')).toBe(config.clientId);
     expect(logoutUrl.searchParams.get('post_logout_redirect_uri')).toBe(

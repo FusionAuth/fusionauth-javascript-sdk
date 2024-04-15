@@ -6,16 +6,16 @@ export interface SDKContext {
   isLoggedIn: boolean;
 
   /**
-   * Data fetched from the 'me' endpoint.
+   * Data fetched from the configured 'me' endpoint.
    */
-  userInfo?: UserInfo;
+  userInfo: UserInfo | null;
 
   /**
    * Fetches user info from the 'me' endpoint.
    * This is handled automatically if the SDK is configured with `shouldAutoFetchUserInfo`.
    * @returns {Promise<UserInfo>}
    */
-  fetchUserInfo: () => Promise<UserInfo>;
+  fetchUserInfo: () => Promise<UserInfo | undefined>;
 
   /**
    * Indicates that the fetchUserInfo call is unresolved.
@@ -25,7 +25,7 @@ export interface SDKContext {
   /**
    * Error occurred while fetching userInfo.
    */
-  error?: Error;
+  error: Error | null;
 
   /**
    * Initiates login flow.
