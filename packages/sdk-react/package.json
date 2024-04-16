@@ -30,6 +30,9 @@
   "files": [
     "dist/**/*"
   ],
+  "exports": {
+    ".": "./dist/index.js"
+  },
   "dependencies": {
     "classnames": "^2.3.2",
     "@fusionauth-sdk/core": "*"

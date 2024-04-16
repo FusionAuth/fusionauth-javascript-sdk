@@ -3,7 +3,7 @@
  */
 export interface SDKConfig {
   /**
-   * The URL of the FusionAuth server.
+   * The URL of the server that performs the token exchange.
    */
   serverUrl: string;
 

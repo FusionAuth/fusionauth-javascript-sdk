@@ -3,7 +3,7 @@
  */
 export interface FusionAuthProviderConfig {
   /**
-   * The URL of the FusionAuth server.
+   * The URL of the server that performs the token exchange.
    */
   serverUrl: string;
 
@@ -16,11 +16,6 @@ export interface FusionAuthProviderConfig {
    * The redirect URI of the application.
    */
   redirectUri: string;
-
-  /**
-   * The redirect URI for post-logout. Defaults the provided `redirectUri`.
-   */
-  postLogoutRedirectUri?: string;
 
   /**
    * Enables automatic token refreshing. Defaults to false.
