@@ -1,6 +1,6 @@
 import { afterEach, describe, it, expect, vi, beforeEach } from 'vitest';
 
-import { TokenRefresher } from '#/TokenRefresher';
+import { TokenRefresher } from '.';
 
 describe('TokenRefresher', () => {
   beforeEach(() => {

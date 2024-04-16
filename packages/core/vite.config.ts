@@ -12,9 +12,10 @@ export default defineConfig({
       entry: resolve(__dirname, 'src/index.ts'),
       name: '@fusionauth-sdk/core',
       fileName: 'index',
+      formats: ['es'],
     },
     rollupOptions: {
-      input: resolve(__dirname, 'src/index.ts'),
+      external: ['**/*.test.*'],
     },
   },
   plugins: [dts()],
@@ -23,7 +24,7 @@ export default defineConfig({
   },
   resolve: {
     alias: {
-      '#': '/src',
+      '#': resolve(__dirname, './src'),
     },
   },
 });

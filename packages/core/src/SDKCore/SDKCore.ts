@@ -6,16 +6,14 @@ import { UserInfo } from '#/SDKContext';
 import { RedirectHelper } from '#/RedirectHelper';
 import { CookieHelpers } from '#/CookieHelpers';
 
-type SDKCoreConfig = SDKConfig & { onTokenExpiration?: () => void };
-
 /** A class containing framework-agnostic SDK methods */
 export class SDKCore {
-  private config: SDKCoreConfig;
+  private config: SDKConfig;
   private urlHelper: UrlHelper;
   private tokenRefresher: TokenRefresher;
   private redirectHelper: RedirectHelper = new RedirectHelper();
 
-  constructor(config: SDKCoreConfig) {
+  constructor(config: SDKConfig) {
     this.config = config;
     this.urlHelper = UrlHelper.fromSDKConfig(config);
     this.tokenRefresher = new TokenRefresher(

@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 
-import { UrlHelper, UrlHelperConfig } from '#/UrlHelper';
+import { UrlHelper, UrlHelperConfig } from '.';
 
 describe('UrlHelper', () => {
   const config: UrlHelperConfig = {

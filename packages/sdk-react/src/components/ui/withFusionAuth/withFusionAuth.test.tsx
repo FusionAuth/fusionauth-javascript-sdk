@@ -5,18 +5,17 @@ import {
   WithFusionAuthProps,
 } from '#components/ui/withFusionAuth';
 import { render } from '@testing-library/react';
-import {
-  FusionAuthContext,
-  IFusionAuthContext,
-} from '#components/providers/FusionAuthProvider';
+import { FusionAuthContext } from '#components/providers/FusionAuthProvider';
+import { FusionAuthProviderContext } from '#/components/providers/FusionAuthProviderContext';
+
 import { createContextMock } from '#testing-tools/mocks/createContextMock';
 
 describe('withFusionAuth', () => {
   test('component wrapped in HOC receives context values', () => {
-    const logout = vi.fn();
-    renderWrappedComponent({ logout });
+    const startLogout = vi.fn();
+    renderWrappedComponent({ startLogout });
 
-    expect(logout).toHaveBeenCalled();
+    expect(startLogout).toHaveBeenCalled();
   });
 });
 
@@ -26,13 +25,15 @@ class WithoutFusionAuth extends Component<WithFusionAuthProps> {
   }
 
   componentDidMount() {
-    this.props.fusionAuth.logout();
+    this.props.fusionAuth.startLogout();
   }
 }
 
 const WithFusionAuth = withFusionAuth(WithoutFusionAuth);
 
-const renderWrappedComponent = (context: Partial<IFusionAuthContext>) => {
+const renderWrappedComponent = (
+  context: Partial<FusionAuthProviderContext>,
+) => {
   const contextMock = createContextMock(context);
   render(
     <FusionAuthContext.Provider value={contextMock}>

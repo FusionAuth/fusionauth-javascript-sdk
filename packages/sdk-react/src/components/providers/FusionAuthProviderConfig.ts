@@ -1,7 +1,7 @@
 /**
- * Config for FusionAuth Web SDKs
+ * Config for FusionAuthProvider
  */
-export interface SDKConfig {
+export interface FusionAuthProviderConfig {
   /**
    * The URL of the FusionAuth server.
    */
@@ -72,9 +72,4 @@ export interface SDKConfig {
    * Only set this if you are hosting server that uses a custom name for the 'app.at_exp' cookie.
    */
   accessTokenExpireCookieName?: string;
-
-  /**
-   * Callback to be invoked at the moment of access token expiration
-   */
-  onTokenExpiration?: () => void;
 }

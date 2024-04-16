@@ -3,7 +3,7 @@ import { CookieHelpers, TokenRefresher, UrlHelper } from '@fusionauth-sdk/core';
 
 export const createFusionAuth = (config: FusionAuthConfig): FusionAuth => {
   const urlHelper = new UrlHelper({
-    serverUrlString: config.serverUrl,
+    serverUrl: config.serverUrl,
     clientId: config.clientId,
     redirectUri: config.redirectUri,
     mePath: config.mePath,
@@ -24,7 +24,8 @@ export const createFusionAuth = (config: FusionAuthConfig): FusionAuth => {
 
   function isLoggedIn(): boolean {
     return (
-      (CookieHelpers.getAuthTokenExpirationTime() ?? 0) > new Date().getTime()
+      (CookieHelpers.getAccessTokenExpirationMoment() ?? 0) >
+      new Date().getTime()
     );
   }
 
