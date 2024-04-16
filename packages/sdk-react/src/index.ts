@@ -1,4 +1,6 @@
 export * from './components/providers/FusionAuthProvider';
+export * from './components/providers/FusionAuthProviderConfig';
+export * from './components/providers/FusionAuthProviderContext';
 
 export * from './components/ui/FusionAuthLoginButton';
 export * from './components/ui/FusionAuthLogoutButton';

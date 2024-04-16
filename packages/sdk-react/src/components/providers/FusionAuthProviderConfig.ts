@@ -33,7 +33,7 @@ export interface FusionAuthProviderConfig {
   shouldAutoFetchUserInfo?: boolean;
 
   /**
-   * The number of seconds before the access token expiry when the auto refresh functionality kicks in if enabled. Default is 30.
+   * The number of seconds before the access token expiry when the auto refresh functionality kicks in if enabled. Default is 10.
    */
   autoRefreshSecondsBeforeExpiry?: number;
 
