@@ -1,4 +1,4 @@
-import { CookieHelpers } from 'src/CookieHelpers';
+import { CookieHelpers } from '#/CookieHelpers';
 
 /** A class responsible for handling access token refresh. */
 class TokenRefresher {
@@ -8,9 +8,7 @@ class TokenRefresher {
     this.url = url;
   }
 
-  /**
-   * Calls the configured 'refresh' endpoint to attempt to refresh the access token cookie.
-   */
+  /** Refresh token a single time */
   async refreshToken(): Promise<void> {
     const resp = await fetch(this.url.href, {
       method: 'POST',
@@ -24,15 +22,12 @@ class TokenRefresher {
     }
   }
 
-  /**
-   * Checks for the 'app.at_exp' cookie and if present sets a timer to refresh the access token.
-   * Will attempt to refresh at the specified time before the access token expires (default is 10 seconds).
-   */
+  /** Initializes continuous automatic token refresh. */
   initAutoRefresh(
     secondsBeforeRefresh: number = 10,
     accessTokenExpirationCookieName?: string,
   ) {
-    const tokenExpirationMoment = CookieHelpers.getAuthTokenExpirationTime(
+    const tokenExpirationMoment = CookieHelpers.getAccessTokenExpirationMoment(
       accessTokenExpirationCookieName,
     );
 

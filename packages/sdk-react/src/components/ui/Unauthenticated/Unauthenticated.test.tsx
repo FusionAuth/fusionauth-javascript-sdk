@@ -1,43 +1,57 @@
-import { render, waitFor } from '@testing-library/react';
+import { ReactNode } from 'react';
+import { screen, render } from '@testing-library/react';
 import { afterEach, describe, expect, test, vi } from 'vitest';
 
 import { Unauthenticated } from '#components/ui/Unauthenticated';
-import { FusionAuthProvider } from '#components/providers/FusionAuthProvider';
-import { TEST_CONFIG } from '#testing-tools/mocks/testConfig';
+import { FusionAuthContext } from '#components/providers/FusionAuthProvider';
+import { FusionAuthProviderContext } from '#/components/providers/FusionAuthProviderContext';
 
-describe('FusionAuthLogoutButton', () => {
+import { createContextMock } from '#/testing-tools/mocks/createContextMock';
+
+const renderWithMockProvider = ({
+  context,
+  content,
+}: {
+  context: Partial<FusionAuthProviderContext>;
+  content: ReactNode;
+}) => {
+  return render(
+    <FusionAuthContext.Provider value={createContextMock(context)}>
+      {content}
+    </FusionAuthContext.Provider>,
+  );
+};
+
+describe('Unauthenticated component', () => {
   afterEach(() => {
     vi.clearAllMocks();
   });
 
-  test('Only renders children if not authenticated', async () => {
-    // set up provider to fetch user, which will authenticate
-    Object.defineProperty(document, 'cookie', {
-      writable: true,
-      value: `app.idt=abc123;`,
-    });
-    const mockUser = { name: 'AuthGuy5000' };
-    const response = {
-      ok: true,
-      json: () => Promise.resolve(mockUser),
-    } as Response;
-    vi.spyOn(global, 'fetch').mockResolvedValue(response);
+  const contentForTheUnauthenticated = 'For unauthenticated eyes only';
 
-    const contentForTheUnauthenticated = 'for unauthenticated eyes only';
-    const { queryByText } = render(
-      <FusionAuthProvider {...TEST_CONFIG}>
+  test('Renders children if unauthenticated', () => {
+    renderWithMockProvider({
+      context: { isLoggedIn: false },
+      content: (
         <Unauthenticated>
           <p>{contentForTheUnauthenticated}</p>
         </Unauthenticated>
-      </FusionAuthProvider>,
-    );
-
-    // content appears before user is fetched
-    expect(queryByText(contentForTheUnauthenticated)).toBeInTheDocument();
-
-    // user is authenticated -- content disappears
-    await waitFor(() => {
-      expect(queryByText(contentForTheUnauthenticated)).not.toBeInTheDocument();
+      ),
     });
+
+    screen.getByText(contentForTheUnauthenticated);
+  });
+
+  test('Does not render children if authenticated', () => {
+    renderWithMockProvider({
+      context: { isLoggedIn: true },
+      content: (
+        <Unauthenticated>
+          <p>{contentForTheUnauthenticated}</p>
+        </Unauthenticated>
+      ),
+    });
+
+    expect(screen.queryByText(contentForTheUnauthenticated)).toBeNull();
   });
 });

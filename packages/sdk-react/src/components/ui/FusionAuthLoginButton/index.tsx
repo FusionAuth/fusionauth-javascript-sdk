@@ -15,13 +15,13 @@ export const FusionAuthLoginButton: FC<Props> = ({
   text,
   className,
 }) => {
-  const { login } = useFusionAuth();
+  const { startLogin } = useFusionAuth();
 
   return (
     <button
       className={classNames(styles.fusionAuthButton, className)}
       type="button"
-      onClick={() => login(state ?? '')}
+      onClick={() => startLogin(state)}
     >
       {text ?? 'Login'}
     </button>

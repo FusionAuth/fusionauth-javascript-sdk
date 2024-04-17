@@ -1,5 +1,7 @@
+import { SDKContext } from '@fusionauth-sdk/core';
+
 /** The context provided by FusionAuth Web SDKs */
-export interface SDKContext {
+export interface FusionAuthProviderContext extends SDKContext {
   /**
    * Whether the user is logged in.
    */
@@ -29,13 +31,13 @@ export interface SDKContext {
 
   /**
    * Initiates login flow.
-   * @param {string} [state] - Optional value to be echoed back to the SDK upon redirect.
+   * @param {string} state - Optional value to be echoed back to the SDK upon redirect.
    */
   startLogin: (state?: string) => void;
 
   /**
    * Initiates register flow.
-   * @param {string} [state] - Optional value to be echoed back to the SDK upon redirect.
+   * @param {string} state - Optional value to be echoed back to the SDK upon redirect.
    */
   startRegister: (state?: string) => void;
 
@@ -72,4 +74,17 @@ export type UserInfo = {
   sub?: string;
   tid?: string;
   phone_number?: string;
+};
+
+export const defaultContext: FusionAuthProviderContext = {
+  startLogin: () => {},
+  startLogout: () => {},
+  startRegister: () => {},
+  userInfo: null,
+  fetchUserInfo: () => Promise.resolve({}),
+  isFetchingUserInfo: false,
+  error: null,
+  isLoggedIn: false,
+  refreshToken: () => Promise.resolve(),
+  initAutoRefresh: () => {},
 };

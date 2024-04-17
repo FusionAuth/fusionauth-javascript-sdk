@@ -1,7 +1,7 @@
 /**
- * Config for FusionAuth Web SDKs
+ * Config for FusionAuthProvider
  */
-export interface SDKConfig {
+export interface FusionAuthProviderConfig {
   /**
    * The URL of the server that performs the token exchange.
    */
@@ -18,11 +18,6 @@ export interface SDKConfig {
   redirectUri: string;
 
   /**
-   * The redirect URI for post-logout. Defaults the provided `redirectUri`.
-   */
-  postLogoutRedirectUri?: string;
-
-  /**
    * Enables automatic token refreshing. Defaults to false.
    */
   shouldAutoRefresh?: boolean;
@@ -33,7 +28,7 @@ export interface SDKConfig {
   shouldAutoFetchUserInfo?: boolean;
 
   /**
-   * The number of seconds before the access token expiry when the auto refresh functionality kicks in if enabled. Default is 30.
+   * The number of seconds before the access token expiry when the auto refresh functionality kicks in if enabled. Default is 10.
    */
   autoRefreshSecondsBeforeExpiry?: number;
 
@@ -72,9 +67,4 @@ export interface SDKConfig {
    * Only set this if you are hosting server that uses a custom name for the 'app.at_exp' cookie.
    */
   accessTokenExpireCookieName?: string;
-
-  /**
-   * Callback to be invoked at the moment of access token expiration
-   */
-  onTokenExpiration?: () => void;
 }

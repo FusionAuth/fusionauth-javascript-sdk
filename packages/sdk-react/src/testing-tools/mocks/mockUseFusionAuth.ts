@@ -1,12 +1,14 @@
-import * as FusionAuthProvider from '../../components/providers/FusionAuthProvider';
-import { IFusionAuthContext } from '../../components/providers/FusionAuthProvider';
-import { createContextMock } from './createContextMock';
 import { vi } from 'vitest';
 
+import * as FusionAuthProvider from '#/components/providers/FusionAuthProvider';
+import { FusionAuthProviderContext } from '#/components/providers/FusionAuthProviderContext';
+
+import { createContextMock } from './createContextMock';
+
 export const mockUseFusionAuth = (
-  context: Partial<IFusionAuthContext> = {},
+  context: Partial<FusionAuthProviderContext> = {},
 ) => {
-  const contextMock = createContextMock(context);
+  const contextMock: FusionAuthProviderContext = createContextMock(context);
   return vi
     .spyOn(FusionAuthProvider, 'useFusionAuth')
     .mockReturnValue(contextMock);

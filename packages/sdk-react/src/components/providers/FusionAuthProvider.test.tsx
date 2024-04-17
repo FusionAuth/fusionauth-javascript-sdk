@@ -1,160 +1,63 @@
 import { PropsWithChildren } from 'react';
-import { waitFor, renderHook } from '@testing-library/react';
-import { describe, afterEach, test, expect, beforeEach, vi } from 'vitest';
+import { act, waitFor, renderHook } from '@testing-library/react';
+import { describe, afterEach, test, expect, vi } from 'vitest';
 
 import {
   FusionAuthProvider,
   useFusionAuth,
 } from '#/components/providers/FusionAuthProvider';
-import { mockCrypto } from '#/testing-tools/mocks/mockCrypto';
-import { mockFetchJson } from '#/testing-tools/mocks/mockFetchJson';
-import { TEST_CONFIG } from '#testing-tools/mocks/testConfig';
+import { FusionAuthProviderConfig } from './FusionAuthProviderConfig';
+import { UserInfo } from './FusionAuthProviderContext';
 
-let location: Location;
+import { mockWindowLocation } from '#/testing-tools/mocks/mockWindowLocation';
+import { TEST_CONFIG } from '#testing-tools/mocks/testConfig';
+import {
+  mockIsLoggedIn,
+  removeAt_expCookie,
+} from '#/testing-tools/mocks/mockLoggedIn';
+
+function renderWithWrapper(config: FusionAuthProviderConfig) {
+  return renderHook(() => useFusionAuth(), {
+    wrapper: ({ children }: PropsWithChildren) => (
+      <FusionAuthProvider {...config}>{children}</FusionAuthProvider>
+    ),
+  });
+}
 
 describe('FusionAuthProvider', () => {
-  beforeEach(() => {
-    location = window.location;
-    vi.spyOn(window, 'location', 'get').mockRestore();
-
-    mockCrypto();
-  });
-
   afterEach(() => {
+    removeAt_expCookie();
+    localStorage.clear();
     vi.clearAllMocks();
   });
 
-  test('Login function will navigate to the correct url', () => {
-    const mockedLocation = {
-      ...location,
-      assign: vi.fn(),
-    };
-    vi.spyOn(window, 'location', 'get').mockReturnValue(mockedLocation);
+  test('Redirects to the correct login url', () => {
+    const mockedLocation = mockWindowLocation();
 
-    const wrapper = ({ children }: PropsWithChildren) => (
-      <FusionAuthProvider {...TEST_CONFIG}>{children}</FusionAuthProvider>
-    );
-    const { result } = renderHook(() => useFusionAuth(), {
-      wrapper,
-    });
+    const { result } = renderWithWrapper(TEST_CONFIG);
 
     const stateValue = 'state-value';
-    result.current.login(stateValue);
+    result.current.startLogin(stateValue);
 
     const expectedUrl = new URL(TEST_CONFIG.serverUrl);
     expectedUrl.pathname = '/app/login';
-    expectedUrl.searchParams.set('client_id', TEST_CONFIG.clientID);
+    expectedUrl.searchParams.set('client_id', TEST_CONFIG.clientId);
     expectedUrl.searchParams.set('redirect_uri', TEST_CONFIG.redirectUri);
-    expectedUrl.searchParams.set('scope', 'openid offline_access');
     expectedUrl.searchParams.set('state', stateValue);
 
     expect(mockedLocation.assign).toHaveBeenCalledWith(expectedUrl);
   });
 
-  test('User set to the value stored in the cookie', () => {
-    const trent = { name: 'trent anderson' };
-    Object.defineProperty(document, 'cookie', {
-      writable: true,
-      value: `user=${JSON.stringify(trent)}`,
-    });
+  test('Redirects to the correct logout url', () => {
+    const mockedLocation = mockWindowLocation();
 
-    const wrapper = ({ children }: PropsWithChildren) => (
-      <FusionAuthProvider {...TEST_CONFIG}>{children}</FusionAuthProvider>
-    );
-    const { result } = renderHook(() => useFusionAuth(), {
-      wrapper,
-    });
+    const { result } = renderWithWrapper(TEST_CONFIG);
 
-    expect(result.current.user).toEqual(trent);
-    expect(result.current.isAuthenticated).toBe(true);
-  });
-
-  test('Will fetch the user from the server when the id token cookie is set', async () => {
-    Object.defineProperty(document, 'cookie', {
-      writable: true,
-      value: `app.idt=12345`,
-    });
-
-    const user = { name: 'Mr. Userton' };
-    const mockResponse = {
-      ok: true,
-      json: () => Promise.resolve(user),
-    } as Response;
-    vi.spyOn(global, 'fetch').mockResolvedValue(mockResponse);
-
-    const serverUrl = 'http://my-server.com';
-    const mePath = '/my-me-path';
-
-    const { result } = renderHook(() => useFusionAuth(), {
-      wrapper: ({ children }) => (
-        <FusionAuthProvider
-          {...TEST_CONFIG}
-          serverUrl={serverUrl}
-          mePath={mePath}
-        >
-          {children}
-        </FusionAuthProvider>
-      ),
-    });
-
-    expect(result.current.isLoading).toBe(true);
-    expect(result.current.user).toEqual({});
-    expect(result.current.isAuthenticated).toBe(false);
-    expect(fetch).toHaveBeenCalledWith(new URL(serverUrl + mePath), {
-      credentials: 'include',
-    });
-
-    await waitFor(() => {
-      expect(result.current.isLoading).toBe(false);
-      expect(result.current.user).toEqual(user);
-      expect(result.current.isAuthenticated).toBe(true);
-      expect(fetch).toHaveBeenCalledTimes(1);
-    });
-  });
-
-  test('User to empty when user cookie is not json parsable', () => {
-    const mockedLocation = {
-      ...location,
-      assign: vi.fn(),
-    };
-    vi.spyOn(window, 'location', 'get').mockReturnValue(mockedLocation);
-
-    Object.defineProperty(document, 'cookie', {
-      writable: true,
-      value: 'user=undefined',
-    });
-
-    const wrapper = ({ children }: PropsWithChildren) => (
-      <FusionAuthProvider {...TEST_CONFIG}>{children}</FusionAuthProvider>
-    );
-    const { result } = renderHook(() => useFusionAuth(), {
-      wrapper,
-    });
-
-    expect(result.current.user).toEqual({});
-    expect(result.current.isAuthenticated).toEqual(false);
-  });
-
-  test('Logout function will navigate to the correct url', () => {
-    mockFetchJson({});
-    const mockedLocation = {
-      ...location,
-      assign: vi.fn(),
-    };
-    vi.spyOn(window, 'location', 'get').mockReturnValue(mockedLocation);
-
-    const wrapper = ({ children }: PropsWithChildren) => (
-      <FusionAuthProvider {...TEST_CONFIG}>{children}</FusionAuthProvider>
-    );
-    const { result } = renderHook(() => useFusionAuth(), {
-      wrapper,
-    });
-
-    result.current.logout();
+    result.current.startLogout();
 
     const expectedUrl = new URL(TEST_CONFIG.serverUrl);
     expectedUrl.pathname = '/app/logout';
-    expectedUrl.searchParams.set('client_id', TEST_CONFIG.clientID);
+    expectedUrl.searchParams.set('client_id', TEST_CONFIG.clientId);
     expectedUrl.searchParams.set(
       'post_logout_redirect_uri',
       TEST_CONFIG.redirectUri,
@@ -163,126 +66,161 @@ describe('FusionAuthProvider', () => {
     expect(mockedLocation.assign).toHaveBeenCalledWith(expectedUrl);
   });
 
-  test('Register function will navigate to the correct url', () => {
-    const mockedLocation = {
-      ...location,
-      assign: vi.fn(),
-    };
-    vi.spyOn(window, 'location', 'get').mockReturnValue(mockedLocation);
+  test('Redirects to the correct register url with `state` value echoed back.', () => {
+    const mockedLocation = mockWindowLocation();
 
-    const wrapper = ({ children }: PropsWithChildren) => (
-      <FusionAuthProvider {...TEST_CONFIG}>{children}</FusionAuthProvider>
-    );
-    const { result } = renderHook(() => useFusionAuth(), {
-      wrapper,
-    });
+    const { result } = renderWithWrapper(TEST_CONFIG);
+
     const stateValue = 'my-state-value';
-    result.current.register(stateValue);
+    result.current.startRegister(stateValue);
 
     const expectedUrl = new URL(TEST_CONFIG.serverUrl);
     expectedUrl.pathname = '/app/register';
-    expectedUrl.searchParams.set('client_id', TEST_CONFIG.clientID);
+    expectedUrl.searchParams.set('client_id', TEST_CONFIG.clientId);
     expectedUrl.searchParams.set('redirect_uri', TEST_CONFIG.redirectUri);
-    expectedUrl.searchParams.set('scope', 'openid offline_access');
     expectedUrl.searchParams.set('state', stateValue);
 
+    expect(localStorage.getItem('fa-sdk-redirect-value')).toContain(stateValue); // this asserts that `state` was echoed back.
     expect(mockedLocation.assign).toHaveBeenCalledWith(expectedUrl);
   });
 
-  test('Will invoke the onRedirectFail callback only once', async () => {
-    Object.defineProperty(document, 'cookie', {
-      writable: true,
-      // lastState should ensure redirect handlers are called
-      value: 'lastState=abc123; app.idt=abc123;',
+  test('Invokes an onRedirect callback when logged in if an item is found in local storage', () => {
+    mockIsLoggedIn();
+
+    const stateValue = 'hello-world';
+    localStorage.setItem('fa-sdk-redirect-value', `abc123:${stateValue}`);
+
+    const onRedirect = vi.fn();
+    renderWithWrapper({ ...TEST_CONFIG, onRedirect });
+
+    expect(onRedirect).toHaveBeenCalled();
+  });
+
+  test('Will not invoke onRedirect if no redirect value is found in localStorage', () => {
+    const onRedirect = vi.fn();
+    mockIsLoggedIn();
+
+    renderWithWrapper({ ...TEST_CONFIG, onRedirect });
+
+    expect(onRedirect).not.toHaveBeenCalled();
+  });
+
+  test('Will fetch userInfo', async () => {
+    const user: UserInfo = { given_name: 'Mr. Userton' };
+    const mockUserInfoResponse = {
+      ok: true,
+      json: () => Promise.resolve(user),
+    } as Response;
+    vi.spyOn(global, 'fetch').mockResolvedValueOnce(mockUserInfoResponse);
+
+    const { result } = renderWithWrapper(TEST_CONFIG);
+
+    expect(fetch).not.toHaveBeenCalled();
+
+    act(() => {
+      result.current.fetchUserInfo();
     });
 
-    const redirectFailHandler = vi.fn();
+    expect(fetch).toHaveBeenCalled();
+    expect(result.current.isFetchingUserInfo).toBe(true);
 
-    const errorResponse = {
+    await waitFor(() => {
+      expect(result.current.isFetchingUserInfo).toBe(false);
+      expect(result.current.userInfo).toBe(user);
+    });
+  });
+
+  test('Can be configured with `shouldAutoFetchUserInfo`', async () => {
+    const user: UserInfo = { given_name: 'JSON Bourne' };
+
+    const mockUserInfoResponse = {
+      ok: true,
+      json: () => Promise.resolve(user),
+    } as Response;
+    vi.spyOn(global, 'fetch').mockResolvedValueOnce(mockUserInfoResponse);
+    mockIsLoggedIn();
+
+    const { result } = renderWithWrapper({
+      ...TEST_CONFIG,
+      shouldAutoFetchUserInfo: true,
+    });
+
+    await waitFor(() => {
+      expect(fetch).toHaveBeenCalledWith(
+        new URL('http://localhost:9000/app/me'),
+        {
+          credentials: 'include',
+        },
+      );
+      expect(result.current.userInfo).toEqual(user);
+    });
+  });
+
+  test('Provides a helpful error when fetchUserInfo fails', async () => {
+    vi.spyOn(global, 'fetch').mockResolvedValueOnce({
       ok: false,
-      json: () => Promise.resolve({ message: 'something went wrong' }),
-    } as Response;
-    vi.spyOn(global, 'fetch').mockResolvedValue(errorResponse);
+      status: 401,
+    } as Response);
 
-    renderHook(() => useFusionAuth(), {
-      wrapper: ({ children }) => (
-        <FusionAuthProvider
-          {...TEST_CONFIG}
-          onRedirectFail={redirectFailHandler}
-        >
-          {children}
-        </FusionAuthProvider>
-      ),
+    const { result } = renderWithWrapper(TEST_CONFIG);
+
+    act(() => {
+      result.current.fetchUserInfo();
     });
 
     await waitFor(() => {
-      expect(redirectFailHandler).toHaveBeenCalledTimes(1);
-      expect(redirectFailHandler).toHaveBeenCalled();
-      expect(document.cookie).toContain('lastState=;'); // lastState cookie was removed
+      expect(result.current.error?.message).toBe(
+        'Unable to fetch userInfo in fusionauth. Request failed with status code 401',
+      );
     });
   });
 
-  test('Will invoke the onRedirectSuccess callback only once', async () => {
-    const stateValue = 'some-value';
-    Object.defineProperty(document, 'cookie', {
-      writable: true,
-      // lastState should ensure redirect handlers are called
-      value: `lastState=12345:${stateValue}; app.idt=abc123;`,
-    });
+  test('Updates the `isLoggedOut` property when the access token expires', () => {
+    vi.useFakeTimers();
+    mockIsLoggedIn();
 
-    const redirectSuccessHandler = vi.fn();
-    const response = {
-      ok: true,
-      json: () => Promise.resolve({ name: 'Johnny' }),
-    } as Response;
-    vi.spyOn(global, 'fetch').mockResolvedValue(response);
+    const { result } = renderWithWrapper(TEST_CONFIG);
 
-    renderHook(() => useFusionAuth(), {
-      wrapper: ({ children }) => (
-        <FusionAuthProvider
-          {...TEST_CONFIG}
-          onRedirectSuccess={redirectSuccessHandler}
-        >
-          {children}
-        </FusionAuthProvider>
-      ),
-    });
+    expect(result.current.isLoggedIn).toBe(true);
 
-    await waitFor(() => {
-      expect(redirectSuccessHandler).toHaveBeenCalledTimes(1);
-      expect(redirectSuccessHandler).toHaveBeenCalledWith(stateValue);
-      expect(document.cookie).toContain('lastState=;'); // lastState cookie was removed
-    });
+    act(() => vi.advanceTimersByTime(60 * 60 * 1000));
+
+    expect(result.current.isLoggedIn).toBe(false);
   });
 
-  test('Will not invoke onRedirectSuccess when lastState cookie is not set', async () => {
-    Object.defineProperty(document, 'cookie', {
-      writable: true,
-      value: `app.idt=abc123;`,
-    });
+  test('Can be configured with `shouldAutoRefresh`', () => {
+    vi.useFakeTimers();
 
-    const redirectSuccessHandler = vi.fn();
-    const alan = { name: 'Alan Turing' };
-    const response = {
+    mockIsLoggedIn(); // mock logged in -- expires in 1 hour
+
+    vi.spyOn(global, 'fetch').mockResolvedValueOnce({
       ok: true,
-      json: () => Promise.resolve(alan),
-    } as Response;
-    vi.spyOn(global, 'fetch').mockResolvedValue(response);
+      status: 200,
+    } as Response);
 
-    const { result } = renderHook(() => useFusionAuth(), {
-      wrapper: ({ children }) => (
-        <FusionAuthProvider
-          {...TEST_CONFIG}
-          onRedirectSuccess={redirectSuccessHandler}
-        >
-          {children}
-        </FusionAuthProvider>
-      ),
+    act(() => {
+      renderWithWrapper({
+        ...TEST_CONFIG,
+        shouldAutoRefresh: true,
+        autoRefreshSecondsBeforeExpiry: 60, // call refresh endpoint in 59 minutes
+      });
     });
 
-    await waitFor(() => {
-      expect(result.current.user.name).toBe('Alan Turing'); // user was fetched successfully without invoking redirect handler
-      expect(redirectSuccessHandler).not.toHaveBeenCalled();
+    expect(fetch).not.toHaveBeenCalled();
+
+    vi.advanceTimersByTime(60 * 58 * 1000); // 58 minutes
+    expect(fetch).not.toHaveBeenCalled(); // not called
+
+    act(() => vi.advanceTimersByTime(60 * 1000)); // 1 more minute
+    expect(fetch).toHaveBeenCalledTimes(1); // called
+
+    const expectedUrl = new URL(TEST_CONFIG.serverUrl);
+    expectedUrl.pathname = '/app/refresh';
+    expectedUrl.searchParams.set('client_id', TEST_CONFIG.clientId);
+    expect(fetch).toHaveBeenCalledWith(expectedUrl.toString(), {
+      method: 'POST',
+      credentials: 'include',
+      headers: { 'Content-Type': 'text/plain' },
     });
   });
 });

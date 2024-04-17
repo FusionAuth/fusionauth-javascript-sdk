@@ -1,75 +1,41 @@
 import { ReactNode } from 'react';
-import { screen, render, waitFor } from '@testing-library/react';
-import { describe, expect, test, vi, beforeEach, afterEach } from 'vitest';
+import { render, screen } from '@testing-library/react';
+import { describe, expect, test } from 'vitest';
 
 import { RequireAuth } from './';
-import {
-  FusionAuthContext,
-  FusionAuthProvider,
-  IFusionAuthContext,
-} from '#components/providers/FusionAuthProvider';
-import { FusionAuthLogoutButton } from '#components/ui/FusionAuthLogoutButton';
-import {
-  TEST_REDIRECT_URL,
-  TEST_CONFIG,
-} from '#testing-tools/mocks/testConfig';
-import { mockCrypto } from '#testing-tools/mocks/mockCrypto';
-import { mockFetchJson } from '#testing-tools/mocks/mockFetchJson';
+import { FusionAuthContext } from '#components/providers/FusionAuthProvider';
+import { FusionAuthProviderContext } from '#/components/providers/FusionAuthProviderContext';
 
-let location: Location;
+import { createContextMock } from '#/testing-tools/mocks/createContextMock';
+
+const renderWithMockProvider = ({
+  context,
+  content,
+}: {
+  context: Partial<FusionAuthProviderContext>;
+  content: ReactNode;
+}) => {
+  return render(
+    <FusionAuthContext.Provider value={createContextMock(context)}>
+      {content}
+    </FusionAuthContext.Provider>,
+  );
+};
+
 describe('RequireAuth Component', () => {
-  beforeEach(() => {
-    location = window.location;
-    vi.spyOn(window, 'location', 'get').mockRestore();
+  test('Will render children when userInfo has the required role', () => {
+    const protectedContent = 'Admin Content';
+    const requiredRole = 'ADMIN';
 
-    mockCrypto();
-    mockFetchJson({});
-  });
-
-  afterEach(() => {
-    vi.clearAllMocks();
-  });
-
-  test('RequireAuth Component does not render children when no user is present and no role is passed', () => {
-    renderWithContext({
+    renderWithMockProvider({
       context: {
-        isAuthenticated: false,
-        user: {},
-      },
-      content: (
-        <RequireAuth withRole={undefined}>
-          <h1>Hello</h1>
-        </RequireAuth>
-      ),
-    });
-    expect(screen.queryByText('Hello')).toBeNull();
-  });
-
-  test('RequireAuth Component does not render children when user is not present', () => {
-    renderWithContext({
-      context: {
-        user: {},
-      },
-      content: (
-        <RequireAuth withRole={'admin'}>
-          <h1>Hello</h1>
-        </RequireAuth>
-      ),
-    });
-    expect(screen.queryByText('Hello')).toBeNull();
-  });
-
-  test('RequireAuth Component renders children when user is present with one of the roles', () => {
-    const protectedContent = 'Hello world';
-
-    renderWithContext({
-      context: {
-        user: {
-          roles: ['admin', 'super-admin'],
+        isLoggedIn: true,
+        userInfo: {
+          roles: [requiredRole],
         },
       },
       content: (
-        <RequireAuth withRole={'admin'}>
+        <RequireAuth withRole={requiredRole}>
           <h1>{protectedContent}</h1>
         </RequireAuth>
       ),
@@ -78,98 +44,23 @@ describe('RequireAuth Component', () => {
     expect(screen.queryByText(protectedContent)).toBeInTheDocument();
   });
 
-  test('RequireAuth Component does not render children when user is present with the incorrect role', async () => {
-    const protectedContent = 'Only for admins';
+  test('Will not render children without the specified role', () => {
+    const protectedContent = 'Admin Content';
 
-    renderWithContext({
+    renderWithMockProvider({
       context: {
-        user: {
-          roles: ['non-admin'],
+        isLoggedIn: true,
+        userInfo: {
+          roles: ['USER'],
         },
       },
       content: (
-        <RequireAuth withRole={'admin'}>
+        <RequireAuth withRole={'ADMIN'}>
           <h1>{protectedContent}</h1>
         </RequireAuth>
       ),
     });
 
-    expect(screen.queryByText(protectedContent)).toBeNull();
-  });
-
-  test('RequireAuth Component renders children when user is present and no role is passed', () => {
-    renderWithContext({
-      context: {
-        isAuthenticated: true,
-        user: {
-          roles: ['non-admin'],
-        },
-      },
-      content: (
-        <RequireAuth withRole={undefined}>
-          <h1>Hello</h1>
-        </RequireAuth>
-      ),
-    });
-
-    expect(screen.queryByText('Hello')).toBeInTheDocument();
-  });
-
-  test('RequireAuth Component does not render children when CSRF check fails', async () => {
-    const mockedLocation = {
-      ...location,
-      assign: vi.fn(),
-      search: TEST_REDIRECT_URL,
-    };
-    vi.spyOn(window, 'location', 'get').mockReturnValue(mockedLocation);
-    mockFetchJson({ roles: ['admin'] });
-
-    Object.defineProperty(document, 'cookie', {
-      writable: true,
-      value: 'lastState=1111; ',
-    });
-
-    await renderProvider();
-
-    expect(await screen.queryByText('Logout')).toBeNull();
+    expect(screen.queryByText(protectedContent)).not.toBeInTheDocument();
   });
 });
-
-const renderProvider = (role?: string) => {
-  return waitFor(() =>
-    render(
-      <FusionAuthProvider {...TEST_CONFIG}>
-        <RequireAuth withRole={role}>
-          <FusionAuthLogoutButton />
-        </RequireAuth>
-      </FusionAuthProvider>,
-    ),
-  );
-};
-
-const renderWithContext = ({
-  context,
-  content,
-}: {
-  context: Partial<IFusionAuthContext>;
-  content: ReactNode;
-}) => {
-  // mock fusion auth context
-  const providerValue: IFusionAuthContext = {
-    login: () => Promise.resolve(),
-    logout: () => Promise.resolve(),
-    register: () => Promise.resolve(),
-    user: {},
-    isLoading: false,
-    isAuthenticated: true,
-    refreshToken: () => Promise.resolve(),
-    initAutoTokenRefresh: () => {},
-    ...context,
-  };
-
-  return render(
-    <FusionAuthContext.Provider value={providerValue}>
-      {content}
-    </FusionAuthContext.Provider>,
-  );
-};

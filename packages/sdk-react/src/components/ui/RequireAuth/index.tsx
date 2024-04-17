@@ -6,17 +6,17 @@ interface Props extends PropsWithChildren {
 }
 
 export const RequireAuth: FC<Props> = ({ withRole, children }) => {
-  const { user, isAuthenticated } = useFusionAuth();
+  const { userInfo, isLoggedIn } = useFusionAuth();
 
   // Check if the user has the required role
   // withRole can be a string or an array of strings
   const hasRole = withRole
     ? ([] as string[])
         .concat(withRole)
-        .some(role => user?.roles?.includes(role))
+        .some(role => userInfo?.roles?.includes(role))
     : true;
 
-  const isAuthorized = isAuthenticated && hasRole;
+  const isAuthorized = isLoggedIn && hasRole;
 
   return <>{isAuthorized && children}</>;
 };

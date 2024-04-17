@@ -1,15 +1,21 @@
-import { IFusionAuthContext } from '../../components/providers/FusionAuthProvider';
+import { FusionAuthProviderContext } from '#/components/providers/FusionAuthProviderContext';
 import { vi } from 'vitest';
 
 export const createContextMock = (
-  context: Partial<IFusionAuthContext>,
-): IFusionAuthContext => ({
-  login: context.login ?? vi.fn(),
-  logout: context.logout ?? vi.fn(),
-  register: context.register ?? vi.fn(),
-  isAuthenticated: context.isAuthenticated ?? false,
-  user: context.user ?? {},
+  context: Partial<FusionAuthProviderContext>,
+): FusionAuthProviderContext => ({
+  startLogin: context.startLogin ?? vi.fn(),
+  startLogout: context.startLogout ?? vi.fn(),
+  startRegister: context.startRegister ?? vi.fn(),
+  isLoggedIn: context.isLoggedIn ?? false,
+  userInfo: context.userInfo ?? null,
   refreshToken: context.refreshToken ?? vi.fn(),
-  initAutoTokenRefresh: context.initAutoTokenRefresh ?? vi.fn(),
-  isLoading: context.isLoading ?? false,
+  initAutoRefresh: context.initAutoRefresh ?? vi.fn(),
+  isFetchingUserInfo: context.isFetchingUserInfo ?? false,
+  error: context.error ?? null,
+  fetchUserInfo:
+    context.fetchUserInfo ??
+    function () {
+      return Promise.resolve({});
+    },
 });

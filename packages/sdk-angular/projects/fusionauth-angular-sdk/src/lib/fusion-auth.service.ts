@@ -15,7 +15,7 @@ export class FusionAuthService {
     }
 
     this.urlHelper = new UrlHelper({
-      serverUrlString: config.serverUrl,
+      serverUrl: config.serverUrl,
       clientId: config.clientId,
       redirectUri: config.redirectUri,
       mePath: config.mePath,
@@ -98,6 +98,6 @@ export class FusionAuthService {
   }
 
   private getExpTime() {
-    return CookieHelpers.getAuthTokenExpirationTime();
+    return CookieHelpers.getAccessTokenExpirationMoment();
   }
 }

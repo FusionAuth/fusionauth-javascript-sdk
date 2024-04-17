@@ -9,13 +9,13 @@ interface Props {
 }
 
 export const FusionAuthLogoutButton: FC<Props> = ({ text, className }) => {
-  const { logout } = useFusionAuth();
+  const { startLogout } = useFusionAuth();
 
   return (
     <button
       className={classNames(styles.fusionAuthButton, className)}
       type="button"
-      onClick={() => logout()}
+      onClick={() => startLogout()}
     >
       {text ?? 'Logout'}
     </button>

@@ -14,13 +14,13 @@ export const FusionAuthRegisterButton: FC<Props> = ({
   text,
   className,
 }) => {
-  const { register } = useFusionAuth();
+  const { startRegister } = useFusionAuth();
 
   return (
     <button
       className={classNames(styles.fusionAuthButton, className)}
       type="button"
-      onClick={() => register(state ?? '')}
+      onClick={() => startRegister(state)}
     >
       {text ?? 'Register Now'}
     </button>

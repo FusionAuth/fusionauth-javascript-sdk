@@ -1,11 +1,10 @@
 import type { ComponentType } from 'react';
-import {
-  FusionAuthContext,
-  IFusionAuthContext,
-} from '#components/providers/FusionAuthProvider';
+
+import { FusionAuthContext } from '#components/providers/FusionAuthProvider';
+import { FusionAuthProviderContext } from '#/components/providers/FusionAuthProviderContext';
 
 export interface WithFusionAuthProps {
-  fusionAuth: IFusionAuthContext;
+  fusionAuth: FusionAuthProviderContext;
 }
 
 export const withFusionAuth = <
@@ -19,7 +18,7 @@ export const withFusionAuth = <
     props: Omit<Props, keyof WithFusionAuthProps>,
   ) => (
     <FusionAuthContext.Consumer>
-      {(fusionAuth: IFusionAuthContext) => (
+      {(fusionAuth: FusionAuthProviderContext) => (
         <Component {...(props as Props)} fusionAuth={fusionAuth} />
       )}
     </FusionAuthContext.Consumer>
