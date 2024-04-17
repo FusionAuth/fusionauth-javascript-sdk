@@ -8,6 +8,7 @@ interface Props {
   className?: string;
 }
 
+/** Calls the `startLogout` method from `useFusionAuth`. */
 export const FusionAuthLogoutButton: FC<Props> = ({ text, className }) => {
   const { startLogout } = useFusionAuth();
 

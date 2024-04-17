@@ -9,6 +9,7 @@ interface Props {
   className?: string;
 }
 
+/** Calls the `startRegister` method from `useFusionAuth`. */
 export const FusionAuthRegisterButton: FC<Props> = ({
   state,
   text,

@@ -1,25 +1,12 @@
-import {
-  PropsWithChildren,
-  useContext,
-  useMemo,
-  useState,
-  FC,
-  createContext,
-} from 'react';
+import { PropsWithChildren, useContext, useMemo, useState, FC } from 'react';
 
 import { SDKCore, SDKConfig } from '@fusionauth-sdk/core';
 
 import { FusionAuthProviderConfig } from './FusionAuthProviderConfig';
-import {
-  FusionAuthProviderContext,
-  defaultContext,
-} from './FusionAuthProviderContext';
 import { useTokenRefresh, useRedirecting, useUserInfo } from './hooks';
+import { FusionAuthContext } from './Context';
 
-export const FusionAuthContext =
-  createContext<FusionAuthProviderContext>(defaultContext);
-
-export const FusionAuthProvider: FC<
+const FusionAuthProvider: FC<
   FusionAuthProviderConfig & PropsWithChildren
 > = props => {
   const config = useMemo<SDKConfig>(() => {
@@ -71,4 +58,9 @@ export const FusionAuthProvider: FC<
   );
 };
 
-export const useFusionAuth = () => useContext(FusionAuthContext);
+/**
+ * A hook that returns and object containing [`FusionAuthProviderContext`](#interfaces/FusionAuthProviderContext.FusionAuthProviderContext.md)
+ */
+const useFusionAuth = () => useContext(FusionAuthContext);
+
+export { FusionAuthProvider, useFusionAuth };

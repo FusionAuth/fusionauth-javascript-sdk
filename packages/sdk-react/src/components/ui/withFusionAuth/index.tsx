@@ -1,6 +1,6 @@
 import type { ComponentType } from 'react';
 
-import { FusionAuthContext } from '#components/providers/FusionAuthProvider';
+import { FusionAuthContext } from '#components/providers/Context';
 import { FusionAuthProviderContext } from '#/components/providers/FusionAuthProviderContext';
 
 export interface WithFusionAuthProps {

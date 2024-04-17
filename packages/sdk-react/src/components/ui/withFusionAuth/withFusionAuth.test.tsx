@@ -5,7 +5,7 @@ import {
   WithFusionAuthProps,
 } from '#components/ui/withFusionAuth';
 import { render } from '@testing-library/react';
-import { FusionAuthContext } from '#components/providers/FusionAuthProvider';
+import { FusionAuthContext } from '#components/providers/Context';
 import { FusionAuthProviderContext } from '#/components/providers/FusionAuthProviderContext';
 
 import { createContextMock } from '#testing-tools/mocks/createContextMock';
