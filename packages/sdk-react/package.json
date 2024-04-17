@@ -1,11 +1,12 @@
 {
   "name": "@fusionauth/react-sdk",
-  "version": "1.0.6",
+  "version": "2.0.0",
   "private": false,
   "description": "FusionAuth solves the problem of building essential security without adding risk or distracting from your primary application",
   "type": "module",
   "scripts": {
     "build": "tsc && vite build",
+    "docs": "typedoc --plugin typedoc-plugin-markdown",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "test": "vitest --watch=false",
     "test:watch": "vitest"
@@ -34,14 +35,14 @@
     ".": "./dist/index.js"
   },
   "dependencies": {
-    "classnames": "^2.3.2",
-    "@fusionauth-sdk/core": "*"
+    "classnames": "^2.3.2"
   },
   "peerDependencies": {
     "react": "^18.2.0",
     "react-dom": "^18.2.0"
   },
   "devDependencies": {
+    "@fusionauth-sdk/core": "*",
     "@testing-library/jest-dom": "^6.4.2",
     "@testing-library/react": "^14.2.1",
     "@testing-library/user-event": "^14.5.2",
@@ -54,6 +55,8 @@
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "sass": "^1.56.1",
+    "typedoc": "^0.25.13",
+    "typedoc-plugin-markdown": "^3.17.1",
     "typescript": "^5.2.2",
     "vite": "^5.1.4",
     "vite-plugin-dts": "^3.7.3",

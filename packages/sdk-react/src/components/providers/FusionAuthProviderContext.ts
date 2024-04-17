@@ -1,7 +1,7 @@
-import { SDKContext } from '@fusionauth-sdk/core';
+import { UserInfo } from './Context';
 
-/** The context provided by FusionAuth Web SDKs */
-export interface FusionAuthProviderContext extends SDKContext {
+/** The context provided by FusionAuth React SDK */
+export interface FusionAuthProviderContext {
   /**
    * Whether the user is logged in.
    */
@@ -58,33 +58,3 @@ export interface FusionAuthProviderContext extends SDKContext {
    */
   initAutoRefresh: () => void;
 }
-
-/**
- * User information returned from FusionAuth.
- */
-export type UserInfo = {
-  applicationId?: string;
-  email?: string;
-  email_verified?: boolean;
-  family_name?: string;
-  given_name?: string;
-  picture?: string;
-  roles?: any[];
-  sid?: string;
-  sub?: string;
-  tid?: string;
-  phone_number?: string;
-};
-
-export const defaultContext: FusionAuthProviderContext = {
-  startLogin: () => {},
-  startLogout: () => {},
-  startRegister: () => {},
-  userInfo: null,
-  fetchUserInfo: () => Promise.resolve({}),
-  isFetchingUserInfo: false,
-  error: null,
-  isLoggedIn: false,
-  refreshToken: () => Promise.resolve(),
-  initAutoRefresh: () => {},
-};

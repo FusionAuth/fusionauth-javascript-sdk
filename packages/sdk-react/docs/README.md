@@ -1,3 +1,5 @@
+@fusionauth/react-sdk / [Modules](modules.md)
+
 An SDK for using FusionAuth in React applications.
 
 # Table of Contents

@@ -7,7 +7,7 @@ import {
   useFusionAuth,
 } from '#/components/providers/FusionAuthProvider';
 import { FusionAuthProviderConfig } from './FusionAuthProviderConfig';
-import { UserInfo } from './FusionAuthProviderContext';
+import { UserInfo } from './Context';
 
 import { mockWindowLocation } from '#/testing-tools/mocks/mockWindowLocation';
 import { TEST_CONFIG } from '#testing-tools/mocks/testConfig';

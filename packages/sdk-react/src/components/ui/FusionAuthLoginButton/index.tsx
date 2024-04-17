@@ -10,6 +10,7 @@ interface Props {
   className?: string;
 }
 
+/** Calls the `startLogin` method from `useFusionAuth`. */
 export const FusionAuthLoginButton: FC<Props> = ({
   state,
   text,

@@ -3,7 +3,7 @@ import { render, screen } from '@testing-library/react';
 import { describe, expect, test } from 'vitest';
 
 import { RequireAuth } from './';
-import { FusionAuthContext } from '#components/providers/FusionAuthProvider';
+import { FusionAuthContext } from '#/components/providers/Context';
 import { FusionAuthProviderContext } from '#/components/providers/FusionAuthProviderContext';
 
 import { createContextMock } from '#/testing-tools/mocks/createContextMock';

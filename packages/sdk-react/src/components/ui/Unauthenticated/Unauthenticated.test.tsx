@@ -3,7 +3,7 @@ import { screen, render } from '@testing-library/react';
 import { afterEach, describe, expect, test, vi } from 'vitest';
 
 import { Unauthenticated } from '#components/ui/Unauthenticated';
-import { FusionAuthContext } from '#components/providers/FusionAuthProvider';
+import { FusionAuthContext } from '#components/providers/Context';
 import { FusionAuthProviderContext } from '#/components/providers/FusionAuthProviderContext';
 
 import { createContextMock } from '#/testing-tools/mocks/createContextMock';

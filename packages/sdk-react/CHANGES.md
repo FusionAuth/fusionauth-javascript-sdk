@@ -1,5 +1,30 @@
 fusionauth-react-sdk Changes
 
+Changes in 2.0.0
+
+Breaking changes were made to provide new configuration options. These options include enabling automatic SDK functionality vs writing your own implementation via methods exposed by the `useFusionAuth` hook. These changes are also aimed at using more consistent verbiage within the SDK documentation.
+
+- _Breaking change_ `FusionAuthProviderConfig` -- The props given to `FusionAuthProvider`.
+
+  - `clientId` -- formerly `clientID`. Renamed for consistency across javascript SDKs.
+  - `autoRefreshSecondsBeforeExpiry` -- Formerly `accessTokenExpireWindow` specified as milliseconds, not seconds. Renamed and specifying as seconds for consitency across javascript SDKs.
+  - `onRedirect` -- Consolidation of `onRedirectSuccess`/`onRedirectFailure`
+  - `shouldAutoFetchUserInfo` -- Option to automatically fetch user info. The SDK does not automatically do it anymore unless this is set to `true`.
+  - `shouldAutoRefresh` -- Option to automatically handle refreshing the access token. Must be set to `true` to enable.
+  - ~~`scope`~~ -- Removed from this API. Is specified by the [`/oauth2/authorize`](https://fusionauth.io/docs/lifecycle/authenticate-users/oauth/endpoints#complete-the-authorization-code-grant-request) endpoint in FusionAuth.
+
+- _Breaking change_ `FusionAuthProviderContext` -- the context provided by `FusionAuthProvider` and returned from `useFusionAuth`. Several properties have been renamed and type-declared for consistency across FusionAuth javascript SDKs.
+  - `isLoggedIn` -- Formerly `isAuthenticated`
+  - `fetchUserInfo` -- Method to fetch `userInfo` -- automatically
+  - `userInfo` -- Formerly `user`
+  - `isFetchingUserInfo` -- Formerly `isLoading`
+  - `startLogin` -- Formerly `login`
+  - `startLogout` -- Formerly `logout`
+  - `startRegister` -- Formerly `register`
+  - `error`
+  - `initAutoRefresh`
+  - `refreshToken`
+
 Changes in 1.0.1
 
 - Add error handling to FusionAuthProvider for failed `/me` requests
