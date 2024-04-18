@@ -2,6 +2,8 @@
 
 This is the FusionAuth Web SDKs monorepo. This repo manages FusionAuth [React](https://fusionauth.io/docs/sdks/react-sdk), [Angular](https://fusionauth.io/docs/sdks/angular-sdk), and [Vue](https://fusionauth.io/docs/sdks/vue-sdk) SDKs.
 
+Each SDK in this repo offers the configuration options of [`SDKConfig`](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/main/packages/core/src/SDKConfig/SDKConfig.ts) along with the functionality of [`SDKContext`](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/main/packages/core/src/SDKContext/SDKContext.ts).
+
 ## Upgrade Policy
 
 This library may periodically receive updates with bug fixes, security patches, tests, code samples, or documentation changes.
