@@ -31,7 +31,7 @@ Error occurred while fetching userInfo.
 
 #### Defined in
 
-[packages/sdk-react/src/components/providers/FusionAuthProviderContext.ts:30](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/cac50ddbffcd76ceead19379f380c6a35462497e/packages/sdk-react/src/components/providers/FusionAuthProviderContext.ts#L30)
+[packages/sdk-react/src/components/providers/FusionAuthProviderContext.ts:30](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/70d5b677cad1a2b11d090d5c6c3e06a3a491f098/packages/sdk-react/src/components/providers/FusionAuthProviderContext.ts#L30)
 
 ---
 
@@ -52,7 +52,7 @@ This is handled automatically if the SDK is configured with `shouldAutoFetchUser
 
 #### Defined in
 
-[packages/sdk-react/src/components/providers/FusionAuthProviderContext.ts:20](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/cac50ddbffcd76ceead19379f380c6a35462497e/packages/sdk-react/src/components/providers/FusionAuthProviderContext.ts#L20)
+[packages/sdk-react/src/components/providers/FusionAuthProviderContext.ts:20](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/70d5b677cad1a2b11d090d5c6c3e06a3a491f098/packages/sdk-react/src/components/providers/FusionAuthProviderContext.ts#L20)
 
 ---
 
@@ -73,7 +73,7 @@ This is handled automatically if the SDK is configured with `shouldAutoRefresh`.
 
 #### Defined in
 
-[packages/sdk-react/src/components/providers/FusionAuthProviderContext.ts:59](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/cac50ddbffcd76ceead19379f380c6a35462497e/packages/sdk-react/src/components/providers/FusionAuthProviderContext.ts#L59)
+[packages/sdk-react/src/components/providers/FusionAuthProviderContext.ts:59](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/70d5b677cad1a2b11d090d5c6c3e06a3a491f098/packages/sdk-react/src/components/providers/FusionAuthProviderContext.ts#L59)
 
 ---
 
@@ -85,7 +85,7 @@ Indicates that the fetchUserInfo call is unresolved.
 
 #### Defined in
 
-[packages/sdk-react/src/components/providers/FusionAuthProviderContext.ts:25](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/cac50ddbffcd76ceead19379f380c6a35462497e/packages/sdk-react/src/components/providers/FusionAuthProviderContext.ts#L25)
+[packages/sdk-react/src/components/providers/FusionAuthProviderContext.ts:25](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/70d5b677cad1a2b11d090d5c6c3e06a3a491f098/packages/sdk-react/src/components/providers/FusionAuthProviderContext.ts#L25)
 
 ---
 
@@ -97,7 +97,7 @@ Whether the user is logged in.
 
 #### Defined in
 
-[packages/sdk-react/src/components/providers/FusionAuthProviderContext.ts:8](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/cac50ddbffcd76ceead19379f380c6a35462497e/packages/sdk-react/src/components/providers/FusionAuthProviderContext.ts#L8)
+[packages/sdk-react/src/components/providers/FusionAuthProviderContext.ts:8](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/70d5b677cad1a2b11d090d5c6c3e06a3a491f098/packages/sdk-react/src/components/providers/FusionAuthProviderContext.ts#L8)
 
 ---
 
@@ -118,7 +118,7 @@ This is handled automatically if the SDK is configured with `shouldAutoRefresh`.
 
 #### Defined in
 
-[packages/sdk-react/src/components/providers/FusionAuthProviderContext.ts:53](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/cac50ddbffcd76ceead19379f380c6a35462497e/packages/sdk-react/src/components/providers/FusionAuthProviderContext.ts#L53)
+[packages/sdk-react/src/components/providers/FusionAuthProviderContext.ts:53](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/70d5b677cad1a2b11d090d5c6c3e06a3a491f098/packages/sdk-react/src/components/providers/FusionAuthProviderContext.ts#L53)
 
 ---
 
@@ -144,7 +144,7 @@ Initiates login flow.
 
 #### Defined in
 
-[packages/sdk-react/src/components/providers/FusionAuthProviderContext.ts:36](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/cac50ddbffcd76ceead19379f380c6a35462497e/packages/sdk-react/src/components/providers/FusionAuthProviderContext.ts#L36)
+[packages/sdk-react/src/components/providers/FusionAuthProviderContext.ts:36](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/70d5b677cad1a2b11d090d5c6c3e06a3a491f098/packages/sdk-react/src/components/providers/FusionAuthProviderContext.ts#L36)
 
 ---
 
@@ -164,7 +164,7 @@ Initiates logout flow.
 
 #### Defined in
 
-[packages/sdk-react/src/components/providers/FusionAuthProviderContext.ts:47](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/cac50ddbffcd76ceead19379f380c6a35462497e/packages/sdk-react/src/components/providers/FusionAuthProviderContext.ts#L47)
+[packages/sdk-react/src/components/providers/FusionAuthProviderContext.ts:47](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/70d5b677cad1a2b11d090d5c6c3e06a3a491f098/packages/sdk-react/src/components/providers/FusionAuthProviderContext.ts#L47)
 
 ---
 
@@ -190,7 +190,7 @@ Initiates register flow.
 
 #### Defined in
 
-[packages/sdk-react/src/components/providers/FusionAuthProviderContext.ts:42](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/cac50ddbffcd76ceead19379f380c6a35462497e/packages/sdk-react/src/components/providers/FusionAuthProviderContext.ts#L42)
+[packages/sdk-react/src/components/providers/FusionAuthProviderContext.ts:42](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/70d5b677cad1a2b11d090d5c6c3e06a3a491f098/packages/sdk-react/src/components/providers/FusionAuthProviderContext.ts#L42)
 
 ---
 
@@ -202,4 +202,4 @@ Data fetched from the configured 'me' endpoint.
 
 #### Defined in
 
-[packages/sdk-react/src/components/providers/FusionAuthProviderContext.ts:13](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/cac50ddbffcd76ceead19379f380c6a35462497e/packages/sdk-react/src/components/providers/FusionAuthProviderContext.ts#L13)
+[packages/sdk-react/src/components/providers/FusionAuthProviderContext.ts:13](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/70d5b677cad1a2b11d090d5c6c3e06a3a491f098/packages/sdk-react/src/components/providers/FusionAuthProviderContext.ts#L13)
