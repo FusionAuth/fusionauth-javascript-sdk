@@ -59,7 +59,7 @@ const FusionAuthProvider: FC<
 };
 
 /**
- * A hook that returns and object containing [`FusionAuthProviderContext`](#interfaces/FusionAuthProviderContext.FusionAuthProviderContext.md)
+ * A hook that returns `FusionAuthProviderContext`
  */
 const useFusionAuth = () => useContext(FusionAuthContext);
 
