@@ -3,10 +3,12 @@ import { describe, expect, it } from 'vitest';
 import { shallowMount } from '@vue/test-utils';
 import { getMockFusionAuth } from '../../utilsForTests';
 
+const stateValue = 'login-state-value';
 const setup = () => {
   const { key, mockedValues } = getMockFusionAuth({});
   return [
     shallowMount(FusionAuthLoginButton, {
+      props: { state: stateValue },
       global: {
         provide: {
           [key]: mockedValues,
@@ -21,7 +23,7 @@ const setup = () => {
 };
 
 describe('FusionAuthLoginButton', () => {
-  it('renders with label', async () => {
+  it('renders with label', () => {
     // Test
     const [Button] = setup();
 
@@ -29,7 +31,7 @@ describe('FusionAuthLoginButton', () => {
     expect(Button.text()).toBe('Label');
   });
 
-  it('can be clicked to run login()', async () => {
+  it('can be clicked to run login()', () => {
     // Setup
     const [Button, { login }] = setup();
 
@@ -38,5 +40,6 @@ describe('FusionAuthLoginButton', () => {
 
     // Assert
     expect(login).toHaveBeenCalledOnce();
+    expect(login).toHaveBeenCalledWith(stateValue);
   });
 });

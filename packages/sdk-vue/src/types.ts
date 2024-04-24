@@ -1,3 +1,5 @@
+import { Ref } from 'vue';
+
 /**
  * Config for the FusionAuth Vue SDK
  */
@@ -21,9 +23,19 @@ export interface FusionAuthConfig {
   shouldAutoRefresh?: boolean;
 
   /**
+   * Enables the SDK to automatically handle fetching user info when logged in. Defaults to false.
+   */
+  shouldAutoFetchUserInfo?: boolean;
+
+  /**
    * The number of seconds before the access token expiry when the auto refresh functionality kicks in if enabled. Default is 30.
    */
   autoRefreshSecondsBeforeExpiry?: number;
+
+  /**
+   * Callback function to be invoked with the `state` value upon redirect from login or register.
+   */
+  onRedirect?: (state?: string) => void;
 
   /**
    * The path to the login endpoint.
@@ -65,28 +77,47 @@ export interface UserInfo {
 }
 
 /**
- * FusionAuth
+ * FusionAuth object provided at app-level by FusionAuthVuePlugin
  */
 export interface FusionAuth {
   /**
-   * Retrieves user information.
-   *
-   * @returns {Promise<UserInfo>} - A Promise that resolves to the user information.
+   * Whether the user is logged in.
    */
-  getUserInfo: () => Promise<UserInfo>;
+  isLoggedIn: Ref<boolean>;
 
   /**
-   * Returns true if the user is logged in, false otherwise.
-   *
-   * @returns {boolean} True if the user is logged in, false otherwise.
+   * This is handled automatically if the SDK is configured with `shouldAutoFetchUserInfo`.
+   * Internally updates `isFetchingUser` and `userInfo` refs, as well as `error` if the request fails.
+   * @returns {Promise<UserInfo>}
    */
-  isLoggedIn: () => boolean;
+  getUserInfo: () => Promise<UserInfo | undefined>;
 
   /**
-   * Initiates a login using an optional state.
-   * @param {string} [state] - Optional state to be passed to the login endpoint.
+   * Data fetched from the configured 'me' endpoint.
+   */
+  userInfo: Ref<UserInfo | null>;
+
+  /**
+   * Indicates that the getUserInfo call is unresolved.
+   */
+  isGettingUserInfo: Ref<boolean>;
+
+  /**
+   * Error occurred within getUserInfo.
+   */
+  error: Ref<Error | null>;
+
+  /**
+   * Initiates login flow.
+   * @param {string} [state] - Optional value to be echoed back to the SDK upon redirect.
    */
   login: (state?: string) => void;
+
+  /**
+   * Initiates register flow.
+   * @param {string} [state] - Optional value to be echoed back to the SDK upon redirect.
+   */
+  register: (state?: string) => void;
 
   /**
    * Initiates a logout.
@@ -94,7 +125,8 @@ export interface FusionAuth {
   logout: () => void;
 
   /**
-   * Refreshes the access token.
+   * Refreshes the access token a single time.
+   * Token refreshing is handled automatically if configured with `shouldAutoRefresh`.
    */
   refreshToken: () => Promise<void>;
 
@@ -103,10 +135,4 @@ export interface FusionAuth {
    * Refresh is scheduled to happen at the configured `autoRefreshSecondsBeforeExpiry`.
    */
   initAutoRefresh: () => NodeJS.Timeout | undefined;
-
-  /**
-   * Initiates a registration using an optional state.
-   * @param {string} [state] - Optional state to be passed to the register endpoint.
-   */
-  register: (state?: string) => void;
 }

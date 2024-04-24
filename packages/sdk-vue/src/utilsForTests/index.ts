@@ -1,3 +1,4 @@
+import { ref } from 'vue';
 import { vi } from 'vitest';
 
 import type { FusionAuth } from '..';
@@ -8,6 +9,8 @@ export const getMockFusionAuth = ({
   login = vi.fn(),
   logout = vi.fn(),
   register = vi.fn(),
+  isLoggedIn = ref(false),
+  userInfo = ref(null),
 }: Partial<FusionAuth>) => {
   return {
     key: fusionAuthKey as symbol,
@@ -15,6 +18,8 @@ export const getMockFusionAuth = ({
       login,
       logout,
       register,
+      isLoggedIn,
+      userInfo,
     },
   };
 };
