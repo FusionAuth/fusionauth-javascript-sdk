@@ -1,6 +1,6 @@
-import { vi } from 'vitest';
+import { VitestUtils } from 'vitest';
 
-function mockWindowLocation() {
+function mockWindowLocation(vi: VitestUtils) {
   const mockedLocation = {
     ...window.location,
     assign: vi.fn(),
