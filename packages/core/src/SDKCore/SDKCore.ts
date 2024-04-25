@@ -15,7 +15,17 @@ export class SDKCore {
 
   constructor(config: SDKConfig) {
     this.config = config;
-    this.urlHelper = UrlHelper.fromSDKConfig(config);
+    this.urlHelper = new UrlHelper({
+      serverUrl: config.serverUrl,
+      clientId: config.clientId,
+      redirectUri: config.redirectUri,
+      scope: config.scope,
+      mePath: config.mePath,
+      loginPath: config.loginPath,
+      registerPath: config.registerPath,
+      logoutPath: config.logoutPath,
+      tokenRefreshPath: config.tokenRefreshPath,
+    });
     this.tokenRefresher = new TokenRefresher(
       this.urlHelper.getTokenRefreshUrl(),
     );

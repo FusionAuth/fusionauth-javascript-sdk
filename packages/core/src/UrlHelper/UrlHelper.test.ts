@@ -7,6 +7,7 @@ describe('UrlHelper', () => {
     serverUrl: 'http://my-server',
     clientId: 'abc123',
     redirectUri: 'http://my-client',
+    scope: 'openid email profile offline_access',
   };
 
   const urlHelper = new UrlHelper(config);
@@ -25,6 +26,7 @@ describe('UrlHelper', () => {
     expect(loginUrl.pathname).toBe('/app/login');
     expect(loginUrl.searchParams.get('client_id')).toBe(config.clientId);
     expect(loginUrl.searchParams.get('redirect_uri')).toBe(config.redirectUri);
+    expect(loginUrl.searchParams.get('scope')).toBe(config.scope);
     expect(loginUrl.searchParams.get('state')).toBe(stateValue);
   });
 
@@ -37,6 +39,7 @@ describe('UrlHelper', () => {
     expect(registerUrl.searchParams.get('redirect_uri')).toBe(
       config.redirectUri,
     );
+    expect(registerUrl.searchParams.get('scope')).toBe(config.scope);
     expect(registerUrl.searchParams.get('state')).toBe(stateValue);
   });
 
