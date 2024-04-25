@@ -12,6 +12,7 @@ const config: FusionAuthConfig = {
   clientId: '85a03867-dccf-4882-adde-1a79aeec50df',
   serverUrl: 'http://localhost:9000',
   redirectUri: 'http://localhost',
+  scope: 'openid offline_access',
 };
 
 describe('createFusionAuth', () => {
@@ -112,6 +113,7 @@ describe('createFusionAuth', () => {
     expectedUrl.pathname = '/app/login';
     expectedUrl.searchParams.set('client_id', config.clientId);
     expectedUrl.searchParams.set('redirect_uri', config.redirectUri);
+    expectedUrl.searchParams.set('scope', config.scope);
     expectedUrl.searchParams.set('state', stateValue);
 
     expect(mockedLocation.assign).toHaveBeenCalledWith(expectedUrl);
@@ -128,6 +130,7 @@ describe('createFusionAuth', () => {
     expectedUrl.pathname = '/app/register';
     expectedUrl.searchParams.set('client_id', config.clientId);
     expectedUrl.searchParams.set('redirect_uri', config.redirectUri);
+    expectedUrl.searchParams.set('scope', config.scope);
     expectedUrl.searchParams.set('state', stateValue);
 
     expect(mockedLocation.assign).toHaveBeenCalledWith(expectedUrl);
