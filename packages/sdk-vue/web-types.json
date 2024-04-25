@@ -39,7 +39,7 @@
             }
           ],
           "source": {
-            "module": "./src/components/FusionAuthLogoutButton.vue",
+            "module": "./src/components/FusionAuthLogoutButton/FusionAuthLogoutButton.vue",
             "symbol": "default"
           }
         },
@@ -62,7 +62,7 @@
             }
           ],
           "source": {
-            "module": "./src/components/FusionAuthRegisterButton.vue",
+            "module": "./src/components/FusionAuthRegisterButton/FusionAuthRegisterButton.vue",
             "symbol": "default"
           }
         },
@@ -75,7 +75,7 @@
             }
           ],
           "source": {
-            "module": "./src/components/RequireAnonymous.vue",
+            "module": "./src/components/RequireAnonymous/RequireAnonymous.vue",
             "symbol": "default"
           }
         },
@@ -98,7 +98,7 @@
             }
           ],
           "source": {
-            "module": "./src/components/RequireAuth.vue",
+            "module": "./src/components/RequireAuth/RequireAuth.vue",
             "symbol": "default"
           }
         }

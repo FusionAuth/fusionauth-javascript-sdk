@@ -5,7 +5,7 @@
 </template>
 
 <script setup lang="ts">
-import { useFusionAuth } from '../composables/useFusionAuth.ts';
+import { useFusionAuth } from '#/composables/useFusionAuth.ts';
 
 const fusionAuth = useFusionAuth();
 
@@ -15,7 +15,7 @@ function doLogout() {
 </script>
 
 <style lang="scss" scoped>
-@import '../styles/button.scss';
+@import '#/styles/button.scss';
 
 .logout-button {
   @extend .fusionauth-button;

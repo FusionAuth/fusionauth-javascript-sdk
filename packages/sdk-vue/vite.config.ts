@@ -10,6 +10,7 @@ export default defineConfig({
     lib: {
       entry: resolve(__dirname, 'src/index.ts'),
       name: 'FusionAuth',
+      formats: ['es'],
       fileName: 'vue-fusionauth',
     },
     rollupOptions: {
@@ -19,6 +20,11 @@ export default defineConfig({
           vue: 'Vue',
         },
       },
+    },
+  },
+  resolve: {
+    alias: {
+      '#': resolve(__dirname, './src'),
     },
   },
 });

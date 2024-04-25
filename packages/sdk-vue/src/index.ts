@@ -2,7 +2,7 @@ import { App } from 'vue';
 import { FusionAuthConfig } from './types.ts';
 import * as components from './components';
 import { fusionAuthKey } from './injectionSymbols.ts';
-import { createFusionAuth } from './fusionAuth.ts';
+import { createFusionAuth } from './createFusionAuth';
 
 /**
  * Installation method for the FusionAuthVuePlugin.
@@ -23,7 +23,10 @@ const FusionAuthVuePlugin = {
       throw new Error('serverUrl is required');
     }
 
-    // Provide the options to the app
+    if (!options.redirectUri) {
+      throw new Error('redirectUri is required');
+    }
+
     app.provide(fusionAuthKey, createFusionAuth(options));
 
     // Register the components

@@ -5,7 +5,7 @@
 </template>
 
 <script setup lang="ts">
-import { useFusionAuth } from '../../composables/useFusionAuth';
+import { useFusionAuth } from '#/composables/useFusionAuth';
 
 const fusionAuth = useFusionAuth();
 
@@ -19,7 +19,7 @@ function doLogin() {
 </script>
 
 <style lang="scss" scoped>
-@import '../../styles/button.scss';
+@import '#/styles/button.scss';
 
 .login-button {
   @extend .fusionauth-button;

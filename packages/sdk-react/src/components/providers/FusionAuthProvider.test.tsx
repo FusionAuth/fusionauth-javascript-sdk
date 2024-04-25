@@ -9,12 +9,12 @@ import {
 import { FusionAuthProviderConfig } from './FusionAuthProviderConfig';
 import { UserInfo } from './Context';
 
-import { mockWindowLocation } from '#/testing-tools/mocks/mockWindowLocation';
-import { TEST_CONFIG } from '#testing-tools/mocks/testConfig';
 import {
   mockIsLoggedIn,
   removeAt_expCookie,
-} from '#/testing-tools/mocks/mockLoggedIn';
+  mockWindowLocation,
+} from '@fusionauth-sdk/core';
+import { TEST_CONFIG } from '#testing-tools/mocks/testConfig';
 
 function renderWithWrapper(config: FusionAuthProviderConfig) {
   return renderHook(() => useFusionAuth(), {
@@ -32,7 +32,7 @@ describe('FusionAuthProvider', () => {
   });
 
   test('Redirects to the correct login url', () => {
-    const mockedLocation = mockWindowLocation();
+    const mockedLocation = mockWindowLocation(vi);
 
     const { result } = renderWithWrapper(TEST_CONFIG);
 
@@ -49,7 +49,7 @@ describe('FusionAuthProvider', () => {
   });
 
   test('Redirects to the correct logout url', () => {
-    const mockedLocation = mockWindowLocation();
+    const mockedLocation = mockWindowLocation(vi);
 
     const { result } = renderWithWrapper(TEST_CONFIG);
 
@@ -67,7 +67,7 @@ describe('FusionAuthProvider', () => {
   });
 
   test('Redirects to the correct register url with `state` value echoed back.', () => {
-    const mockedLocation = mockWindowLocation();
+    const mockedLocation = mockWindowLocation(vi);
 
     const { result } = renderWithWrapper(TEST_CONFIG);
 
