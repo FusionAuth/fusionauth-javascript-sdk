@@ -17,6 +17,8 @@ jobs:
           cache: 'npm'
       - name: Vue SDK - Install packages
         run: yarn install --frozen-lockfile
+      - name: Build core package
+        run: yarn build:core
       - name: Vue SDK - Test
         run: yarn test:sdk-vue
 
