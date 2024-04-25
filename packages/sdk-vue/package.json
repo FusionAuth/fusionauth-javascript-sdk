@@ -1,22 +1,23 @@
 {
   "name": "@fusionauth/vue-sdk",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "description": "FusionAuth solves the problem of building essential security without adding risk or distracting from your primary application",
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "docs": "typedoc --plugin typedoc-plugin-markdown",
     "build": "vue-docgen-web-types && vue-tsc && vite build",
     "preview": "vite preview",
     "test": "vitest --environment jsdom --watch=false",
     "test:watch": "vitest --environment jsdom"
   },
-  "repository": "git+https://github.com/FusionAuth/fusionauth-vue-sdk.git",
+  "repository": "https://github.com/FusionAuth/fusionauth-javascript-sdk",
   "author": "FusionAuth",
   "license": "Apache",
   "bugs": {
-    "url": "https://github.com/FusionAuth/fusionauth-vue-sdk/issues"
+    "url": "https://github.com/FusionAuth/fusionauth-javascript-sdk/issues"
   },
-  "homepage": "https://github.com/FusionAuth/fusionauth-vue-sdk#readme",
+  "homepage": "https://github.com/FusionAuth/fusionauth-javascript-sdk/tree/main/packages/sdk-vue#readme",
   "peerDependencies": {
     "vue": "^3.0.0"
   },
@@ -35,6 +36,8 @@
     "vue": "^3.0.0",
     "vue-docgen-web-types": "0.1.8",
     "vue-tsc": "^1.8.5",
+    "typedoc": "^0.25.13",
+    "typedoc-plugin-markdown": "^3.17.1",
     "@fusionauth-sdk/core": "*"
   },
   "dependencies": {

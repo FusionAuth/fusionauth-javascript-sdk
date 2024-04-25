@@ -1,3 +1,5 @@
+@fusionauth/vue-sdk / [Modules](modules.md)
+
 An SDK for using FusionAuth in Vue applications.
 
 # Table of Contents
