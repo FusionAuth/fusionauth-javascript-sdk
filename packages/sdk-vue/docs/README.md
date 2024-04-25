@@ -109,6 +109,7 @@ import '@fusionauth/vue-sdk/dist/style.css';
 ### `useFusionAuth` composable
 
 You can interact with the SDK by using the `useFusionAuth`, which leverages [Vue's Composition API](https://vuejs.org/guide/reusability/composables).
+View the [full API documentation](https://github.com/FusionAuth/fusionauth-javascript-sdk/tree/main/packages/sdk-vue/docs/modules/composables_useFusionAuth.md)
 
 ```html
 <script setup lang="ts">
@@ -204,8 +205,9 @@ See the [FusionAuth Vue Quickstart](https://fusionauth.io/docs/quickstarts/quick
 
 ## Documentation
 
-[Full library
-documentation](https://github.com/FusionAuth/fusionauth-vue-sdk/blob/main/docs/documentation.md)
+[Full library documentation](https://github.com/FusionAuth/fusionauth-javascript-sdk/tree/main/packages/sdk-vue/docs)
+
+These docs are generated with [typedoc](https://typedoc.org/) and configured with [typedoc-plugin-markdown](https://www.npmjs.com/package/typedoc-plugin-markdown).
 
 <!--
 end::forDocSite[]

@@ -33,7 +33,7 @@
     "entryPoints": [
       "src/components/RequireAuth/RequireAuth.vue",
       "src/composables/useFusionAuth.ts",
-      "src/types.ts",
+      "src/types.ts"
     ],
     "out": "docs"
   }

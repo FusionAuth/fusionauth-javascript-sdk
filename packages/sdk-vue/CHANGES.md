@@ -22,7 +22,7 @@ interface FusionAuthConfig {
    */
   redirectUri: string;
   /**
-   * The OAuth2 scope parameter passed to the `/oauth2/authorize` endpoint.
+   * The OAuth2 scope parameter passed to the `/oauth2/authorize` endpoint. Fusionauth will default this to `openid offline_access` if not specified.
    */
   scope?: string;
   /**

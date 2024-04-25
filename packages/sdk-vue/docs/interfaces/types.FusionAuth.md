@@ -31,7 +31,7 @@ Error occurred within getUserInfo.
 
 #### Defined in
 
-[types.ts:108](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/1337409195440c0cbfa328944b7d07b4bb53ae3f/packages/sdk-vue/src/types.ts#L108)
+[types.ts:113](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/fcd17d440e603901f23776175e07b35fc625e758/packages/sdk-vue/src/types.ts#L113)
 
 ---
 
@@ -52,7 +52,7 @@ Internally updates `isFetchingUser` and `userInfo` refs, as well as `error` if t
 
 #### Defined in
 
-[types.ts:93](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/1337409195440c0cbfa328944b7d07b4bb53ae3f/packages/sdk-vue/src/types.ts#L93)
+[types.ts:98](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/fcd17d440e603901f23776175e07b35fc625e758/packages/sdk-vue/src/types.ts#L98)
 
 ---
 
@@ -73,7 +73,7 @@ Refresh is scheduled to happen at the configured `autoRefreshSecondsBeforeExpiry
 
 #### Defined in
 
-[types.ts:137](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/1337409195440c0cbfa328944b7d07b4bb53ae3f/packages/sdk-vue/src/types.ts#L137)
+[types.ts:142](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/fcd17d440e603901f23776175e07b35fc625e758/packages/sdk-vue/src/types.ts#L142)
 
 ---
 
@@ -85,7 +85,7 @@ Indicates that the getUserInfo call is unresolved.
 
 #### Defined in
 
-[types.ts:103](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/1337409195440c0cbfa328944b7d07b4bb53ae3f/packages/sdk-vue/src/types.ts#L103)
+[types.ts:108](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/fcd17d440e603901f23776175e07b35fc625e758/packages/sdk-vue/src/types.ts#L108)
 
 ---
 
@@ -97,7 +97,7 @@ Whether the user is logged in.
 
 #### Defined in
 
-[types.ts:86](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/1337409195440c0cbfa328944b7d07b4bb53ae3f/packages/sdk-vue/src/types.ts#L86)
+[types.ts:91](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/fcd17d440e603901f23776175e07b35fc625e758/packages/sdk-vue/src/types.ts#L91)
 
 ---
 
@@ -123,7 +123,7 @@ Initiates login flow.
 
 #### Defined in
 
-[types.ts:114](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/1337409195440c0cbfa328944b7d07b4bb53ae3f/packages/sdk-vue/src/types.ts#L114)
+[types.ts:119](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/fcd17d440e603901f23776175e07b35fc625e758/packages/sdk-vue/src/types.ts#L119)
 
 ---
 
@@ -143,7 +143,7 @@ Initiates a logout.
 
 #### Defined in
 
-[types.ts:125](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/1337409195440c0cbfa328944b7d07b4bb53ae3f/packages/sdk-vue/src/types.ts#L125)
+[types.ts:130](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/fcd17d440e603901f23776175e07b35fc625e758/packages/sdk-vue/src/types.ts#L130)
 
 ---
 
@@ -164,7 +164,7 @@ Token refreshing is handled automatically if configured with `shouldAutoRefresh`
 
 #### Defined in
 
-[types.ts:131](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/1337409195440c0cbfa328944b7d07b4bb53ae3f/packages/sdk-vue/src/types.ts#L131)
+[types.ts:136](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/fcd17d440e603901f23776175e07b35fc625e758/packages/sdk-vue/src/types.ts#L136)
 
 ---
 
@@ -190,7 +190,7 @@ Initiates register flow.
 
 #### Defined in
 
-[types.ts:120](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/1337409195440c0cbfa328944b7d07b4bb53ae3f/packages/sdk-vue/src/types.ts#L120)
+[types.ts:125](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/fcd17d440e603901f23776175e07b35fc625e758/packages/sdk-vue/src/types.ts#L125)
 
 ---
 
@@ -202,4 +202,4 @@ Data fetched from the configured 'me' endpoint.
 
 #### Defined in
 
-[types.ts:98](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/1337409195440c0cbfa328944b7d07b4bb53ae3f/packages/sdk-vue/src/types.ts#L98)
+[types.ts:103](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/fcd17d440e603901f23776175e07b35fc625e758/packages/sdk-vue/src/types.ts#L103)
