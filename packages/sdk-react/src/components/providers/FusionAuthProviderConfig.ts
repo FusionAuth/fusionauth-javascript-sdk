@@ -18,6 +18,11 @@ export interface FusionAuthProviderConfig {
   redirectUri: string;
 
   /**
+   * The OAuth2 scope parameter passed to the `/oauth2/authorize` endpoint. If not specified fusionauth will default this to `openid offline_access`.
+   */
+  scope: string;
+
+  /**
    * Enables automatic token refreshing. Defaults to false.
    */
   shouldAutoRefresh?: boolean;
