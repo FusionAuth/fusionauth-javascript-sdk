@@ -43,6 +43,7 @@ describe('FusionAuthProvider', () => {
     expectedUrl.pathname = '/app/login';
     expectedUrl.searchParams.set('client_id', TEST_CONFIG.clientId);
     expectedUrl.searchParams.set('redirect_uri', TEST_CONFIG.redirectUri);
+    expectedUrl.searchParams.set('scope', TEST_CONFIG.scope!);
     expectedUrl.searchParams.set('state', stateValue);
 
     expect(mockedLocation.assign).toHaveBeenCalledWith(expectedUrl);
@@ -78,6 +79,10 @@ describe('FusionAuthProvider', () => {
     expectedUrl.pathname = '/app/register';
     expectedUrl.searchParams.set('client_id', TEST_CONFIG.clientId);
     expectedUrl.searchParams.set('redirect_uri', TEST_CONFIG.redirectUri);
+    expectedUrl.searchParams.set(
+      'scope',
+      'openid email profile offline_access',
+    );
     expectedUrl.searchParams.set('state', stateValue);
 
     expect(localStorage.getItem('fa-sdk-redirect-value')).toContain(stateValue); // this asserts that `state` was echoed back.

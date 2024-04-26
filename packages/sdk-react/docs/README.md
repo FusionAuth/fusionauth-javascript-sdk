@@ -224,7 +224,7 @@ Doing this will overwrite your file, but fix prettier's objections.
 
 ## Releases
 
-To perform a release to NPM, create a release on GitHub. That will automatically publish a release to GitHub.
+This package is released via GitHub actions.
 
 ## Upgrade Policy
 
