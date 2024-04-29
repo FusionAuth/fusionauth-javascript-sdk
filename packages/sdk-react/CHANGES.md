@@ -1,5 +1,9 @@
 fusionauth-react-sdk Changes
 
+Changes in 2.1.0
+
+- `scope` has been added back to the `FusionAuthProviderConfig` to be more compatible with [FusionAuth v1.50](https://fusionauth.io/docs/release-notes/#version-1-50-0)
+
 Changes in 2.0.0
 
 Breaking changes were made to provide new configuration options. These options include enabling automatic SDK functionality vs writing your own implementation via methods exposed by the `useFusionAuth` hook. These changes are also aimed at using more consistent verbiage within the SDK documentation.
