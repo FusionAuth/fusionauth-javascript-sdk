@@ -6,9 +6,10 @@ An SDK for using FusionAuth in Angular applications.
 -   [Getting Started](#getting-started)
   -   [Installation](#installation)
 -   [Usage](#usage)
+  -   [FusionAuthService](#fusionauthservice)
   -   [Pre-built buttons](#pre-built-buttons)
-  -   [Service usage](#service-usage)
-  -   [Known issues](#known-issues)
+  -   [State Parameter](#state-parameter)
+-   [Known issues](#known-issues)
 -   [Quickstart](#quickstart)
 -   [Documentation](#documentation)
 -   [Releases](#releases)
@@ -25,9 +26,7 @@ Please also use ``` instead of indenting for code blocks. The backticks are tran
 tag::forDocSite[]
 -->
 
-This SDK allows you to add login, logout, and registration buttons to
-your Angular application. You can do this via pre-built buttons, or with 
-the FusionAuthService in your own components.
+This SDK helps manage authentication state for your Angular app and provides functionality to login, register, and logout users. It also can be configured to automatically manage your refresh token.
 
 Your users will be sent to FusionAuth’s themeable hosted login pages and
 then log in. After that, they are sent back to your Angular application.
@@ -87,6 +86,7 @@ import { FusionAuthModule } from '@fusionauth/angular-sdk';
       clientId: '', // Your FusionAuth client ID
       serverUrl: '', // The base URL of the server that performs the token exchange
       redirectUri: '', // The URI that the user is directed to after the login/register/logout action
+      shouldAutoRefresh: true // option to configure the SDK to automatically handle token refresh. Defaults to false if not specified here.
     }),
   ],
   providers: [],
@@ -96,6 +96,41 @@ export class AppModule { }
 ```
 
 ## Usage
+
+### FusionAuthService
+
+The injectable `FusionAuthService` class provides observable properties to which components may subscribe.
+
+Note, you can also use the non-observable `getUserInfo` method if you wish to implement your observables.
+
+```typescript
+class AppComponent implements OnInit, OnDestroy {
+  private fusionAuthService: FusionAuthService = inject(FusionAuthService);
+
+  isLoggedIn: boolean = this.fusionAuthService.isLoggedIn();
+  userInfo: UserInfo | null = null;
+  isGettingUserInfo: boolean = false;
+  subscription?: Subscription;
+
+  ngOnInit(): void {
+    if (this.isLoggedIn) {
+      this.subscription = this.fusionAuthService
+        .getUserInfoObservable({
+          onBegin: () => (this.isGettingUserInfo = true),
+          onDone: () => (this.isGettingUserInfo = false),
+        })
+        .subscribe({
+          next: (userInfo) => (this.userInfo = userInfo),
+          error: (error) => console.error(error),
+        });
+    }
+  }
+
+  ngOnDestroy(): void {
+    this.subscription?.unsubscribe();
+  }
+}
+```
 
 ### Pre-built buttons
 
@@ -128,56 +163,6 @@ export class LogoutComponent {}
 export class RegisterComponent {}
 ```
 
-### Service usage
-
-Alternatively, you may interact with the SDK Service by injecting the FusionAuthService into any component or service.
-
-```typescript
-import { Component, OnInit } from '@angular/core';
-import { FusionAuthService, UserInfo } from '@fusionauth/angular-sdk';
-
-@Component({
-  selector: 'app-root',
-  templateUrl: './app.component.html',
-  styleUrls: ['./app.component.scss']
-})
-export class AppComponent implements OnInit {
-  private userInfo: UserInfo;
-
-  constructor(
-    private fusionAuth: FusionAuthService,
-  ) {}
-
-  async ngOnInit(): Promise<void> {
-    this.fusionAuth.initAutoRefresh();
-  }
-  
-  login() {
-    this.fusionAuth.startLogin();
-  }
-  
-  register() {
-    this.fusionAuth.startRegistration();
-  }
-  
-  logout() {
-    this.fusionAuth.logout();
-  }
-  
-  refreshToken() {
-    this.fusionAuth.refreshToken();
-  }
-  
-  async getUserInfo() {
-    this.userInfo = await this.fusionAuth.getUserInfo();
-  }
-  
-  isLoggedIn(): boolean {
-    return this.fusionAuth.isLoggedIn();
-  }
-}
-```
-
 #### State parameter
 
 The `startLogin` and `startRegistration` functions both accept an optional string
@@ -199,8 +184,7 @@ See the [FusionAuth Angular Quickstart](https://fusionauth.io/docs/quickstarts/q
 
 ## Documentation
 
-[Full library
-documentation](https://github.com/FusionAuth/fusionauth-angular-sdk/blob/main/docs/documentation.md)
+[Full library documentation](https://github.com/FusionAuth/fusionauth-javascript-sdk/tree/main/packages/sdk-angular/docs)
 
 <!--
 end::forDocSite[]
