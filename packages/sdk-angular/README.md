@@ -3,23 +3,14 @@ An SDK for using FusionAuth in Angular applications.
 # Table of Contents
 
 -   [Overview](#overview)
-
 -   [Getting Started](#getting-started)
-
   -   [Installation](#installation)
-
 -   [Usage](#usage)
-
   -   [Pre-built buttons](#pre-built-buttons)
-
   -   [Service usage](#service-usage)
-
   -   [Known issues](#known-issues)
-
 -   [Quickstart](#quickstart)
-
 -   [Documentation](#documentation)
-
 -   [Releases](#releases)
 
 <!--

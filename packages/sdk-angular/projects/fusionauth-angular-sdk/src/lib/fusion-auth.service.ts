@@ -1,103 +1,116 @@
-import { CookieHelpers, TokenRefresher, UrlHelper } from '@fusionauth-sdk/core';
+import { SDKCore } from './core';
 import { FusionAuthConfig, UserInfo } from './types';
+import { Observable, catchError, BehaviorSubject } from 'rxjs';
 
 /**
  * Service class to use with FusionAuth backend endpoints.
  */
 export class FusionAuthService {
-  private urlHelper: UrlHelper;
-  private tokenRefresher: TokenRefresher;
+  private core: SDKCore;
   private autoRefreshTimer?: NodeJS.Timeout;
+  private isLoggedInSubject: BehaviorSubject<boolean>;
 
-  constructor(private config: FusionAuthConfig) {
-    if (!config.redirectUri) {
-      throw Error('No `redirectUri` provided to FusionAuthService');
-    }
-
-    this.urlHelper = new UrlHelper({
-      serverUrl: config.serverUrl,
-      clientId: config.clientId,
-      redirectUri: config.redirectUri,
-      mePath: config.mePath,
-      loginPath: config.loginPath,
-      registerPath: config.registerPath,
-      logoutPath: config.registerPath,
-      tokenRefreshPath: config.tokenRefreshPath,
+  constructor(config: FusionAuthConfig) {
+    this.core = new SDKCore({
+      ...config,
+      onTokenExpiration: () => {
+        this.isLoggedInSubject.next(false);
+      },
     });
-    this.tokenRefresher = new TokenRefresher(
-      this.urlHelper.getTokenRefreshUrl(),
-    );
 
-    if (this.config.shouldAutoRefresh) {
+    this.isLoggedInSubject = new BehaviorSubject(this.core.isLoggedIn);
+    this.isLoggedIn$ = this.isLoggedInSubject.asObservable();
+
+    this.core.handlePostRedirect(config.onRedirect);
+
+    if (config.shouldAutoRefresh && this.core.isLoggedIn) {
       this.initAutoRefresh();
     }
   }
 
-  /**
-   * Calls the 'me' endpoint to retrieve user info.
-   * @return {Promise<UserInfo>} the user info response.
-   */
-  async getUserInfo(): Promise<UserInfo> {
-    const resp = await fetch(this.urlHelper.getMeUrl(), {
-      credentials: 'include',
-    });
-    return JSON.parse(await resp.text()) as UserInfo;
+  /** An observable representing whether the user is logged in. */
+  isLoggedIn$: Observable<boolean>;
+
+  /** A function that returns whether the user is logged in. This returned value is non-observable. */
+  isLoggedIn() {
+    return this.core.isLoggedIn;
   }
 
   /**
-   * Checks for the 'app.at_exp' cookie and if present sets a timer to refresh the access token.
-   * Will attempt to refresh the configured seconds before the access token expires (default is ten seconds).
+   * Refreshes the access token a single time.
+   * Automatic token refreshing can be enabled if the SDK is configured with `shouldAutoRefresh`.
+   */
+  async refreshToken(): Promise<void> {
+    return await this.core.refreshToken();
+  }
+
+  /**
+   * Initializes automatic access token refreshing.
+   * This is handled automatically if the SDK is configured with `shouldAutoRefresh`.
    */
   initAutoRefresh(): void {
     if (this.autoRefreshTimer) {
       clearTimeout(this.autoRefreshTimer);
     }
 
-    this.autoRefreshTimer = this.tokenRefresher.initAutoRefresh(
-      this.config.autoRefreshSecondsBeforeExpiry,
+    this.autoRefreshTimer = this.core.initAutoRefresh();
+  }
+
+  /**
+   * Returns an observable request that fetches userInfo, and catches error.
+   */
+  getUserInfoObservable(callbacks?: {
+    onBegin?: () => void;
+    onDone?: () => void;
+  }): Observable<UserInfo> {
+    callbacks?.onBegin?.();
+    return new Observable<UserInfo>(observer => {
+      this.core
+        .fetchUserInfo()
+        .then(userInfo => {
+          observer.next(userInfo);
+        })
+        .catch(error => {
+          observer.error(error);
+        })
+        .finally(() => {
+          callbacks?.onDone?.();
+        });
+    }).pipe(
+      catchError(error => {
+        throw error;
+      }),
     );
   }
 
   /**
-   * Checks that the 'app.at_exp' cookie is present and for a time in the future to determine logged-in state.
-   * @return {boolean} app.at_exp is present and not for a time in the past
+   * Fetches userInfo from the 'me' endpoint.
+   * @throws {Error} - if an error occurred while fetching.
    */
-  isLoggedIn(): boolean {
-    return (this.getExpTime() ?? 0) > new Date().getTime();
+  async getUserInfo(): Promise<UserInfo> {
+    return await this.core.fetchUserInfo();
   }
 
   /**
-   * Calls the configured 'refresh' endpoint to attempt to refresh the access token cookie.
-   */
-  async refreshToken(): Promise<void> {
-    return this.tokenRefresher.refreshToken();
-  }
-
-  /**
-   * Invokes a redirect to the configured 'login' endpoint.
+   * Initiates login flow.
+   * @param {string} [state] - Optional value to be echoed back to the SDK upon redirect.
    */
   startLogin(state?: string): void {
-    const loginUrl = this.urlHelper.getLoginUrl(state);
-    window.location.assign(loginUrl);
+    this.core.startLogin(state);
   }
 
   /**
-   * Invokes a redirect to the configured 'refresh' endpoint.
+   * Initiates register flow.
+   * @param {string} [state] - Optional value to be echoed back to the SDK upon redirect.
    */
   startRegistration(state?: string): void {
-    const registerUrl = this.urlHelper.getRegisterUrl(state);
-    window.location.assign(registerUrl);
+    this.core.startRegister(state);
   }
 
   /**
-   * Invokes a redirect to the configured 'logout' endpoint.
+   * Initiates logout flow.
    */
   logout(): void {
-    const logoutUrl = this.urlHelper.getLogoutUrl();
-    window.location.assign(logoutUrl);
-  }
-
-  private getExpTime() {
-    return CookieHelpers.getAccessTokenExpirationMoment();
+    this.core.startLogout();
   }
 }
