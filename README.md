@@ -2,7 +2,13 @@
 
 This is the FusionAuth Web SDKs monorepo. This repo manages FusionAuth [React](https://fusionauth.io/docs/sdks/react-sdk), [Angular](https://fusionauth.io/docs/sdks/angular-sdk), and [Vue](https://fusionauth.io/docs/sdks/vue-sdk) SDKs.
 
-Each SDK in this repo offers the configuration options of [`SDKConfig`](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/main/packages/core/src/SDKConfig/SDKConfig.ts) along with the functionality of [`SDKContext`](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/main/packages/core/src/SDKContext/SDKContext.ts).
+Each SDK in this repo offers the following APIs:
+- Redirect to/from a login, register, or logout page.
+- Manage authentication state using reactive properties in a given framework (React, Vue, Angular).
+- Fetch user info from fusionauth.
+- Refresh access token.
+    - This can be done automatically with the `shouldAutoRefresh` config option or by invoking a function.
+- Provides UI elements that consume a provided functionality.
 
 ## Upgrade Policy
 
