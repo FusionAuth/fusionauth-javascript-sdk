@@ -40,9 +40,6 @@
     "typedoc-plugin-markdown": "^3.17.1",
     "@fusionauth-sdk/core": "*"
   },
-  "dependencies": {
-    "query-string": "8.1.0"
-  },
   "files": [
     "dist/*"
   ],
