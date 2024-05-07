@@ -1,6 +1,6 @@
 @fusionauth/angular-sdk Changes
 
-Changes in 1.0.0
+Changes in 1.0.1
 
 Several enhancements are availabe on the `FusionAuthService`
 
