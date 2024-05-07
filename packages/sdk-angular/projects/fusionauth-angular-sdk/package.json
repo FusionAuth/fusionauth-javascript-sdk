@@ -1,6 +1,6 @@
 {
   "name": "@fusionauth/angular-sdk",
-  "version": "0.1.7",
+  "version": "1.0.0",
   "peerDependencies": {
     "@angular/common": "^17.2.0",
     "@angular/core": "^17.2.0",

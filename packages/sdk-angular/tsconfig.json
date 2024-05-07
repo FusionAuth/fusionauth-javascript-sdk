@@ -34,5 +34,10 @@
     "strictInjectionParameters": true,
     "strictInputAccessModifiers": true,
     "strictTemplates": true
+  },
+  "typedocOptions": {
+    "plugin": ["typedoc-plugin-markdown"],
+    "entryPoints": ["projects/fusionauth-angular-sdk/src/public-api.ts"],
+    "out": "docs"
   }
 }

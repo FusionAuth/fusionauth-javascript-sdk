@@ -5,7 +5,8 @@
     "ng": "ng",
     "build": "ng build && cp README.md dist/fusionauth-angular-sdk/README.md",
     "test": "ng test --watch=false --browsers=ChromeHeadless",
-    "test:watch": "ng test"
+    "test:watch": "ng test",
+    "docs": "typedoc --plugin typedoc-plugin-markdown"
   },
   "private": false,
   "dependencies": {
@@ -17,15 +18,17 @@
     "@angular/platform-browser": "^17.2.0",
     "@angular/platform-browser-dynamic": "^17.2.0",
     "@angular/router": "^17.2.0",
-    "@fusionauth-sdk/core": "*",
     "rxjs": "~7.8.0",
     "tslib": "^2.3.0",
     "zone.js": "~0.14.3"
   },
   "devDependencies": {
+    "@fusionauth-sdk/core": "*",
     "@angular-devkit/build-angular": "^17.2.3",
     "@angular/cli": "^17.2.0",
     "@angular/compiler-cli": "^17.2.0",
+    "typedoc": "^0.25.13",
+    "typedoc-plugin-markdown": "^3.17.1",
     "@types/jasmine": "~5.1.0",
     "jasmine-core": "~5.1.0",
     "karma": "~6.4.0",
