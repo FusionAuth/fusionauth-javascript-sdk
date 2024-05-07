@@ -1,7 +1,7 @@
 import { FusionAuthConfig } from './types';
 import { FusionAuthService } from './fusion-auth.service';
 import { fakeAsync, flush, tick } from '@angular/core/testing';
-import { mockIsLoggedIn, removeAt_expCookie } from '@fusionauth-sdk/core';
+import { mockIsLoggedIn, removeAt_expCookie } from './core';
 import { take } from 'rxjs';
 
 describe('FusionAuthService', () => {
