@@ -1,6 +1,6 @@
 import { describe, it, expect, afterEach } from 'vitest';
 
-import { CookieHelpers } from '.';
+import { getAccessTokenExpirationMoment } from '.';
 
 describe('getAccessTokenExpirationMoment', () => {
   afterEach(() => {
@@ -10,9 +10,9 @@ describe('getAccessTokenExpirationMoment', () => {
   it('Should get the "app.at_exp" cookie value in milliseconds', () => {
     const exp = Date.now();
     document.cookie = `app.at_exp=${exp}`;
-    expect(CookieHelpers.getAccessTokenExpirationMoment()).toBe(exp * 1000);
+    expect(getAccessTokenExpirationMoment()).toBe(exp * 1000);
   });
   it('Should return null if the cookie is not set', () => {
-    expect(CookieHelpers.getAccessTokenExpirationMoment()).toBeNull();
+    expect(getAccessTokenExpirationMoment()).toBeNull();
   });
 });

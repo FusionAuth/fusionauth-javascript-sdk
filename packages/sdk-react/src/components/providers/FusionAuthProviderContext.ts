@@ -50,7 +50,7 @@ export interface FusionAuthProviderContext {
    * Refreshes the access token a single time.
    * This is handled automatically if the SDK is configured with `shouldAutoRefresh`.
    */
-  refreshToken: () => Promise<void>;
+  refreshToken: () => Promise<Response | undefined>;
 
   /**
    * Initializes automatic access token refreshing.

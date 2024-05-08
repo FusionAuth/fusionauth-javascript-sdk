@@ -198,10 +198,11 @@ describe('FusionAuthProvider', () => {
 
     mockIsLoggedIn(); // mock logged in -- expires in 1 hour
 
-    vi.spyOn(global, 'fetch').mockResolvedValueOnce({
-      ok: true,
-      status: 200,
-    } as Response);
+    vi.spyOn(global, 'fetch').mockResolvedValueOnce(
+      new Response(null, {
+        status: 200,
+      }),
+    );
 
     act(() => {
       renderWithWrapper({
@@ -222,7 +223,7 @@ describe('FusionAuthProvider', () => {
     const expectedUrl = new URL(TEST_CONFIG.serverUrl);
     expectedUrl.pathname = '/app/refresh';
     expectedUrl.searchParams.set('client_id', TEST_CONFIG.clientId);
-    expect(fetch).toHaveBeenCalledWith(expectedUrl.toString(), {
+    expect(fetch).toHaveBeenCalledWith(expectedUrl, {
       method: 'POST',
       credentials: 'include',
       headers: { 'Content-Type': 'text/plain' },
