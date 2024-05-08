@@ -37,6 +37,8 @@
     "build:sdk-angular": "yarn build:lexicon && yarn build:core && yarn workspace sdk-angular-workspace build",
     "build:sdk-react": "yarn build:lexicon && yarn build:core && yarn workspace @fusionauth/react-sdk build",
     "build:sdk-vue": "yarn build:lexicon && yarn build:core && yarn workspace @fusionauth/vue-sdk build",
+    "yalc-pub:sdk-react": "yarn build:sdk-react && yalc publish packages/sdk-react",
+    "yalc-push:sdk-react": "yarn build:sdk-react && yalc push packages/sdk-react",
     "test": "yarn test:lexicon && yarn test:core && yarn test:sdk-react && yarn test:sdk-angular && yarn test:sdk-vue",
     "test:core": "yarn workspace @fusionauth-sdk/core test",
     "test:lexicon": "yarn workspace @fusionauth-sdk/lexicon test",

@@ -66,7 +66,10 @@ export class SDKCore {
     });
 
     if (!(response.status >= 200 && response.status < 300)) {
-      throw new Error('error refreshing access token in fusionauth');
+      const message =
+        (await response?.text()) ||
+        'Error refreshing access token in fusionauth';
+      throw new Error(message);
     }
 
     // a successful request means that app_exp was bumped into the future.
@@ -96,8 +99,7 @@ export class SDKCore {
         await this.refreshToken();
         this.initAutoRefresh();
       } catch (error) {
-        this.config.onTokenRefreshFailure?.(error as Error);
-        console.error(error);
+        this.config.onAutoRefreshFailure?.(error as Error);
       }
     }, timeTillRefresh);
   }

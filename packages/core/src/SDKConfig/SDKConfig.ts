@@ -79,9 +79,9 @@ export interface SDKConfig {
   accessTokenExpireCookieName?: string;
 
   /**
-   * Callback to be invoked if a request to refresh the access token fails.
+   * Callback to be invoked if a request to refresh the access token fails during autorefresh.
    */
-  onTokenRefreshFailure?: (error: Error) => void;
+  onAutoRefreshFailure?: (error: Error) => void;
 
   /**
    * Callback to be invoked at the moment of access token expiration

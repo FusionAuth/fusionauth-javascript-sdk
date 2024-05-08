@@ -1,6 +1,6 @@
 import { PropsWithChildren, useContext, useMemo, useState, FC } from 'react';
 
-import { SDKContext, SDKCore } from '@fusionauth-sdk/core';
+import { SDKCore } from '@fusionauth-sdk/core';
 
 import { FusionAuthProviderConfig } from './FusionAuthProviderConfig';
 import { useTokenRefresh, useRedirecting, useUserInfo } from './hooks';
