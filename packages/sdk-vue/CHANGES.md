@@ -1,5 +1,10 @@
 fusionauth-vue-sdk Changes
 
+Changes in 1.0.1
+
+- Adds `onAutoRefreshFailure` option to `FusionAuthConfig`.
+- _Bug fix_ `isLoggedIn` property is set to `false` after token refresh. [See issue #82](https://github.com/FusionAuth/fusionauth-javascript-sdk/issues/82)
+
 Changes in 1.0.0
 
 - _Breaking change_ `isLoggedIn` property -- previously a function -- is now using [Vue's Reactivity API](https://vuejs.org/api/reactivity-core.html). The benefit of this is that it can be used as a reactive property in Vue.
