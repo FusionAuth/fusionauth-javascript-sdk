@@ -26,7 +26,7 @@
 
 #### Defined in
 
-[lib/types.ts:67](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/53e4097ee736b5b67b1c6f60aea9b74238ada880/packages/sdk-angular/projects/fusionauth-angular-sdk/src/lib/types.ts#L67)
+[lib/types.ts:72](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/b45b804c41f7355ea2e848325d965c928cec7c86/packages/sdk-angular/projects/fusionauth-angular-sdk/src/lib/types.ts#L72)
 
 ---
 
@@ -36,7 +36,7 @@
 
 #### Defined in
 
-[lib/types.ts:68](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/53e4097ee736b5b67b1c6f60aea9b74238ada880/packages/sdk-angular/projects/fusionauth-angular-sdk/src/lib/types.ts#L68)
+[lib/types.ts:73](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/b45b804c41f7355ea2e848325d965c928cec7c86/packages/sdk-angular/projects/fusionauth-angular-sdk/src/lib/types.ts#L73)
 
 ---
 
@@ -46,7 +46,7 @@
 
 #### Defined in
 
-[lib/types.ts:69](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/53e4097ee736b5b67b1c6f60aea9b74238ada880/packages/sdk-angular/projects/fusionauth-angular-sdk/src/lib/types.ts#L69)
+[lib/types.ts:74](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/b45b804c41f7355ea2e848325d965c928cec7c86/packages/sdk-angular/projects/fusionauth-angular-sdk/src/lib/types.ts#L74)
 
 ---
 
@@ -56,7 +56,7 @@
 
 #### Defined in
 
-[lib/types.ts:70](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/53e4097ee736b5b67b1c6f60aea9b74238ada880/packages/sdk-angular/projects/fusionauth-angular-sdk/src/lib/types.ts#L70)
+[lib/types.ts:75](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/b45b804c41f7355ea2e848325d965c928cec7c86/packages/sdk-angular/projects/fusionauth-angular-sdk/src/lib/types.ts#L75)
 
 ---
 
@@ -66,7 +66,7 @@
 
 #### Defined in
 
-[lib/types.ts:71](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/53e4097ee736b5b67b1c6f60aea9b74238ada880/packages/sdk-angular/projects/fusionauth-angular-sdk/src/lib/types.ts#L71)
+[lib/types.ts:76](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/b45b804c41f7355ea2e848325d965c928cec7c86/packages/sdk-angular/projects/fusionauth-angular-sdk/src/lib/types.ts#L76)
 
 ---
 
@@ -76,7 +76,7 @@
 
 #### Defined in
 
-[lib/types.ts:77](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/53e4097ee736b5b67b1c6f60aea9b74238ada880/packages/sdk-angular/projects/fusionauth-angular-sdk/src/lib/types.ts#L77)
+[lib/types.ts:82](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/b45b804c41f7355ea2e848325d965c928cec7c86/packages/sdk-angular/projects/fusionauth-angular-sdk/src/lib/types.ts#L82)
 
 ---
 
@@ -86,7 +86,7 @@
 
 #### Defined in
 
-[lib/types.ts:72](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/53e4097ee736b5b67b1c6f60aea9b74238ada880/packages/sdk-angular/projects/fusionauth-angular-sdk/src/lib/types.ts#L72)
+[lib/types.ts:77](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/b45b804c41f7355ea2e848325d965c928cec7c86/packages/sdk-angular/projects/fusionauth-angular-sdk/src/lib/types.ts#L77)
 
 ---
 
@@ -96,7 +96,7 @@
 
 #### Defined in
 
-[lib/types.ts:73](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/53e4097ee736b5b67b1c6f60aea9b74238ada880/packages/sdk-angular/projects/fusionauth-angular-sdk/src/lib/types.ts#L73)
+[lib/types.ts:78](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/b45b804c41f7355ea2e848325d965c928cec7c86/packages/sdk-angular/projects/fusionauth-angular-sdk/src/lib/types.ts#L78)
 
 ---
 
@@ -106,7 +106,7 @@
 
 #### Defined in
 
-[lib/types.ts:74](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/53e4097ee736b5b67b1c6f60aea9b74238ada880/packages/sdk-angular/projects/fusionauth-angular-sdk/src/lib/types.ts#L74)
+[lib/types.ts:79](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/b45b804c41f7355ea2e848325d965c928cec7c86/packages/sdk-angular/projects/fusionauth-angular-sdk/src/lib/types.ts#L79)
 
 ---
 
@@ -116,7 +116,7 @@
 
 #### Defined in
 
-[lib/types.ts:75](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/53e4097ee736b5b67b1c6f60aea9b74238ada880/packages/sdk-angular/projects/fusionauth-angular-sdk/src/lib/types.ts#L75)
+[lib/types.ts:80](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/b45b804c41f7355ea2e848325d965c928cec7c86/packages/sdk-angular/projects/fusionauth-angular-sdk/src/lib/types.ts#L80)
 
 ---
 
@@ -126,4 +126,4 @@
 
 #### Defined in
 
-[lib/types.ts:76](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/53e4097ee736b5b67b1c6f60aea9b74238ada880/packages/sdk-angular/projects/fusionauth-angular-sdk/src/lib/types.ts#L76)
+[lib/types.ts:81](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/b45b804c41f7355ea2e848325d965c928cec7c86/packages/sdk-angular/projects/fusionauth-angular-sdk/src/lib/types.ts#L81)

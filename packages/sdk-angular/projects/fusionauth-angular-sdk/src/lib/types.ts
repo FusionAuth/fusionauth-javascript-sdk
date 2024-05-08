@@ -38,6 +38,11 @@ export interface FusionAuthConfig {
   onRedirect?: (state?: string) => void;
 
   /**
+   * Callback to be invoked if a request to refresh the access token fails during autorefresh.
+   */
+  onAutoRefreshFailure?: (error: Error) => void;
+
+  /**
    * The path to the login endpoint.
    */
   loginPath?: string;

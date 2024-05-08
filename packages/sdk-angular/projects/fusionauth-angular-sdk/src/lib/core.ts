@@ -59,82 +59,22 @@ class g {
   generateUrl(e, t) {
     const s = new URL(this.serverUrl);
     if (((s.pathname = e), t)) {
-      const n = this.generateURLSearchParams(t);
-      s.search = n.toString();
+      const o = this.generateURLSearchParams(t);
+      s.search = o.toString();
     }
     return s;
   }
   generateURLSearchParams(e) {
     const t = new URLSearchParams();
     return (
-      Object.entries(e).forEach(([s, n]) => {
-        n && t.append(s, n);
+      Object.entries(e).forEach(([s, o]) => {
+        o && t.append(s, o);
       }),
       t
     );
   }
 }
-class o {
-  /**
-   * Parses document.cookie for the access token expiration cookie value.
-   * @returns {(number | null)} The moment of expiration in milliseconds since epoch.
-   */
-  static getAccessTokenExpirationMoment(e = 'app.at_exp') {
-    const t = document.cookie
-        .split('; ')
-        .map(n => n.split('='))
-        .find(([n]) => n === e),
-      s = t == null ? void 0 : t[1];
-    return s ? parseInt(s) * 1e3 : null;
-  }
-}
 class p {
-  constructor(e) {
-    i(this, 'url');
-    this.url = e;
-  }
-  /** Refresh token a single time */
-  async refreshToken() {
-    const e = await fetch(this.url.href, {
-      method: 'POST',
-      credentials: 'include',
-      headers: {
-        'Content-Type': 'text/plain',
-      },
-    });
-    if (!(e.status >= 200 && e.status < 300))
-      throw new Error('error refreshing access token in fusionauth');
-  }
-  /** Initializes continuous automatic token refresh. */
-  initAutoRefresh(e = 10, t) {
-    const s = o.getAccessTokenExpirationMoment(t);
-    if (!s) return;
-    const n = e * 1e3,
-      a = /* @__PURE__ */ new Date().getTime(),
-      h = s - n,
-      c = Math.max(h - a, 0);
-    return setTimeout(async () => {
-      try {
-        await this.refreshToken(), this.initAutoRefresh(e);
-      } catch (l) {
-        console.error(l);
-      }
-    }, c);
-  }
-}
-class m {
-  /**
-   * Schedules a callback to be invoked at the given moment.
-   * @param expirationMoment - the access token expiration moment in milliseconds since the epoch.
-   * @param onExpiration - the callback to be invoked at the `expirationMoment`.
-   */
-  static scheduleTokenExpirationCallback(e, t) {
-    const s = /* @__PURE__ */ new Date().getTime(),
-      n = e - s;
-    n > 0 && setTimeout(t, n);
-  }
-}
-class R {
   constructor() {
     i(this, 'REDIRECT_VALUE', 'fa-sdk-redirect-value');
   }
@@ -163,12 +103,20 @@ class R {
     );
   }
 }
-class T {
+function m(r = 'app.at_exp') {
+  const e = document.cookie
+      .split('; ')
+      .map(s => s.split('='))
+      .find(([s]) => s === r),
+    t = e == null ? void 0 : e[1];
+  return t ? parseInt(t) * 1e3 : null;
+}
+class U {
   constructor(e) {
     i(this, 'config');
     i(this, 'urlHelper');
-    i(this, 'tokenRefresher');
-    i(this, 'redirectHelper', new R());
+    i(this, 'redirectHelper', new p());
+    i(this, 'tokenExpirationTimeout');
     (this.config = e),
       (this.urlHelper = new g({
         serverUrl: e.serverUrl,
@@ -181,8 +129,7 @@ class T {
         logoutPath: e.logoutPath,
         tokenRefreshPath: e.tokenRefreshPath,
       })),
-      (this.tokenRefresher = new p(this.urlHelper.getTokenRefreshUrl())),
-      this.scheduleTokenExpirationEvent();
+      this.scheduleTokenExpiration();
   }
   startLogin(e) {
     this.redirectHelper.handlePreRedirect(e),
@@ -206,13 +153,37 @@ class T {
     return await e.json();
   }
   async refreshToken() {
-    return await this.tokenRefresher.refreshToken();
+    const e = await fetch(this.urlHelper.getTokenRefreshUrl(), {
+      method: 'POST',
+      credentials: 'include',
+      headers: {
+        'Content-Type': 'text/plain',
+      },
+    });
+    if (!(e.status >= 200 && e.status < 300)) {
+      const t =
+        (await (e == null ? void 0 : e.text())) ||
+        'Error refreshing access token in fusionauth';
+      throw new Error(t);
+    }
+    return this.scheduleTokenExpiration(), e;
   }
   initAutoRefresh() {
-    return this.tokenRefresher.initAutoRefresh(
-      this.config.autoRefreshSecondsBeforeExpiry,
-      this.config.accessTokenExpireCookieName,
-    );
+    const e = this.at_exp,
+      t = this.config.autoRefreshSecondsBeforeExpiry ?? 10;
+    if (!e) return;
+    const s = t * 1e3,
+      o = /* @__PURE__ */ new Date().getTime(),
+      h = e - s,
+      l = Math.max(h - o, 0);
+    return setTimeout(async () => {
+      let n, a;
+      try {
+        await this.refreshToken(), this.initAutoRefresh();
+      } catch (c) {
+        (a = (n = this.config).onAutoRefreshFailure) == null || a.call(n, c);
+      }
+    }, l);
   }
   handlePostRedirect(e) {
     this.isLoggedIn &&
@@ -220,34 +191,37 @@ class T {
       this.redirectHelper.handlePostRedirect(e);
   }
   get isLoggedIn() {
-    return this.accessTokenExpirationMoment
-      ? this.accessTokenExpirationMoment > /* @__PURE__ */ new Date().getTime()
+    return this.at_exp
+      ? this.at_exp > /* @__PURE__ */ new Date().getTime()
       : !1;
   }
-  get accessTokenExpirationMoment() {
-    return o.getAccessTokenExpirationMoment(
-      this.config.accessTokenExpireCookieName,
-    );
+  /** The moment of access token expiration in milliseconds since epoch. */
+  get at_exp() {
+    return m(this.config.accessTokenExpireCookieName);
   }
-  scheduleTokenExpirationEvent() {
-    this.accessTokenExpirationMoment &&
-      this.config.onTokenExpiration &&
-      m.scheduleTokenExpirationCallback(
-        this.accessTokenExpirationMoment,
+  /** Schedules `onTokenExpiration` at moment of access token expiration. */
+  scheduleTokenExpiration() {
+    clearTimeout(this.tokenExpirationTimeout);
+    const e = this.at_exp ?? -1,
+      t = /* @__PURE__ */ new Date().getTime(),
+      s = e - t;
+    s > 0 &&
+      (this.tokenExpirationTimeout = setTimeout(
         this.config.onTokenExpiration,
-      );
+        s,
+      ));
   }
 }
-function U() {
+function P() {
   const r = /* @__PURE__ */ new Date();
   r.setHours(r.getHours() + 1);
   const e = r.getTime() / 1e3;
   document.cookie = `app.at_exp=${e}`;
 }
-function P() {
+function f() {
   document.cookie = 'app.at_exp=;expires=Thu, 01 Jan 1970 00:00:00 GMT';
 }
-function E(r) {
+function w(r) {
   const e = {
     ...window.location,
     assign: r.fn(),
@@ -255,11 +229,8 @@ function E(r) {
   return r.spyOn(window, 'location', 'get').mockReturnValue(e), e;
 }
 export {
-  o as CookieHelpers,
-  T as SDKCore,
-  p as TokenRefresher,
-  g as UrlHelper,
-  U as mockIsLoggedIn,
-  E as mockWindowLocation,
-  P as removeAt_expCookie,
+  U as SDKCore,
+  P as mockIsLoggedIn,
+  w as mockWindowLocation,
+  f as removeAt_expCookie,
 };

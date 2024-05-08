@@ -1,5 +1,10 @@
 @fusionauth/angular-sdk Changes
 
+Changes in 2.1.2
+
+- Adds `onAutoRefreshFailure` option to `FusionAuthConfig`.
+- _Bug fix_ `isLoggedIn$` observable property is set to `false` after token refresh. [See issue #82](https://github.com/FusionAuth/fusionauth-javascript-sdk/issues/82)
+
 Changes in 1.0.1
 
 Several enhancements are availabe on the `FusionAuthService`
