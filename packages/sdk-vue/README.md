@@ -12,11 +12,11 @@ An SDK for using FusionAuth in Vue applications.
   - [UI Components](#ui-components)
     - [Protecting Content](#protecting-content)
     - [Pre-built buttons](#pre-built-buttons)
-  - [Quickstart](#quickstart)
-  - [Documentation](#documentation)
-  - [Known Issues](#known-issues)
-  - [Releases](#releases)
-  - [Upgrade Policy](#upgrade-policy)
+- [Quickstart](#quickstart)
+- [Documentation](#documentation)
+- [Known Issues](#known-issues)
+- [Releases](#releases)
+- [Upgrade Policy](#upgrade-policy)
 
 <!--
 this tag, and the corresponding end tag, are used to delineate what is pulled into the FusionAuth docs site (the client libraries pages). Don't remove unless you also change the docs site.
