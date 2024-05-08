@@ -20,4 +20,4 @@
 
 #### Defined in
 
-[composables/useFusionAuth.ts:5](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/fcd17d440e603901f23776175e07b35fc625e758/packages/sdk-vue/src/composables/useFusionAuth.ts#L5)
+[composables/useFusionAuth.ts:5](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/525bfc3280cf0ce66d562e4b96351ecc387e5857/packages/sdk-vue/src/composables/useFusionAuth.ts#L5)

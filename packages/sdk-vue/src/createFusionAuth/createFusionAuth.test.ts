@@ -70,6 +70,31 @@ describe('createFusionAuth', () => {
     expect(onRedirect).toHaveBeenCalledWith(expectedStateValue);
   });
 
+  it('Invokes `onAutoRefreshFailure` with a helpful error when autorefresh fails', async () => {
+    vi.useFakeTimers();
+    mockIsLoggedIn();
+
+    vi.spyOn(global, 'fetch').mockResolvedValueOnce(
+      new Response(JSON.stringify({ msg: 'could not refresh access token' }), {
+        status: 400,
+      }),
+    );
+
+    const onAutoRefreshFailure = vi.fn();
+
+    createFusionAuth({
+      ...config,
+      shouldAutoRefresh: true,
+      onAutoRefreshFailure,
+    });
+
+    await vi.advanceTimersByTimeAsync(60 * 60 * 1000);
+
+    expect(onAutoRefreshFailure).toHaveBeenCalledWith(
+      Error(JSON.stringify({ msg: 'could not refresh access token' })),
+    );
+  });
+
   it('Can be configured to automatically refresh the access token', () => {
     mockIsLoggedIn();
     vi.useFakeTimers();
@@ -113,7 +138,7 @@ describe('createFusionAuth', () => {
     expectedUrl.pathname = '/app/login';
     expectedUrl.searchParams.set('client_id', config.clientId);
     expectedUrl.searchParams.set('redirect_uri', config.redirectUri);
-    expectedUrl.searchParams.set('scope', config.scope);
+    expectedUrl.searchParams.set('scope', config.scope!);
     expectedUrl.searchParams.set('state', stateValue);
 
     expect(mockedLocation.assign).toHaveBeenCalledWith(expectedUrl);
@@ -130,7 +155,7 @@ describe('createFusionAuth', () => {
     expectedUrl.pathname = '/app/register';
     expectedUrl.searchParams.set('client_id', config.clientId);
     expectedUrl.searchParams.set('redirect_uri', config.redirectUri);
-    expectedUrl.searchParams.set('scope', config.scope);
+    expectedUrl.searchParams.set('scope', config.scope!);
     expectedUrl.searchParams.set('state', stateValue);
 
     expect(mockedLocation.assign).toHaveBeenCalledWith(expectedUrl);

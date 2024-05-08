@@ -15,6 +15,7 @@ Config for the FusionAuth Vue SDK
 - [loginPath](types.FusionAuthConfig.md#loginpath)
 - [logoutPath](types.FusionAuthConfig.md#logoutpath)
 - [mePath](types.FusionAuthConfig.md#mepath)
+- [onAutoRefreshFailure](types.FusionAuthConfig.md#onautorefreshfailure)
 - [onRedirect](types.FusionAuthConfig.md#onredirect)
 - [redirectUri](types.FusionAuthConfig.md#redirecturi)
 - [registerPath](types.FusionAuthConfig.md#registerpath)
@@ -34,7 +35,7 @@ The number of seconds before the access token expiry when the auto refresh funct
 
 #### Defined in
 
-[types.ts:38](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/fcd17d440e603901f23776175e07b35fc625e758/packages/sdk-vue/src/types.ts#L38)
+[types.ts:38](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/525bfc3280cf0ce66d562e4b96351ecc387e5857/packages/sdk-vue/src/types.ts#L38)
 
 ---
 
@@ -46,7 +47,7 @@ The client id of the application.
 
 #### Defined in
 
-[types.ts:14](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/fcd17d440e603901f23776175e07b35fc625e758/packages/sdk-vue/src/types.ts#L14)
+[types.ts:14](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/525bfc3280cf0ce66d562e4b96351ecc387e5857/packages/sdk-vue/src/types.ts#L14)
 
 ---
 
@@ -58,7 +59,7 @@ The path to the login endpoint.
 
 #### Defined in
 
-[types.ts:48](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/fcd17d440e603901f23776175e07b35fc625e758/packages/sdk-vue/src/types.ts#L48)
+[types.ts:53](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/525bfc3280cf0ce66d562e4b96351ecc387e5857/packages/sdk-vue/src/types.ts#L53)
 
 ---
 
@@ -70,7 +71,7 @@ The path to the logout endpoint.
 
 #### Defined in
 
-[types.ts:52](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/fcd17d440e603901f23776175e07b35fc625e758/packages/sdk-vue/src/types.ts#L52)
+[types.ts:57](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/525bfc3280cf0ce66d562e4b96351ecc387e5857/packages/sdk-vue/src/types.ts#L57)
 
 ---
 
@@ -82,7 +83,33 @@ The path to the me endpoint.
 
 #### Defined in
 
-[types.ts:64](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/fcd17d440e603901f23776175e07b35fc625e758/packages/sdk-vue/src/types.ts#L64)
+[types.ts:69](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/525bfc3280cf0ce66d562e4b96351ecc387e5857/packages/sdk-vue/src/types.ts#L69)
+
+---
+
+### onAutoRefreshFailure
+
+• `Optional` **onAutoRefreshFailure**: (`error`: `Error`) => `void`
+
+Callback to be invoked if a request to refresh the access token fails during autorefresh.
+
+#### Type declaration
+
+▸ (`error`): `void`
+
+##### Parameters
+
+| Name    | Type    |
+| :------ | :------ |
+| `error` | `Error` |
+
+##### Returns
+
+`void`
+
+#### Defined in
+
+[types.ts:48](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/525bfc3280cf0ce66d562e4b96351ecc387e5857/packages/sdk-vue/src/types.ts#L48)
 
 ---
 
@@ -108,7 +135,7 @@ Callback function to be invoked with the `state` value upon redirect from login 
 
 #### Defined in
 
-[types.ts:43](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/fcd17d440e603901f23776175e07b35fc625e758/packages/sdk-vue/src/types.ts#L43)
+[types.ts:43](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/525bfc3280cf0ce66d562e4b96351ecc387e5857/packages/sdk-vue/src/types.ts#L43)
 
 ---
 
@@ -120,7 +147,7 @@ The redirect URI of the application.
 
 #### Defined in
 
-[types.ts:18](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/fcd17d440e603901f23776175e07b35fc625e758/packages/sdk-vue/src/types.ts#L18)
+[types.ts:18](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/525bfc3280cf0ce66d562e4b96351ecc387e5857/packages/sdk-vue/src/types.ts#L18)
 
 ---
 
@@ -132,7 +159,7 @@ The path to the register endpoint.
 
 #### Defined in
 
-[types.ts:56](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/fcd17d440e603901f23776175e07b35fc625e758/packages/sdk-vue/src/types.ts#L56)
+[types.ts:61](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/525bfc3280cf0ce66d562e4b96351ecc387e5857/packages/sdk-vue/src/types.ts#L61)
 
 ---
 
@@ -144,7 +171,7 @@ The OAuth2 scope parameter passed to the `/oauth2/authorize` endpoint. If not sp
 
 #### Defined in
 
-[types.ts:23](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/fcd17d440e603901f23776175e07b35fc625e758/packages/sdk-vue/src/types.ts#L23)
+[types.ts:23](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/525bfc3280cf0ce66d562e4b96351ecc387e5857/packages/sdk-vue/src/types.ts#L23)
 
 ---
 
@@ -156,7 +183,7 @@ The URL of the FusionAuth server.
 
 #### Defined in
 
-[types.ts:10](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/fcd17d440e603901f23776175e07b35fc625e758/packages/sdk-vue/src/types.ts#L10)
+[types.ts:10](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/525bfc3280cf0ce66d562e4b96351ecc387e5857/packages/sdk-vue/src/types.ts#L10)
 
 ---
 
@@ -168,7 +195,7 @@ Enables the SDK to automatically handle fetching user info when logged in. Defau
 
 #### Defined in
 
-[types.ts:33](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/fcd17d440e603901f23776175e07b35fc625e758/packages/sdk-vue/src/types.ts#L33)
+[types.ts:33](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/525bfc3280cf0ce66d562e4b96351ecc387e5857/packages/sdk-vue/src/types.ts#L33)
 
 ---
 
@@ -180,7 +207,7 @@ Enables automatic token refreshing. Defaults to false.
 
 #### Defined in
 
-[types.ts:28](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/fcd17d440e603901f23776175e07b35fc625e758/packages/sdk-vue/src/types.ts#L28)
+[types.ts:28](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/525bfc3280cf0ce66d562e4b96351ecc387e5857/packages/sdk-vue/src/types.ts#L28)
 
 ---
 
@@ -192,4 +219,4 @@ The path to the token refresh endpoint.
 
 #### Defined in
 
-[types.ts:60](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/fcd17d440e603901f23776175e07b35fc625e758/packages/sdk-vue/src/types.ts#L60)
+[types.ts:65](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/525bfc3280cf0ce66d562e4b96351ecc387e5857/packages/sdk-vue/src/types.ts#L65)

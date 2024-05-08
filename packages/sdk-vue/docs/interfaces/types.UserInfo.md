@@ -30,7 +30,7 @@ User information returned from FusionAuth.
 
 #### Defined in
 
-[types.ts:71](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/fcd17d440e603901f23776175e07b35fc625e758/packages/sdk-vue/src/types.ts#L71)
+[types.ts:76](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/525bfc3280cf0ce66d562e4b96351ecc387e5857/packages/sdk-vue/src/types.ts#L76)
 
 ---
 
@@ -40,7 +40,7 @@ User information returned from FusionAuth.
 
 #### Defined in
 
-[types.ts:72](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/fcd17d440e603901f23776175e07b35fc625e758/packages/sdk-vue/src/types.ts#L72)
+[types.ts:77](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/525bfc3280cf0ce66d562e4b96351ecc387e5857/packages/sdk-vue/src/types.ts#L77)
 
 ---
 
@@ -50,7 +50,7 @@ User information returned from FusionAuth.
 
 #### Defined in
 
-[types.ts:73](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/fcd17d440e603901f23776175e07b35fc625e758/packages/sdk-vue/src/types.ts#L73)
+[types.ts:78](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/525bfc3280cf0ce66d562e4b96351ecc387e5857/packages/sdk-vue/src/types.ts#L78)
 
 ---
 
@@ -60,7 +60,7 @@ User information returned from FusionAuth.
 
 #### Defined in
 
-[types.ts:74](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/fcd17d440e603901f23776175e07b35fc625e758/packages/sdk-vue/src/types.ts#L74)
+[types.ts:79](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/525bfc3280cf0ce66d562e4b96351ecc387e5857/packages/sdk-vue/src/types.ts#L79)
 
 ---
 
@@ -70,7 +70,7 @@ User information returned from FusionAuth.
 
 #### Defined in
 
-[types.ts:75](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/fcd17d440e603901f23776175e07b35fc625e758/packages/sdk-vue/src/types.ts#L75)
+[types.ts:80](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/525bfc3280cf0ce66d562e4b96351ecc387e5857/packages/sdk-vue/src/types.ts#L80)
 
 ---
 
@@ -80,7 +80,7 @@ User information returned from FusionAuth.
 
 #### Defined in
 
-[types.ts:81](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/fcd17d440e603901f23776175e07b35fc625e758/packages/sdk-vue/src/types.ts#L81)
+[types.ts:86](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/525bfc3280cf0ce66d562e4b96351ecc387e5857/packages/sdk-vue/src/types.ts#L86)
 
 ---
 
@@ -90,7 +90,7 @@ User information returned from FusionAuth.
 
 #### Defined in
 
-[types.ts:76](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/fcd17d440e603901f23776175e07b35fc625e758/packages/sdk-vue/src/types.ts#L76)
+[types.ts:81](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/525bfc3280cf0ce66d562e4b96351ecc387e5857/packages/sdk-vue/src/types.ts#L81)
 
 ---
 
@@ -100,7 +100,7 @@ User information returned from FusionAuth.
 
 #### Defined in
 
-[types.ts:77](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/fcd17d440e603901f23776175e07b35fc625e758/packages/sdk-vue/src/types.ts#L77)
+[types.ts:82](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/525bfc3280cf0ce66d562e4b96351ecc387e5857/packages/sdk-vue/src/types.ts#L82)
 
 ---
 
@@ -110,7 +110,7 @@ User information returned from FusionAuth.
 
 #### Defined in
 
-[types.ts:78](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/fcd17d440e603901f23776175e07b35fc625e758/packages/sdk-vue/src/types.ts#L78)
+[types.ts:83](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/525bfc3280cf0ce66d562e4b96351ecc387e5857/packages/sdk-vue/src/types.ts#L83)
 
 ---
 
@@ -120,7 +120,7 @@ User information returned from FusionAuth.
 
 #### Defined in
 
-[types.ts:79](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/fcd17d440e603901f23776175e07b35fc625e758/packages/sdk-vue/src/types.ts#L79)
+[types.ts:84](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/525bfc3280cf0ce66d562e4b96351ecc387e5857/packages/sdk-vue/src/types.ts#L84)
 
 ---
 
@@ -130,4 +130,4 @@ User information returned from FusionAuth.
 
 #### Defined in
 
-[types.ts:80](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/fcd17d440e603901f23776175e07b35fc625e758/packages/sdk-vue/src/types.ts#L80)
+[types.ts:85](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/525bfc3280cf0ce66d562e4b96351ecc387e5857/packages/sdk-vue/src/types.ts#L85)

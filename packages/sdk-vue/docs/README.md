@@ -16,6 +16,7 @@ An SDK for using FusionAuth in Vue applications.
     - [Pre-built buttons](#pre-built-buttons)
   - [Quickstart](#quickstart)
   - [Documentation](#documentation)
+  - [Known Issues](#known-issues)
   - [Releases](#releases)
   - [Upgrade Policy](#upgrade-policy)
 
@@ -214,6 +215,14 @@ end::forDocSite[]
 -->
 
 Use backticks for code in this readme. This readme is included on the FusionAuth website, and backticks show the code in the best light there.
+
+## Known issues
+
+### Nuxt
+
+This issue affects versions `<=1.0.0`.
+
+If you are using [Nuxt](https://nuxt.com/) or any type of SSR (server side rendering), the SDK will not work. [See details here.](https://github.com/FusionAuth/fusionauth-javascript-sdk/issues/74)
 
 ## Releases
 
