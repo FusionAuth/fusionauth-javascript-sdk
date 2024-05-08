@@ -40,7 +40,7 @@ export class FusionAuthService {
    * Refreshes the access token a single time.
    * Automatic token refreshing can be enabled if the SDK is configured with `shouldAutoRefresh`.
    */
-  async refreshToken(): Promise<void> {
+  async refreshToken(): Promise<Response> {
     return await this.core.refreshToken();
   }
 
