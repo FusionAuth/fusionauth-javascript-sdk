@@ -10,7 +10,7 @@ export const defaultContext: FusionAuthProviderContext = {
   isFetchingUserInfo: false,
   error: null,
   isLoggedIn: false,
-  refreshToken: () => Promise.resolve(),
+  refreshToken: () => Promise.resolve(undefined),
   initAutoRefresh: () => {},
 };
 

@@ -95,7 +95,7 @@ describe('createFusionAuth', () => {
     expectedUrl.pathname = tokenRefreshPath;
     expectedUrl.searchParams.set('client_id', config.clientId);
 
-    expect(fetch).toHaveBeenCalledWith(expectedUrl.href, {
+    expect(fetch).toHaveBeenCalledWith(expectedUrl, {
       method: 'POST',
       credentials: 'include',
       headers: { 'Content-Type': 'text/plain' },

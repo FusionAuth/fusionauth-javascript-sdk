@@ -1,17 +1,15 @@
 import { UrlHelper } from '#/UrlHelper';
-import { TokenRefresher } from '#/TokenRefresher';
 import { SDKConfig } from '#/SDKConfig';
-import { TokenExpirationScheduler } from '#/TokenExpirationScheduler';
 import { UserInfo } from '#/SDKContext';
 import { RedirectHelper } from '#/RedirectHelper';
-import { CookieHelpers } from '#/CookieHelpers';
+import { getAccessTokenExpirationMoment } from '#/CookieHelpers';
 
 /** A class containing framework-agnostic SDK methods */
 export class SDKCore {
   private config: SDKConfig;
   private urlHelper: UrlHelper;
-  private tokenRefresher: TokenRefresher;
   private redirectHelper: RedirectHelper = new RedirectHelper();
+  private tokenExpirationTimeout?: NodeJS.Timeout;
 
   constructor(config: SDKConfig) {
     this.config = config;
@@ -26,10 +24,7 @@ export class SDKCore {
       logoutPath: config.logoutPath,
       tokenRefreshPath: config.tokenRefreshPath,
     });
-    this.tokenRefresher = new TokenRefresher(
-      this.urlHelper.getTokenRefreshUrl(),
-    );
-    this.scheduleTokenExpirationEvent();
+    this.scheduleTokenExpiration();
   }
 
   startLogin(state?: string) {
@@ -61,15 +56,52 @@ export class SDKCore {
     return userInfo;
   }
 
-  async refreshToken() {
-    return await this.tokenRefresher.refreshToken();
+  async refreshToken(): Promise<Response> {
+    const response = await fetch(this.urlHelper.getTokenRefreshUrl(), {
+      method: 'POST',
+      credentials: 'include',
+      headers: {
+        'Content-Type': 'text/plain',
+      },
+    });
+
+    if (!(response.status >= 200 && response.status < 300)) {
+      const message =
+        (await response?.text()) ||
+        'Error refreshing access token in fusionauth';
+      throw new Error(message);
+    }
+
+    // a successful request means that app_exp was bumped into the future.
+    // reschedule the access token expiration event.
+    this.scheduleTokenExpiration();
+
+    return response;
   }
 
-  initAutoRefresh() {
-    return this.tokenRefresher.initAutoRefresh(
-      this.config.autoRefreshSecondsBeforeExpiry,
-      this.config.accessTokenExpireCookieName,
-    );
+  initAutoRefresh(): NodeJS.Timeout | undefined {
+    const tokenExpirationMoment = this.at_exp;
+    const secondsBeforeRefresh =
+      this.config.autoRefreshSecondsBeforeExpiry ?? 10;
+
+    if (!tokenExpirationMoment) {
+      return;
+    }
+
+    const millisecondsBeforeRefresh = secondsBeforeRefresh * 1000;
+
+    const now = new Date().getTime();
+    const refreshTime = tokenExpirationMoment - millisecondsBeforeRefresh;
+    const timeTillRefresh = Math.max(refreshTime - now, 0);
+
+    return setTimeout(async () => {
+      try {
+        await this.refreshToken();
+        this.initAutoRefresh();
+      } catch (error) {
+        this.config.onAutoRefreshFailure?.(error as Error);
+      }
+    }, timeTillRefresh);
   }
 
   handlePostRedirect(callback?: (state?: string) => void) {
@@ -79,24 +111,33 @@ export class SDKCore {
   }
 
   get isLoggedIn() {
-    if (!this.accessTokenExpirationMoment) {
+    if (!this.at_exp) {
       return false;
     }
 
-    return this.accessTokenExpirationMoment > new Date().getTime();
+    return this.at_exp > new Date().getTime();
   }
 
-  private get accessTokenExpirationMoment() {
-    return CookieHelpers.getAccessTokenExpirationMoment(
+  /** The moment of access token expiration in milliseconds since epoch. */
+  private get at_exp(): number | null {
+    return getAccessTokenExpirationMoment(
       this.config.accessTokenExpireCookieName,
     );
   }
 
-  private scheduleTokenExpirationEvent() {
-    if (this.accessTokenExpirationMoment && this.config.onTokenExpiration) {
-      TokenExpirationScheduler.scheduleTokenExpirationCallback(
-        this.accessTokenExpirationMoment,
+  /** Schedules `onTokenExpiration` at moment of access token expiration. */
+  private scheduleTokenExpiration(): void {
+    clearTimeout(this.tokenExpirationTimeout);
+
+    const expirationMoment = this.at_exp ?? -1;
+
+    const now = new Date().getTime();
+    const millisecondsTillExpiration = expirationMoment - now;
+
+    if (millisecondsTillExpiration > 0) {
+      this.tokenExpirationTimeout = setTimeout(
         this.config.onTokenExpiration,
+        millisecondsTillExpiration,
       );
     }
   }

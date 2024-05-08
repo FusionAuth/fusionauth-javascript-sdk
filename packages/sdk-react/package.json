@@ -1,6 +1,6 @@
 {
   "name": "@fusionauth/react-sdk",
-  "version": "2.1.0",
+  "version": "2.1.1",
   "private": false,
   "description": "FusionAuth solves the problem of building essential security without adding risk or distracting from your primary application",
   "type": "module",

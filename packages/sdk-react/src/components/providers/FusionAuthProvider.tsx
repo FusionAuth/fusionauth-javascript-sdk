@@ -1,15 +1,16 @@
 import { PropsWithChildren, useContext, useMemo, useState, FC } from 'react';
 
-import { SDKCore, SDKConfig } from '@fusionauth-sdk/core';
+import { SDKCore } from '@fusionauth-sdk/core';
 
 import { FusionAuthProviderConfig } from './FusionAuthProviderConfig';
 import { useTokenRefresh, useRedirecting, useUserInfo } from './hooks';
 import { FusionAuthContext } from './Context';
+import { FusionAuthProviderContext } from './FusionAuthProviderContext';
 
 const FusionAuthProvider: FC<
   FusionAuthProviderConfig & PropsWithChildren
 > = props => {
-  const config = useMemo<SDKConfig>(() => {
+  const config = useMemo<FusionAuthProviderConfig>(() => {
     const { children, ...config } = props;
     return config;
   }, [props]);
@@ -38,7 +39,7 @@ const FusionAuthProvider: FC<
     config.shouldAutoRefresh ?? false,
   );
 
-  const providerValue = {
+  const providerValue: FusionAuthProviderContext = {
     startLogin,
     startRegister,
     startLogout,

@@ -1,5 +1,10 @@
 fusionauth-react-sdk Changes
 
+Changes in 2.1.1
+
+- _Bug fix_ `isLoggedIn` property is set to `false` after token refresh. [See issue #82](https://github.com/FusionAuth/fusionauth-javascript-sdk/issues/82)
+- Adds `onAutoRefreshFailure` option to `FusionAuthProviderConfig`.
+
 Changes in 2.1.0
 
 - `scope` has been added back to the `FusionAuthProviderConfig` to be more compatible with [FusionAuth v1.50](https://fusionauth.io/docs/release-notes/#version-1-50-0)

@@ -195,20 +195,16 @@ describe('FusionAuthProvider', () => {
 
   test('Can be configured with `shouldAutoRefresh`', () => {
     vi.useFakeTimers();
-
     mockIsLoggedIn(); // mock logged in -- expires in 1 hour
 
-    vi.spyOn(global, 'fetch').mockResolvedValueOnce({
-      ok: true,
-      status: 200,
-    } as Response);
+    vi.spyOn(global, 'fetch').mockResolvedValueOnce(
+      new Response(null, { status: 200 }),
+    );
 
-    act(() => {
-      renderWithWrapper({
-        ...TEST_CONFIG,
-        shouldAutoRefresh: true,
-        autoRefreshSecondsBeforeExpiry: 60, // call refresh endpoint in 59 minutes
-      });
+    renderWithWrapper({
+      ...TEST_CONFIG,
+      shouldAutoRefresh: true,
+      autoRefreshSecondsBeforeExpiry: 60, // call refresh endpoint in 59 minutes
     });
 
     expect(fetch).not.toHaveBeenCalled();
@@ -222,10 +218,35 @@ describe('FusionAuthProvider', () => {
     const expectedUrl = new URL(TEST_CONFIG.serverUrl);
     expectedUrl.pathname = '/app/refresh';
     expectedUrl.searchParams.set('client_id', TEST_CONFIG.clientId);
-    expect(fetch).toHaveBeenCalledWith(expectedUrl.toString(), {
+    expect(fetch).toHaveBeenCalledWith(expectedUrl, {
       method: 'POST',
       credentials: 'include',
       headers: { 'Content-Type': 'text/plain' },
     });
+  });
+
+  test('Invokes `onRefreshFailure` if an error is thrown during autorefresh', async () => {
+    vi.useFakeTimers();
+    mockIsLoggedIn(); // mock logged in -- expires in 1 hour
+
+    const failureData = { message: 'cannot refresh token' };
+    vi.spyOn(global, 'fetch').mockResolvedValueOnce(
+      new Response(JSON.stringify(failureData), { status: 400 }),
+    );
+
+    const onAutoRefreshFailure = vi.fn();
+
+    renderWithWrapper({
+      ...TEST_CONFIG,
+      shouldAutoRefresh: true,
+      onAutoRefreshFailure,
+    });
+
+    await act(() => vi.advanceTimersByTime(60 * 60 * 1000));
+
+    expect(fetch).toHaveBeenCalledTimes(1);
+    expect(onAutoRefreshFailure).toHaveBeenCalledWith(
+      Error(JSON.stringify({ message: 'cannot refresh token' })),
+    );
   });
 });

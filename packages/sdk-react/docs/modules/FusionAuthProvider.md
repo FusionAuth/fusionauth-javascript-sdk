@@ -28,7 +28,7 @@
 
 #### Defined in
 
-[packages/sdk-react/src/components/providers/FusionAuthProvider.tsx:9](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/6f1de893735ee6b106ed805dd8ba2011e08e1cfc/packages/sdk-react/src/components/providers/FusionAuthProvider.tsx#L9)
+[packages/sdk-react/src/components/providers/FusionAuthProvider.tsx:10](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/e25d30bffe14d8afa7d39c719992b655df59a45d/packages/sdk-react/src/components/providers/FusionAuthProvider.tsx#L10)
 
 ---
 
@@ -44,4 +44,4 @@ A hook that returns `FusionAuthProviderContext`
 
 #### Defined in
 
-[packages/sdk-react/src/components/providers/FusionAuthProvider.tsx:64](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/6f1de893735ee6b106ed805dd8ba2011e08e1cfc/packages/sdk-react/src/components/providers/FusionAuthProvider.tsx#L64)
+[packages/sdk-react/src/components/providers/FusionAuthProvider.tsx:65](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/e25d30bffe14d8afa7d39c719992b655df59a45d/packages/sdk-react/src/components/providers/FusionAuthProvider.tsx#L65)
