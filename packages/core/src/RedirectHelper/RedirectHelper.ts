@@ -7,9 +7,11 @@ export class RedirectHelper {
     } catch {
       // fallback for non-browser environments where localStorage is not defined.
       return {
+        /* eslint-disable */
         setItem(_key: string, _value: string) {},
         getItem(_key: string) {},
         removeItem(_key: string) {},
+        /* eslint-enable */
       } as Storage;
     }
   }
