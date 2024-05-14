@@ -2,9 +2,17 @@ import { ref } from 'vue';
 import { SDKCore } from '@fusionauth-sdk/core';
 import { FusionAuth, FusionAuthConfig, UserInfo } from '#/types';
 
+import { NuxtUseCookieAdapter } from './NuxtUseCookieAdapter';
+
 export const createFusionAuth = (config: FusionAuthConfig): FusionAuth => {
+  let cookieAdapter;
+  if (config.nuxtUseCookie) {
+    cookieAdapter = new NuxtUseCookieAdapter(config.nuxtUseCookie);
+  }
+
   const core = new SDKCore({
     ...config,
+    cookieAdapter,
     onTokenExpiration: () => {
       isLoggedIn.value = false;
     },
@@ -31,6 +39,10 @@ export const createFusionAuth = (config: FusionAuthConfig): FusionAuth => {
 
   async function refreshToken() {
     return await core.refreshToken();
+  }
+
+  function initAutoRefresh() {
+    return core.initAutoRefresh();
   }
 
   function login(state?: string) {
@@ -65,6 +77,6 @@ export const createFusionAuth = (config: FusionAuthConfig): FusionAuth => {
     register,
     logout,
     refreshToken,
-    initAutoRefresh: core.initAutoRefresh,
+    initAutoRefresh,
   };
 };

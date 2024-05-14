@@ -1,3 +1,5 @@
+import { CookieAdapter } from '..';
+
 /**
  * Config for FusionAuth Web SDKs
  */
@@ -82,6 +84,11 @@ export interface SDKConfig {
    * Callback to be invoked if a request to refresh the access token fails during autorefresh.
    */
   onAutoRefreshFailure?: (error: Error) => void;
+
+  /**
+   * Adapter pattern for SSR frameworks such as next or nuxt
+   */
+  cookieAdapter?: CookieAdapter;
 
   /**
    * Callback to be invoked at the moment of access token expiration

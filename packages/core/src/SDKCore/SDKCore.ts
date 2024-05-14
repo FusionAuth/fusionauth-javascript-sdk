@@ -80,18 +80,17 @@ export class SDKCore {
   }
 
   initAutoRefresh(): NodeJS.Timeout | undefined {
-    const tokenExpirationMoment = this.at_exp;
-    const secondsBeforeRefresh =
-      this.config.autoRefreshSecondsBeforeExpiry ?? 10;
-
-    if (!tokenExpirationMoment) {
+    if (!this.isLoggedIn) {
       return;
     }
+
+    const secondsBeforeRefresh =
+      this.config.autoRefreshSecondsBeforeExpiry ?? 10;
 
     const millisecondsBeforeRefresh = secondsBeforeRefresh * 1000;
 
     const now = new Date().getTime();
-    const refreshTime = tokenExpirationMoment - millisecondsBeforeRefresh;
+    const refreshTime = this.at_exp - millisecondsBeforeRefresh;
     const timeTillRefresh = Math.max(refreshTime - now, 0);
 
     return setTimeout(async () => {
@@ -111,17 +110,14 @@ export class SDKCore {
   }
 
   get isLoggedIn() {
-    if (!this.at_exp) {
-      return false;
-    }
-
     return this.at_exp > new Date().getTime();
   }
 
   /** The moment of access token expiration in milliseconds since epoch. */
-  private get at_exp(): number | null {
+  private get at_exp(): number | -1 {
     return getAccessTokenExpirationMoment(
       this.config.accessTokenExpireCookieName,
+      this.config.cookieAdapter,
     );
   }
 
@@ -129,10 +125,8 @@ export class SDKCore {
   private scheduleTokenExpiration(): void {
     clearTimeout(this.tokenExpirationTimeout);
 
-    const expirationMoment = this.at_exp ?? -1;
-
     const now = new Date().getTime();
-    const millisecondsTillExpiration = expirationMoment - now;
+    const millisecondsTillExpiration = this.at_exp - now;
 
     if (millisecondsTillExpiration > 0) {
       this.tokenExpirationTimeout = setTimeout(

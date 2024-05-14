@@ -1,24 +1,36 @@
 /** A class responsible for storing a redirect value in localStorage and cleanup afterward. */
 export class RedirectHelper {
   private readonly REDIRECT_VALUE = 'fa-sdk-redirect-value';
+  private get storage(): Storage {
+    try {
+      return localStorage;
+    } catch {
+      // fallback for non-browser environments where localStorage is not defined.
+      return {
+        setItem(_key: string, _value: string) {},
+        getItem(_key: string) {},
+        removeItem(_key: string) {},
+      } as Storage;
+    }
+  }
 
   handlePreRedirect(state?: string) {
     const valueForStorage = `${this.generateRandomString()}:${state ?? ''}`;
-    localStorage.setItem(this.REDIRECT_VALUE, valueForStorage);
+    this.storage.setItem(this.REDIRECT_VALUE, valueForStorage);
   }
 
   handlePostRedirect(callback?: (state?: string) => void) {
     const stateValue = this.stateValue ?? undefined;
     callback?.(stateValue);
-    localStorage.removeItem(this.REDIRECT_VALUE);
+    this.storage.removeItem(this.REDIRECT_VALUE);
   }
 
   get didRedirect() {
-    return Boolean(localStorage.getItem(this.REDIRECT_VALUE));
+    return Boolean(this.storage.getItem(this.REDIRECT_VALUE));
   }
 
   private get stateValue() {
-    const redirectValue = localStorage.getItem(this.REDIRECT_VALUE);
+    const redirectValue = this.storage.getItem(this.REDIRECT_VALUE);
 
     if (!redirectValue) {
       return null;
