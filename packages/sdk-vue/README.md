@@ -232,11 +232,7 @@ Use backticks for code in this readme. This readme is included on the FusionAuth
 
 ## Known issues
 
-### Nuxt
-
-This issue affects versions `<=1.0.0`.
-
-If you are using [Nuxt](https://nuxt.com/) or any type of SSR (server side rendering), the SDK will not work. [See details here.](https://github.com/FusionAuth/fusionauth-javascript-sdk/issues/74)
+None.
 
 ## Releases
 
