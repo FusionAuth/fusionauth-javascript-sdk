@@ -14,7 +14,7 @@ Each SDK in this repo offers the following APIs:
 
 Install dependencies with `yarn install`.
 
-The SDKs share a core package that contains framework agnostic functionality. This package should be build before the the SDK is build--a step included in the build script for each SDK (for example `build:sdk-react`).
+The SDKs share a core package that contains framework agnostic functionality. This package should be built before the the SDK is built--a step included in the build script for each SDK (for example `build:sdk-react`).
 
 ### Manual testing
 
