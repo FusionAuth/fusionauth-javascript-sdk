@@ -10,7 +10,8 @@
       "#testing-tools/*": ["./src/testing-tools/*"]
     },
     "outDir": "dist",
-    "jsx": "react-jsx"
+    "jsx": "react-jsx",
+    "sourceMap": true
   },
   "include": ["src", "vite.config.ts"],
   "typedocOptions": {

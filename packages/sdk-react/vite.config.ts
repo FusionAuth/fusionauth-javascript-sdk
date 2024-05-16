@@ -15,6 +15,7 @@ export default defineConfig({
     rollupOptions: {
       external: ['react', 'react-dom', 'react/jsx-runtime'],
     },
+    sourcemap: true,
   },
   plugins: [react(), dts({ rollupTypes: true, insertTypesEntry: true })],
   test: {
