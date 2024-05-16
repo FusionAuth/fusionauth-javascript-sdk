@@ -7,6 +7,7 @@ An SDK for using FusionAuth in Vue applications.
 - [Installation](#installation)
 - [Usage](#usage)
   - [Configuring the SDK](#configuring-the-sdk)
+    - [Configuring with Nuxt](#configuring-with-nuxt)
   - [useFusionAuth Composable](#usefusionauth-composable)
     - [State parameter](#state-parameter)
   - [UI Components](#ui-components)
@@ -103,6 +104,21 @@ If you want to use the pre-styled buttons, don't forget to import the css file:
 
 ```typescript
 import '@fusionauth/vue-sdk/dist/style.css';
+```
+
+#### Configuring with [Nuxt](https://nuxt.com/)
+
+If you're using the SDK in a nuxt app, pass the [`useCookie`](https://nuxt.com/docs/api/composables/use-cookie) composable into the config object in your plugin definition.
+
+```typescript
+import { useCookie } from "#app";
+
+export default defineNuxtPlugin((nuxtApp) => {
+  nuxtApp.vueApp.use(FusionAuthVuePlugin, {
+    ...config
+    nuxtUseCookie: useCookie,
+  });
+});
 ```
 
 ### `useFusionAuth` composable
@@ -216,11 +232,7 @@ Use backticks for code in this readme. This readme is included on the FusionAuth
 
 ## Known issues
 
-### Nuxt
-
-This issue affects versions `<=1.0.0`.
-
-If you are using [Nuxt](https://nuxt.com/) or any type of SSR (server side rendering), the SDK will not work. [See details here.](https://github.com/FusionAuth/fusionauth-javascript-sdk/issues/74)
+None.
 
 ## Releases
 

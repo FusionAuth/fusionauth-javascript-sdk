@@ -1,5 +1,10 @@
 fusionauth-vue-sdk Changes
 
+Changes in 1.1.0
+
+- The SDK now supports [Nuxt](https://nuxt.com/).
+- Adds `nuxtUseCookie` option to `FusionAuthConfig` to handle SSR.
+
 Changes in 1.0.1
 
 - Adds `onAutoRefreshFailure` option to `FusionAuthConfig`.
