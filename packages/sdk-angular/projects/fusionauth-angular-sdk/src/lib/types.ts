@@ -18,6 +18,11 @@ export interface FusionAuthConfig {
   redirectUri: string;
 
   /**
+   * The redirect URI for post-logout. Defaults the provided `redirectUri`.
+   */
+  postLogoutRedirectUri?: string;
+
+  /**
    * The OAuth2 scope parameter passed to the `/oauth2/authorize` endpoint. If not specified fusionauth will default this to `openid offline_access`.
    */
   scope?: string;

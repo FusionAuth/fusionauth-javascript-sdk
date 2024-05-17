@@ -5,4 +5,5 @@ export const TEST_CONFIG: FusionAuthProviderConfig = {
   serverUrl: 'http://localhost:9000',
   redirectUri: 'http://localhost',
   scope: 'openid email profile offline_access',
+  postLogoutRedirectUri: 'http://localhost',
 };

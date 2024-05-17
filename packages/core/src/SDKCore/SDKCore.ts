@@ -23,6 +23,7 @@ export class SDKCore {
       registerPath: config.registerPath,
       logoutPath: config.logoutPath,
       tokenRefreshPath: config.tokenRefreshPath,
+      postLogoutRedirectUri: config.postLogoutRedirectUri,
     });
     this.scheduleTokenExpiration();
   }

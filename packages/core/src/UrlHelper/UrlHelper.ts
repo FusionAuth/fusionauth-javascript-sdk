@@ -12,12 +12,14 @@ export class UrlHelper {
   registerPath: string;
   logoutPath: string;
   tokenRefreshPath: string;
+  postLogoutRedirectUri?: string;
 
   constructor(config: UrlHelperConfig) {
     this.serverUrl = config.serverUrl;
     this.clientId = config.clientId;
     this.redirectUri = config.redirectUri;
     this.scope = config.scope;
+    this.postLogoutRedirectUri = config.postLogoutRedirectUri;
 
     this.mePath = config.mePath ?? '/app/me';
     this.loginPath = config.loginPath ?? '/app/login';
@@ -51,7 +53,7 @@ export class UrlHelper {
   getLogoutUrl(): URL {
     return this.generateUrl(this.logoutPath, {
       client_id: this.clientId,
-      post_logout_redirect_uri: this.redirectUri,
+      post_logout_redirect_uri: this.postLogoutRedirectUri || this.redirectUri,
     });
   }
 
