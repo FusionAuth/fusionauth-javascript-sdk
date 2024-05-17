@@ -23,6 +23,11 @@ export interface FusionAuthProviderConfig {
   scope?: string;
 
   /**
+   * The redirect URI for post-logout. Defaults the provided `redirectUri`.
+   */
+  postLogoutRedirectUri?: string;
+
+  /**
    * Enables automatic token refreshing. Defaults to false.
    */
   shouldAutoRefresh?: boolean;

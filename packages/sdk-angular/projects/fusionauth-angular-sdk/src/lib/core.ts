@@ -48,7 +48,7 @@ class g {
   getLogoutUrl() {
     return this.generateUrl(this.logoutPath, {
       client_id: this.clientId,
-      post_logout_redirect_uri: this.redirectUri,
+      post_logout_redirect_uri: this.postLogoutRedirectUri || this.redirectUri,
     });
   }
   getTokenRefreshUrl() {
@@ -122,6 +122,7 @@ class U {
         serverUrl: e.serverUrl,
         clientId: e.clientId,
         redirectUri: e.redirectUri,
+        postLogoutRedirectUri: e.postLogoutRedirectUri,
         scope: e.scope,
         mePath: e.mePath,
         loginPath: e.loginPath,

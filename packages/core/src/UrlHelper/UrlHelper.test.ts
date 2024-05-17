@@ -8,6 +8,7 @@ describe('UrlHelper', () => {
     clientId: 'abc123',
     redirectUri: 'http://my-client',
     scope: 'openid email profile offline_access',
+    postLogoutRedirectUri: 'http://example.com',
   };
 
   const urlHelper = new UrlHelper(config);
@@ -49,7 +50,29 @@ describe('UrlHelper', () => {
     expect(logoutUrl.pathname).toBe('/app/logout');
     expect(logoutUrl.searchParams.get('client_id')).toBe(config.clientId);
     expect(logoutUrl.searchParams.get('post_logout_redirect_uri')).toBe(
-      config.redirectUri,
+      config.postLogoutRedirectUri,
+    );
+  });
+
+  it('logout url - default post_logout_redirect_uri', () => {
+    const configWithoutPostLogoutRedirectUri: UrlHelperConfig = {
+      serverUrl: 'http://my-server',
+      clientId: 'abc123',
+      redirectUri: 'http://my-client',
+      scope: 'openid email profile offline_access',
+    };
+
+    const urlHelperWithoutPostLogoutRedirectUri = new UrlHelper(
+      configWithoutPostLogoutRedirectUri,
+    );
+    const logoutUrl = urlHelperWithoutPostLogoutRedirectUri.getLogoutUrl();
+    expect(logoutUrl.origin).toBe(configWithoutPostLogoutRedirectUri.serverUrl);
+    expect(logoutUrl.pathname).toBe('/app/logout');
+    expect(logoutUrl.searchParams.get('client_id')).toBe(
+      configWithoutPostLogoutRedirectUri.clientId,
+    );
+    expect(logoutUrl.searchParams.get('post_logout_redirect_uri')).toBe(
+      configWithoutPostLogoutRedirectUri.redirectUri,
     );
   });
 
