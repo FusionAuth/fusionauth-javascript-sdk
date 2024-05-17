@@ -1,5 +1,9 @@
 fusionauth-react-sdk Changes
 
+Upcoming release
+
+- sourcemaps included for debugging
+
 Changes in 2.1.1
 
 - _Bug fix_ `isLoggedIn` property is set to `false` after token refresh. [See issue #82](https://github.com/FusionAuth/fusionauth-javascript-sdk/issues/82)

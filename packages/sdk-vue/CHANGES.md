@@ -1,5 +1,9 @@
 fusionauth-vue-sdk Changes
 
+Upcoming release
+
+- sourcemaps included for debugging
+
 Changes in 1.1.0
 
 - The SDK now supports [Nuxt](https://nuxt.com/).
