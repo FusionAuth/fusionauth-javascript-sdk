@@ -19,7 +19,7 @@
   },
   "homepage": "https://github.com/FusionAuth/fusionauth-javascript-sdk/tree/main/packages/sdk-vue#readme",
   "peerDependencies": {
-    "vue": "^3.0.0"
+    "vue": ">=3.0.0"
   },
   "devDependencies": {
     "@testing-library/vue": "^8.0.2",
