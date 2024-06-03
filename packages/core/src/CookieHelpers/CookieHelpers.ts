@@ -2,7 +2,7 @@
  * Gets the `app.at_exp` cookie and converts it to milliseconds since epoch.
  * Returns -1 if the cookie is not present.
  * @param cookieName - defaults to `app.at_exp`.
- * @param adapter - SSR frameworks like Nuxt and Next will pass in an adapter.
+ * @param adapter - SSR frameworks like Nuxt, Next, and angular/ssr will pass in an adapter.
  */
 export function getAccessTokenExpirationMoment(
   cookieName: string = 'app.at_exp',

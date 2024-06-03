@@ -16,10 +16,12 @@ class g {
     i(this, 'registerPath');
     i(this, 'logoutPath');
     i(this, 'tokenRefreshPath');
+    i(this, 'postLogoutRedirectUri');
     (this.serverUrl = e.serverUrl),
       (this.clientId = e.clientId),
       (this.redirectUri = e.redirectUri),
       (this.scope = e.scope),
+      (this.postLogoutRedirectUri = e.postLogoutRedirectUri),
       (this.mePath = e.mePath ?? '/app/me'),
       (this.loginPath = e.loginPath ?? '/app/login'),
       (this.registerPath = e.registerPath ?? '/app/register'),
@@ -78,19 +80,32 @@ class p {
   constructor() {
     i(this, 'REDIRECT_VALUE', 'fa-sdk-redirect-value');
   }
+  get storage() {
+    try {
+      return localStorage;
+    } catch {
+      return {
+        /* eslint-disable */
+        setItem(e, t) {},
+        getItem(e) {},
+        removeItem(e) {},
+        /* eslint-enable */
+      };
+    }
+  }
   handlePreRedirect(e) {
     const t = `${this.generateRandomString()}:${e ?? ''}`;
-    localStorage.setItem(this.REDIRECT_VALUE, t);
+    this.storage.setItem(this.REDIRECT_VALUE, t);
   }
   handlePostRedirect(e) {
     const t = this.stateValue ?? void 0;
-    e == null || e(t), localStorage.removeItem(this.REDIRECT_VALUE);
+    e == null || e(t), this.storage.removeItem(this.REDIRECT_VALUE);
   }
   get didRedirect() {
-    return !!localStorage.getItem(this.REDIRECT_VALUE);
+    return !!this.storage.getItem(this.REDIRECT_VALUE);
   }
   get stateValue() {
-    const e = localStorage.getItem(this.REDIRECT_VALUE);
+    const e = this.storage.getItem(this.REDIRECT_VALUE);
     if (!e) return null;
     const [, ...t] = e.split(':');
     return t.join(':');
@@ -103,13 +118,28 @@ class p {
     );
   }
 }
-function m(r = 'app.at_exp') {
-  const e = document.cookie
+function m(r = 'app.at_exp', e) {
+  if (e) return c(e.at_exp(r));
+  let t;
+  try {
+    t = document.cookie;
+  } catch {
+    return (
+      console.error(
+        'Error accessing cookies in fusionauth. If you are using SSR you must configure the SDK with a cookie adapter',
+      ),
+      -1
+    );
+  }
+  const s = t
       .split('; ')
-      .map(s => s.split('='))
-      .find(([s]) => s === r),
-    t = e == null ? void 0 : e[1];
-  return t ? parseInt(t) * 1e3 : null;
+      .map(n => n.split('='))
+      .find(([n]) => n === r),
+    o = s == null ? void 0 : s[1];
+  return c(o);
+}
+function c(r) {
+  return r ? Number(r) * 1e3 : -1;
 }
 class U {
   constructor(e) {
@@ -122,13 +152,13 @@ class U {
         serverUrl: e.serverUrl,
         clientId: e.clientId,
         redirectUri: e.redirectUri,
-        postLogoutRedirectUri: e.postLogoutRedirectUri,
         scope: e.scope,
         mePath: e.mePath,
         loginPath: e.loginPath,
         registerPath: e.registerPath,
         logoutPath: e.logoutPath,
         tokenRefreshPath: e.tokenRefreshPath,
+        postLogoutRedirectUri: e.postLogoutRedirectUri,
       })),
       this.scheduleTokenExpiration();
   }
@@ -170,21 +200,19 @@ class U {
     return this.scheduleTokenExpiration(), e;
   }
   initAutoRefresh() {
-    const e = this.at_exp,
-      t = this.config.autoRefreshSecondsBeforeExpiry ?? 10;
-    if (!e) return;
-    const s = t * 1e3,
-      o = /* @__PURE__ */ new Date().getTime(),
-      h = e - s,
-      l = Math.max(h - o, 0);
+    if (!this.isLoggedIn) return;
+    const t = (this.config.autoRefreshSecondsBeforeExpiry ?? 10) * 1e3,
+      s = /* @__PURE__ */ new Date().getTime(),
+      o = this.at_exp - t,
+      n = Math.max(o - s, 0);
     return setTimeout(async () => {
-      let n, a;
+      let a, h;
       try {
         await this.refreshToken(), this.initAutoRefresh();
-      } catch (c) {
-        (a = (n = this.config).onAutoRefreshFailure) == null || a.call(n, c);
+      } catch (l) {
+        (h = (a = this.config).onAutoRefreshFailure) == null || h.call(a, l);
       }
-    }, l);
+    }, n);
   }
   handlePostRedirect(e) {
     this.isLoggedIn &&
@@ -192,34 +220,34 @@ class U {
       this.redirectHelper.handlePostRedirect(e);
   }
   get isLoggedIn() {
-    return this.at_exp
-      ? this.at_exp > /* @__PURE__ */ new Date().getTime()
-      : !1;
+    return this.at_exp > /* @__PURE__ */ new Date().getTime();
   }
   /** The moment of access token expiration in milliseconds since epoch. */
   get at_exp() {
-    return m(this.config.accessTokenExpireCookieName);
+    return m(
+      this.config.accessTokenExpireCookieName,
+      this.config.cookieAdapter,
+    );
   }
   /** Schedules `onTokenExpiration` at moment of access token expiration. */
   scheduleTokenExpiration() {
     clearTimeout(this.tokenExpirationTimeout);
-    const e = this.at_exp ?? -1,
-      t = /* @__PURE__ */ new Date().getTime(),
-      s = e - t;
-    s > 0 &&
+    const e = /* @__PURE__ */ new Date().getTime(),
+      t = this.at_exp - e;
+    t > 0 &&
       (this.tokenExpirationTimeout = setTimeout(
         this.config.onTokenExpiration,
-        s,
+        t,
       ));
   }
 }
-function P() {
+function f() {
   const r = /* @__PURE__ */ new Date();
   r.setHours(r.getHours() + 1);
   const e = r.getTime() / 1e3;
   document.cookie = `app.at_exp=${e}`;
 }
-function f() {
+function P() {
   document.cookie = 'app.at_exp=;expires=Thu, 01 Jan 1970 00:00:00 GMT';
 }
 function w(r) {
@@ -231,7 +259,8 @@ function w(r) {
 }
 export {
   U as SDKCore,
-  P as mockIsLoggedIn,
+  f as mockIsLoggedIn,
   w as mockWindowLocation,
-  f as removeAt_expCookie,
+  P as removeAt_expCookie,
 };
+//# sourceMappingURL=index.js.map

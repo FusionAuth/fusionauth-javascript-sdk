@@ -1,4 +1,7 @@
 {
   "root": false,
-  "extends": "../../.eslintrc"
+  "extends": "../../.eslintrc",
+  "rules": {
+    "@typescript-eslint/ban-types": "off"
+  }
 }
