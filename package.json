@@ -16,6 +16,7 @@
   ],
   "devDependencies": {
     "@playwright/test": "^1.44.1",
+    "playwright": "^1.44.1",
     "@typescript-eslint/eslint-plugin": "^7.2.0",
     "@typescript-eslint/parser": "^7.2.0",
     "eslint": "^8.57.0",
@@ -55,8 +56,5 @@
   "lint-staged": {
     "*.{ts,tsx}": "eslint --cache --fix",
     "*.{js,css,md,ts,tsx,yml}": "prettier --write"
-  },
-  "dependencies": {
-    "playwright": "^1.44.1"
   }
 }
