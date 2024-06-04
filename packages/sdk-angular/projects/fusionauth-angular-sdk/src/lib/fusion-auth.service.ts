@@ -1,21 +1,33 @@
-import { SDKCore } from './core';
-import { FusionAuthConfig, UserInfo } from './types';
+import { Injectable, Inject, PLATFORM_ID } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
 import { Observable, catchError, BehaviorSubject } from 'rxjs';
+
+import { SDKCore } from './core';
+import { SSRCookieAdapter } from './SSRCookieAdapter';
+import { FusionAuthConfig, UserInfo } from './types';
+import { FUSIONAUTH_SERVICE_CONFIG } from './injectionToken';
 
 /**
  * Service class to use with FusionAuth backend endpoints.
  */
+@Injectable({
+  providedIn: 'root',
+})
 export class FusionAuthService {
   private core: SDKCore;
   private autoRefreshTimer?: NodeJS.Timeout;
   private isLoggedInSubject: BehaviorSubject<boolean>;
 
-  constructor(config: FusionAuthConfig) {
+  constructor(
+    @Inject(FUSIONAUTH_SERVICE_CONFIG) config: FusionAuthConfig,
+    @Inject(PLATFORM_ID) platformId: Object,
+  ) {
     this.core = new SDKCore({
       ...config,
       onTokenExpiration: () => {
         this.isLoggedInSubject.next(false);
       },
+      cookieAdapter: new SSRCookieAdapter(isPlatformBrowser(platformId)),
     });
 
     this.isLoggedInSubject = new BehaviorSubject(this.core.isLoggedIn);

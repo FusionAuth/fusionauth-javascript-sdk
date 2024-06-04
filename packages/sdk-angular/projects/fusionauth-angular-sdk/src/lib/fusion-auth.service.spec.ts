@@ -1,8 +1,24 @@
+import { TestBed } from '@angular/core/testing';
+import { fakeAsync, flush, tick } from '@angular/core/testing';
+import { take } from 'rxjs';
+
 import { FusionAuthConfig } from './types';
 import { FusionAuthService } from './fusion-auth.service';
-import { fakeAsync, flush, tick } from '@angular/core/testing';
+import { FusionAuthModule } from './fusion-auth.module';
 import { mockIsLoggedIn, removeAt_expCookie } from './core';
-import { take } from 'rxjs';
+
+const config: FusionAuthConfig = {
+  clientId: 'a-client-id',
+  redirectUri: 'http://my-app.com',
+  serverUrl: 'http://localhost:9011',
+};
+
+function configureTestingModule(config: FusionAuthConfig) {
+  TestBed.configureTestingModule({
+    imports: [FusionAuthModule.forRoot(config)],
+  });
+  return TestBed.inject(FusionAuthService);
+}
 
 describe('FusionAuthService', () => {
   afterEach(() => {
@@ -10,25 +26,15 @@ describe('FusionAuthService', () => {
     localStorage.clear();
   });
 
-  const config: FusionAuthConfig = {
-    clientId: 'a-client-id',
-    redirectUri: 'http://my-app.com',
-    serverUrl: 'http://localhost:9011',
-  };
-
   it('Can be configured to automatically handle getting userInfo', (done: DoneFn) => {
     mockIsLoggedIn();
 
+    const user = { email: 'richard@test.com' };
     spyOn(window, 'fetch').and.resolveTo(
-      new Response(
-        JSON.stringify({
-          email: 'richard@test.com',
-        }),
-        { status: 200 },
-      ),
+      new Response(JSON.stringify(user), { status: 200 }),
     );
 
-    const service = new FusionAuthService(config);
+    const service = configureTestingModule(config);
 
     service.getUserInfoObservable().subscribe({
       next: userInfo => {
@@ -46,7 +52,7 @@ describe('FusionAuthService', () => {
       new Response(null, { status: responseStatus }),
     );
 
-    const service = new FusionAuthService(config);
+    const service = configureTestingModule(config);
 
     service.getUserInfoObservable().subscribe({
       error: error => {
@@ -61,7 +67,7 @@ describe('FusionAuthService', () => {
   it("Contains an observable 'isLoggedin$' property that becomes false as the access token expires.", fakeAsync(() => {
     mockIsLoggedIn(); // sets `app.at_exp` cookie so user is logged in for 1 hour.
 
-    const service = new FusionAuthService(config);
+    const service = configureTestingModule(config);
 
     tick(60 * 59 * 1000);
     service.isLoggedIn$.pipe(take(1)).subscribe(isLoggedIn => {
@@ -80,7 +86,7 @@ describe('FusionAuthService', () => {
     mockIsLoggedIn();
     const spy = spyOn(FusionAuthService.prototype, 'initAutoRefresh');
 
-    const service = new FusionAuthService({
+    const service = configureTestingModule({
       ...config,
       shouldAutoRefresh: true,
     });
@@ -90,14 +96,18 @@ describe('FusionAuthService', () => {
   });
 
   it("Does not invoke 'initAutoRefresh' if the user is not logged in", () => {
-    const spy = spyOn(FusionAuthService.prototype, 'initAutoRefresh');
-    const service = new FusionAuthService({
+    const initAutoRefreshSpy = spyOn(
+      FusionAuthService.prototype,
+      'initAutoRefresh',
+    );
+
+    const service = configureTestingModule({
       ...config,
       shouldAutoRefresh: true,
     });
 
     expect(service.isLoggedIn()).toBe(false);
-    expect(spy).not.toHaveBeenCalled();
+    expect(initAutoRefreshSpy).not.toHaveBeenCalled();
   });
 
   it("Invokes an 'onRedirect' callback", () => {
@@ -107,8 +117,7 @@ describe('FusionAuthService', () => {
     localStorage.setItem('fa-sdk-redirect-value', `abc123:${stateValue}`);
 
     const onRedirect = jasmine.createSpy('onRedirectSpy');
-
-    new FusionAuthService({ ...config, onRedirect });
+    configureTestingModule({ ...config, onRedirect });
 
     expect(onRedirect).toHaveBeenCalledWith('/welcome-page');
   });
@@ -118,7 +127,7 @@ describe('FusionAuthService', () => {
     spyOn(window, 'fetch').and.resolveTo(new Response(null, { status: 400 }));
     const onAutoRefreshFailure = jasmine.createSpy('onAutoRefreshFailureSpy');
 
-    new FusionAuthService({
+    configureTestingModule({
       ...config,
       shouldAutoRefresh: true,
       onAutoRefreshFailure,

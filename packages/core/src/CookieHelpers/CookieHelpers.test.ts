@@ -24,9 +24,6 @@ describe('getAccessTokenExpirationMoment', () => {
     document.cookie = `${cookieName}=${exp}`;
 
     expect(getAccessTokenExpirationMoment(cookieName)).toBe(1200000);
-
-    document.cookie =
-      cookieName + '=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;';
   });
 
   it('Will get the value from a cookieAdapter if one is passed in', () => {
