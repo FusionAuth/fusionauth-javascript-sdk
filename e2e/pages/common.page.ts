@@ -10,16 +10,21 @@ const Locators = {
   logOutBtn: 'role=button[name="Logout"]',
 } as const;
 
+type LocatorsKey = keyof typeof Locators;
+
 export class quickstartPage {
   readonly page: Page;
-  readonly locators: Record<string, Locator>;
+  readonly locators: Record<LocatorsKey, Locator>;
 
   constructor(page: Page) {
     this.page = page;
-    this.locators = Object.keys(Locators).reduce((acc, key) => {
-      acc[key] = page.locator((Locators as Record<string, string>)[key]);
-      return acc;
-    }, {});
+    this.locators = Object.keys(Locators).reduce(
+      (acc, key) => {
+        acc[key as LocatorsKey] = page.locator(Locators[key as LocatorsKey]);
+        return acc;
+      },
+      {} as Record<LocatorsKey, Locator>,
+    );
   }
 
   async navToLogIn() {
@@ -41,6 +46,7 @@ export class quickstartPage {
     await this.locators.createAccountBtn.click();
     await expect(this.locators.registerBtn).toBeVisible();
   }
+
   async logOut() {
     await this.locators.logOutBtn.click();
     await expect(this.locators.logInBtn.nth(0)).toBeVisible();
