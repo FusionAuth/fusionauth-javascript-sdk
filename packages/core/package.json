@@ -11,7 +11,7 @@
     "dist"
   ],
   "scripts": {
-    "build": "tsc && vite build",
+    "build": "vite build",
     "dev:watch": "vite",
     "test:watch": "vitest",
     "test": "vitest --watch=false"

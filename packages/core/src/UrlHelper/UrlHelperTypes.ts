@@ -1,4 +1,4 @@
-import { SDKConfig } from '#/SDKConfig';
+import { SDKConfig } from '../SDKConfig';
 
 /** A configuration object for the UrlHelper class. */
 export type UrlHelperConfig = Pick<

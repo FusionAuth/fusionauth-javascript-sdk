@@ -3,7 +3,8 @@
   "version": "0.0.1",
   "scripts": {
     "ng": "ng",
-    "build": "ng build && cp README.md dist/fusionauth-angular-sdk/README.md",
+    "get-sdk-core": "node getSDKCore.js",
+    "build": "yarn get-sdk-core && ng build && cp README.md dist/fusionauth-angular-sdk/README.md",
     "test": "ng test --watch=false --browsers=ChromeHeadless",
     "test:watch": "ng test",
     "docs": "typedoc --plugin typedoc-plugin-markdown"

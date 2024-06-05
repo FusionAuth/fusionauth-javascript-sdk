@@ -5,7 +5,7 @@ import { take } from 'rxjs';
 import { FusionAuthConfig } from './types';
 import { FusionAuthService } from './fusion-auth.service';
 import { FusionAuthModule } from './fusion-auth.module';
-import { mockIsLoggedIn, removeAt_expCookie } from './core';
+import { mockIsLoggedIn, removeAt_expCookie } from '../sdkcore';
 
 const config: FusionAuthConfig = {
   clientId: 'a-client-id',
