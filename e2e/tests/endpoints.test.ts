@@ -1,5 +1,5 @@
 import { Page, test, BrowserContext, expect } from '@playwright/test';
-import { quickstartPage } from './common.page';
+import { quickstartPage } from '../pages/common.page';
 
 test.describe('Endpoint Tests', () => {
   let page: Page;
