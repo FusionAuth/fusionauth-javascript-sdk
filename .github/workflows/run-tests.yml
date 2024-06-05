@@ -19,6 +19,9 @@ jobs:
           cache: 'npm'
       - name: Install dependencies
         run: yarn install --frozen-lockfile
+      - name: Copy Core to Angular
+        working-directory: ./packages/sdk-angular
+        run: yarn get-sdk-core
       - name: Build Core
         run: yarn build:core
       - name: Run Tests
