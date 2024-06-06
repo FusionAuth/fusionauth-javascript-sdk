@@ -1,6 +1,7 @@
 node_modules
 
 dist
+packages/sdk-angular/projects/fusionauth-angular-sdk/src/sdkcore
 
 yarn-error.log
 

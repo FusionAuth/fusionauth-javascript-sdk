@@ -1,8 +1,8 @@
-import { UrlHelper } from '#/UrlHelper';
-import { SDKConfig } from '#/SDKConfig';
-import { UserInfo } from '#/SDKContext';
-import { RedirectHelper } from '#/RedirectHelper';
-import { getAccessTokenExpirationMoment } from '#/CookieHelpers';
+import { UrlHelper } from '../UrlHelper';
+import { SDKConfig } from '../SDKConfig';
+import { UserInfo } from '../SDKContext';
+import { RedirectHelper } from '../RedirectHelper';
+import { getAccessTokenExpirationMoment } from '../CookieHelpers';
 
 /** A class containing framework-agnostic SDK methods */
 export class SDKCore {

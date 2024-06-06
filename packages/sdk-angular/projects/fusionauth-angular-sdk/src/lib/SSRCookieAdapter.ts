@@ -1,7 +1,7 @@
-// import { CookieAdapter } from '@fusionauth-sdk/core';
+import { CookieAdapter } from '../sdkcore';
 
 /** An adapter class that supports accessing cookies with SSR */
-export class SSRCookieAdapter /* implements CookieAdapter */ {
+export class SSRCookieAdapter implements CookieAdapter {
   constructor(private isBrowser: boolean) {}
 
   at_exp(cookieName: string = 'app.at_exp') {

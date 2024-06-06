@@ -1,6 +1,6 @@
 import { afterEach, describe, it, expect, vi } from 'vitest';
 
-import { SDKConfig } from '#/SDKConfig';
+import { SDKConfig } from '../SDKConfig';
 import { SDKCore } from '.';
 
 import { mockIsLoggedIn, removeAt_expCookie } from '..';

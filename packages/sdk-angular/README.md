@@ -9,6 +9,7 @@ An SDK for using FusionAuth in Angular applications.
   -   [FusionAuthService](#fusionauthservice)
   -   [Pre-built buttons](#pre-built-buttons)
   -   [State Parameter](#state-parameter)
+  -   [SSR](#ssr)
 -   [Known issues](#known-issues)
 -   [Quickstart](#quickstart)
 -   [Documentation](#documentation)
@@ -173,6 +174,10 @@ the `FusionAuthConfig` used to initialize the `FusionAuthModule`. Though you may
 pass any value you would like for the state parameter, it is often used to indicate 
 which page the user was on before redirecting to login or registration, so that the
 user can be returned to that location after a successful authentication.
+
+#### SSR
+
+The SDK supports Angular applications using SSR. No additional configuration is needed.
 
 ### Known Issues
 

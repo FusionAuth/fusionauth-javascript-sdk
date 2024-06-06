@@ -15,17 +15,10 @@ export default defineConfig({
       fileName: 'index',
       formats: ['es'],
     },
-    rollupOptions: {
-      external: ['**/*.test.*'],
-    },
   },
-  plugins: [dts()],
-  server: {
-    port: 3001,
-  },
-  resolve: {
-    alias: {
-      '#': resolve(__dirname, './src'),
-    },
-  },
+  plugins: [
+    dts({
+      exclude: ['**/*.test.ts'],
+    }),
+  ],
 });

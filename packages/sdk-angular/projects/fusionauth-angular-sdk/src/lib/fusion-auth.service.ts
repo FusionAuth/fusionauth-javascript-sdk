@@ -2,7 +2,7 @@ import { Injectable, Inject, PLATFORM_ID } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { Observable, catchError, BehaviorSubject } from 'rxjs';
 
-import { SDKCore } from './core';
+import { SDKCore } from '../sdkcore';
 import { SSRCookieAdapter } from './SSRCookieAdapter';
 import { FusionAuthConfig, UserInfo } from './types';
 import { FUSIONAUTH_SERVICE_CONFIG } from './injectionToken';
