@@ -7,7 +7,7 @@ const Locators = {
   submitBtn: 'role=button[name="Submit"]',
   createAccountBtn: 'role=button[name="create a new account"]',
   registerBtn: 'role=button[name="Register"]',
-  logOutBtn: 'role=button[name="Logout"]',
+  logOutBtn: 'text=Logout',
 } as const;
 
 type LocatorsKey = keyof typeof Locators;
