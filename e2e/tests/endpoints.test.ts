@@ -24,8 +24,8 @@ test.describe('Endpoint Tests', () => {
       {
         headers: {
           Authorization: `Bearer ${appAtCookie?.value}`,
-          Origin: 'http://localhost:3000',
-          Referer: 'http://localhost:3000/',
+          Origin: `http://localhost:${process.env.PORT}`,
+          Referer: `http://localhost:${process.env.PORT}/`,
         },
       },
     );
