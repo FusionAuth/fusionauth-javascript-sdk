@@ -5,7 +5,7 @@ Changes in 1.1.0
 - SDK now supports Angular apps using SSR. No additional configuration is needed.
 - Adds `postLogoutRedirectUri` option to [`FusionAuthConfig`](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/main/packages/sdk-angular/docs/interfaces/FusionAuthConfig.md#postLogoutRedirectUri)
 - SDK's peer dependencies now specified with `>=`.
-- The distribution is fully sourcemapped--sourcemaps were not include for the @fusionauth-sdk/core package in v1.0.2
+- The distribution is fully sourcemapped--sourcemaps were not included for the @fusionauth-sdk/core package in v1.0.2
 
 Changes in 1.0.2
 

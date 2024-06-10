@@ -28,7 +28,7 @@ The SDKs share a core package that contains framework agnostic functionality. Th
 
 You may use the FusionAuth Quickstarts to consume the package and test changes. See [React Quickstart](https://fusionauth.io/docs/quickstarts/quickstart-javascript-react-web), [Angular Quickstart](https://fusionauth.io/docs/quickstarts/quickstart-javascript-angular-web), & [Vue Quickstart](https://fusionauth.io/docs/quickstarts/quickstart-javascript-vue-web)
 
-There is more than one way to test your changes locally, but [yalc](https://github.com/wclr/yalc) has serves devs of this project well, as long as you pay attention to the [gotchas](#gotchas).
+There is more than one way to test your changes locally, but [yalc](https://github.com/wclr/yalc) has served devs of this project well, as long as you are aware of the [gotchas](#gotchas).
 
 You may use the `yalc-pub:sdk` scripts in the root package.json. For example, `yarn yalc-pub:sdk-react`. These build the SDKs and publish to your yalc store so they may be consumed locally.
 
