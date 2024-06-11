@@ -15,6 +15,11 @@ test.describe('Endpoint Tests', () => {
     await quickstart.authenticate();
   });
 
+  test('Baseline Authentication', async () => {
+    await quickstart.logOut();
+    await quickstart.navToRegister();
+  });
+
   test('GET /app/me', async () => {
     const cookies = await browserContext.cookies();
     const appAtCookie = cookies.find(cookie => cookie.name === 'app.at');
@@ -108,5 +113,94 @@ test.describe('Endpoint Tests', () => {
     const cookies = await browserContext.cookies();
     const pkceCookie = cookies.find(cookie => cookie.name === 'app.pkce_v');
     expect(pkceCookie).toBeDefined();
+  });
+  test('GET /app/register', async () => {
+    await quickstart.logOut();
+
+    let is302 = false;
+    let codeChallengePassed = false;
+    let redirectUrlEncoded: string | null = null;
+
+    await page.route('**/app/register', route => route.continue());
+
+    page.on('response', async response => {
+      if (
+        response.url().includes('/app/register') &&
+        response.status() === 302
+      ) {
+        is302 = true;
+        const locationHeader = response.headers()?.location;
+        if (locationHeader) {
+          expect(locationHeader).toContain('oauth2/register?');
+          const queryParameters = new URLSearchParams(
+            locationHeader.split('?')[1],
+          );
+          const codeChallenge = queryParameters.get('code_challenge');
+          const codeChallengeMethod = queryParameters.get(
+            'code_challenge_method',
+          );
+          expect(codeChallenge).toBeDefined();
+          expect(codeChallengeMethod).toBe('S256');
+          codeChallengePassed = true;
+          redirectUrlEncoded = queryParameters.get('redirect_uri');
+        }
+      }
+    });
+
+    await quickstart.navToRegister();
+
+    expect(is302).toBe(true);
+    expect(codeChallengePassed).toBe(true);
+    expect(redirectUrlEncoded).not.toBeNull();
+    expect(redirectUrlEncoded!).toContain('/app/callback');
+
+    const cookies = await browserContext.cookies();
+    const pkceCookie = cookies.find(cookie => cookie.name === 'app.pkce_v');
+    expect(pkceCookie).toBeDefined();
+  });
+
+  test('POST /app/refresh/{clientId}', async ({ browserName }) => {
+    const cookies = await browserContext.cookies();
+    const appRtCookie = cookies.find(cookie => cookie.name === 'app.rt');
+    const appAtCookie = cookies.find(cookie => cookie.name === 'app.at');
+    const appAtExpCookie = cookies.find(cookie => cookie.name === 'app.at_exp');
+    const clientId = 'e9fdb985-9173-4e01-9d73-ac2d60d1dc8e';
+
+    expect(appRtCookie).toBeDefined();
+    expect(appAtExpCookie).toBeDefined();
+
+    const originalExpireTime = appAtExpCookie?.value;
+
+    const response = await browserContext.request.post(
+      `http://localhost:9011/app/refresh/${clientId}`,
+      {
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${appAtCookie?.value}`,
+          'app.rt': `${appRtCookie?.value}`,
+          Origin: `http://localhost:${process.env.PORT}`,
+          Referer: `http://localhost:${process.env.PORT}/`,
+        },
+      },
+    );
+
+    expect(response.status()).toBe(200);
+
+    const newCookies = await browserContext.cookies();
+    const newAppAtExpCookie = newCookies.find(
+      cookie => cookie.name === 'app.at_exp',
+    );
+    if (browserName === 'webkit') {
+      const filterCookie = newCookies.filter(
+        cookie => cookie.name === 'app.at_exp',
+      );
+      const lastCookie = filterCookie[filterCookie.length - 1];
+      const newExpireTime = lastCookie?.value;
+
+      expect(newExpireTime).not.toEqual(originalExpireTime);
+    } else {
+      expect(newAppAtExpCookie?.value).not.toEqual(originalExpireTime);
+    }
+    expect(newAppAtExpCookie).toBeDefined();
   });
 });

@@ -5,7 +5,7 @@ const Locators = {
   emailInput: 'role=textbox[name="Email"]',
   passwordInput: 'role=textbox[name="Password"]',
   submitBtn: 'role=button[name="Submit"]',
-  createAccountBtn: 'role=button[name="create a new account"]',
+  createAccountBtn: 'role=button[name="Create a new account."]',
   registerBtn: 'role=button[name="Register"]',
   logOutBtn: 'text=Logout',
 } as const;
