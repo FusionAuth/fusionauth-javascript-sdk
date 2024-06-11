@@ -1,3 +1,5 @@
+import { useCookies } from 'next-client-cookies';
+
 /**
  * Config for FusionAuthProvider
  */
@@ -71,6 +73,13 @@ export interface FusionAuthProviderConfig {
    * The path to the token refresh endpoint.
    */
   tokenRefreshPath?: string;
+
+  /**
+   * Pass in `useCookies` from [next-client-cookies](https://github.com/moshest/next-client-cookies).
+   * This is needed for the React SDK to support Next/SSR.
+   * See docs for [configuration with nextjs](https://github.com/FusionAuth/fusionauth-javascript-sdk/tree/main/packages/sdk-react#configuration-with-nextjs) for more information.
+   */
+  nextCookieAdapter?: typeof useCookies;
 
   /**
    * The path to the me endpoint.

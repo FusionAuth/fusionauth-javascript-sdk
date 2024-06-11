@@ -3,7 +3,12 @@ import { PropsWithChildren, useContext, useMemo, useState, FC } from 'react';
 import { SDKCore } from '@fusionauth-sdk/core';
 
 import { FusionAuthProviderConfig } from './FusionAuthProviderConfig';
-import { useTokenRefresh, useRedirecting, useUserInfo } from './hooks';
+import {
+  useTokenRefresh,
+  useRedirecting,
+  useUserInfo,
+  useCookieAdapter,
+} from './hooks';
 import { FusionAuthContext } from './Context';
 import { FusionAuthProviderContext } from './FusionAuthProviderContext';
 
@@ -15,12 +20,15 @@ const FusionAuthProvider: FC<
     return config;
   }, [props]);
 
+  const cookieAdapter = useCookieAdapter(config);
+
   const core: SDKCore = useMemo<SDKCore>(() => {
     return new SDKCore({
       ...config,
       onTokenExpiration: () => setIsLoggedIn(false),
+      cookieAdapter,
     });
-  }, [config]);
+  }, [config, cookieAdapter]);
 
   const [isLoggedIn, setIsLoggedIn] = useState(core.isLoggedIn);
 
