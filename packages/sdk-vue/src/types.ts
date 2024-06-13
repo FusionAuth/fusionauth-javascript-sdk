@@ -86,16 +86,20 @@ export interface FusionAuthConfig {
  */
 export interface UserInfo {
   applicationId?: string;
+  birthdate?: string;
   email?: string;
   email_verified?: boolean;
   family_name?: string;
   given_name?: string;
+  name?: string;
+  middle_name?: string;
+  phone_number?: string;
   picture?: string;
+  preferred_username?: string;
   roles?: any[];
   sid?: string;
   sub?: string;
   tid?: string;
-  phone_number?: string;
 }
 
 /**

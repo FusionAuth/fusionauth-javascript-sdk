@@ -8,8 +8,11 @@ export type UserInfo = {
   email_verified: boolean;
   family_name: string;
   given_name: string;
+  name?: string;
+  middle_name?: string;
   phone_number?: string;
   picture?: string;
+  preferred_username?: string;
   roles: string[];
   scope: string;
   sid: SId;
