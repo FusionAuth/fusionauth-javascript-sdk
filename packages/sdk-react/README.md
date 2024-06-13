@@ -6,6 +6,7 @@ An SDK for using FusionAuth in React applications.
 - [Getting Started](#getting-started)
   - [Installation](#installation)
   - [Configuration](#configuration)
+    - [Configuration with NextJS](#configuration-with-nextjs)
 - [Usage](#usage)
 	- [useFusionAuth](#usefusionauth)
     - [State Parameter](#state-parameter)
@@ -97,6 +98,28 @@ ReactDOM.createRoot(document.getElementById("my-app")).render(
   </FusionAuthProvider>
 )
 ```
+
+#### Configuration with [NextJS](https://nextjs.org/)
+
+To configure the SDK with Next, install [`next-client-cookies`](https://github.com/moshest/next-client-cookies?tab=readme-ov-file#install) and pass `useCookies` into the config object as `nextCookieAdapter`.
+
+```jsx
+'use client'
+
+import { useCookies } from 'next-client-cookies';
+
+export default function Providers({ children }) {
+  return (
+    <FusionAuthProvider {...config} nextCookieAdapter={useCookies}>
+      {children}
+    </FusionAuthProvider>
+  );
+}
+```
+
+Remember to wrap your layout in the `<CookiesProvider/>` from `next-client-cookies/server`.
+
+Vercel has published a guide for [rendering third party context providers in server components](https://vercel.com/guides/react-context-state-management-nextjs#rendering-third-party-context-providers-in-server-components).
 
 ## Usage
 
