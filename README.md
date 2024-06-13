@@ -1,9 +1,10 @@
 # Table of Contents
 
 - [Development](#development)
-    - [Manual testing](#manual-testing)
-        - [Gotchas](#gotchas)
+    - [Gotchas](#gotchas)
+- [Manual testing](#manual-testing)
 - [Architecture](#architecture)
+- [Release Process](#release-process)
 - [Upgrade Policy](#upgrade-policy)
 
 # FusionAuth Web SDKs
@@ -22,9 +23,7 @@ Each SDK in this repo offers the following APIs:
 
 Install dependencies with `yarn install`.
 
-The SDKs share a core package that contains framework agnostic functionality. This package should be built before the the SDK is built--a step included in the build script for each SDK (for example `build:sdk-react`).
-
-## Manual testing
+The SDKs share a core package that contains framework agnostic functionality. Building the core package is a step included in the build script for each SDK (for example `build:sdk-react`).
 
 You may use the FusionAuth Quickstarts to consume the package and test changes. See [React Quickstart](https://fusionauth.io/docs/quickstarts/quickstart-javascript-react-web), [Angular Quickstart](https://fusionauth.io/docs/quickstarts/quickstart-javascript-angular-web), & [Vue Quickstart](https://fusionauth.io/docs/quickstarts/quickstart-javascript-vue-web)
 
@@ -49,6 +48,19 @@ If your changes are not being consumed as you expected, consider the following:
 
 If you decide to use something like `yarn link` instead of `yalc`, be aware of how your dependencies are being consumed via the symlink. `yalc` copies your assets directly, so it's a more realistic representation of the production build than a symlink.
 
+## Manual testing
+
+The SDKs provide the following functionality:
+- Login
+- Register new user
+- Logout
+- A logged in user automatically becomes logged out when their access token expires
+- User info can be fetched
+- A pending state when the request to fetch user info is unresolved
+- Failure to fetch user info provides a helpful error to the consuming application
+- Access token can be automatically and continuously refreshed
+- Redirect callback is invoked after login or register
+
 ## Architecture
 
 We use a monorepo because our SDKs share core functionality, which is contained in the @fusionauth-sdk/core package. This private module is bundled into the distributed SDK packages, allowing us to maintain core logic in a single place.
@@ -56,6 +68,21 @@ We use a monorepo because our SDKs share core functionality, which is contained 
 For React and Vue, our build tool is [`Vite`](https://vitejs.dev/guide/).
 
 Angular differs slightly because [`@angular-devkit/build-angular:ng-packagr`](https://github.com/ng-packagr/ng-packagr), the builder for Angular libraries, doesn't support bundling dependencies from outside the Angular workspace. Our solution is to copy the core package's `src` directory into the Angular workspace without transpiling it, letting Angular's library builder handle it as if it were not an external dependency. This copied directory functions like a `dist`: it is git-ignored, and changes should be made in `packages/core`. The build process will then consume the updates. See [GitHub issue #84](https://github.com/FusionAuth/fusionauth-javascript-sdk/issues/84) for more details.
+
+## Release Process
+
+The SDKs use [GitHub Actions](https://docs.github.com/en/actions) to automate the release process. Each SDK has a publish workflow defined in `.github/workflows`. 
+
+Steps to create a release:
+1. Checkout a new branch.
+2. Bump the version number of the SDK to be released. Follow [semantic versioning](https://semver.org/).
+3. Update documentation.
+    - Add a section for the new version to the SDKs changelog at `changes.md`.
+    - Edit the README for the SDK to be released if needed. It matters to users of the SDK, so please keep it up-to-date!
+    - Update the generated docs for the SDK to be released with the `docs` script in its package.json.
+4. Manually test the SDK to verify that the functionality described in [manual testing](#manual-testing) is correct.
+5. Merge the release branch into `main`.
+6. Dispatch the workflow to publish the new version.
 
 ## Upgrade Policy
 
