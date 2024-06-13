@@ -19,7 +19,12 @@
     "entryPoints": [
       "src/components/providers/FusionAuthProvider.tsx",
       "src/components/providers/FusionAuthProviderConfig.ts",
-      "src/components/providers/FusionAuthProviderContext.ts"
+      "src/components/providers/FusionAuthProviderContext.ts",
+      "src/components/ui/RequireAuth/index.tsx",
+      "src/components/ui/Unauthenticated/index.tsx",
+      "src/components/ui/FusionAuthLoginButton/index.tsx",
+      "src/components/ui/FusionAuthLogoutButton/index.tsx",
+      "src/components/ui/FusionAuthRegisterButton/index.tsx"
     ],
     "out": "docs"
   }
