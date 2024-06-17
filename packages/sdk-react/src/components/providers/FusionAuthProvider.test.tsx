@@ -1,5 +1,5 @@
-import { PropsWithChildren } from 'react';
-import { act, waitFor, renderHook } from '@testing-library/react';
+import { PropsWithChildren, act } from 'react';
+import { waitFor, renderHook } from '@testing-library/react';
 import { describe, afterEach, test, expect, vi } from 'vitest';
 
 import {
@@ -40,7 +40,7 @@ describe('FusionAuthProvider', () => {
     result.current.startLogin(stateValue);
 
     const expectedUrl = new URL(TEST_CONFIG.serverUrl);
-    expectedUrl.pathname = '/app/login';
+    expectedUrl.pathname = '/app/login/';
     expectedUrl.searchParams.set('client_id', TEST_CONFIG.clientId);
     expectedUrl.searchParams.set('redirect_uri', TEST_CONFIG.redirectUri);
     expectedUrl.searchParams.set('scope', TEST_CONFIG.scope!);
@@ -57,7 +57,7 @@ describe('FusionAuthProvider', () => {
     result.current.startLogout();
 
     const expectedUrl = new URL(TEST_CONFIG.serverUrl);
-    expectedUrl.pathname = '/app/logout';
+    expectedUrl.pathname = '/app/logout/';
     expectedUrl.searchParams.set('client_id', TEST_CONFIG.clientId);
     expectedUrl.searchParams.set(
       'post_logout_redirect_uri',
@@ -76,7 +76,7 @@ describe('FusionAuthProvider', () => {
     result.current.startRegister(stateValue);
 
     const expectedUrl = new URL(TEST_CONFIG.serverUrl);
-    expectedUrl.pathname = '/app/register';
+    expectedUrl.pathname = '/app/register/';
     expectedUrl.searchParams.set('client_id', TEST_CONFIG.clientId);
     expectedUrl.searchParams.set('redirect_uri', TEST_CONFIG.redirectUri);
     expectedUrl.searchParams.set(
@@ -152,7 +152,7 @@ describe('FusionAuthProvider', () => {
 
     await waitFor(() => {
       expect(fetch).toHaveBeenCalledWith(
-        new URL('http://localhost:9000/app/me'),
+        new URL('http://localhost:9000/app/me/'),
         {
           credentials: 'include',
         },
@@ -216,7 +216,7 @@ describe('FusionAuthProvider', () => {
     expect(fetch).toHaveBeenCalledTimes(1); // called
 
     const expectedUrl = new URL(TEST_CONFIG.serverUrl);
-    expectedUrl.pathname = '/app/refresh';
+    expectedUrl.pathname = '/app/refresh/';
     expectedUrl.searchParams.set('client_id', TEST_CONFIG.clientId);
     expect(fetch).toHaveBeenCalledWith(expectedUrl, {
       method: 'POST',
