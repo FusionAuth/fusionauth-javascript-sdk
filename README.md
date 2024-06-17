@@ -3,6 +3,7 @@
 - [Development](#development)
     - [Gotchas](#gotchas)
 - [Manual testing](#manual-testing)
+- [Automated testing](#automated-testing)
 - [Architecture](#architecture)
 - [Release Process](#release-process)
 - [Upgrade Policy](#upgrade-policy)
@@ -60,6 +61,44 @@ The SDKs provide the following functionality:
 - Failure to fetch user info provides a helpful error to the consuming application
 - Access token can be automatically and continuously refreshed
 - Redirect callback is invoked after login or register
+
+## Automated testing
+The Playwright end-to-end tests verify the proper functionality of several authentication and authorization endpoints in the FA SDK.
+
+Prerequisites
+- Ensure Playwright has been installed as a dependency 
+- On a seperate server run the FA SDK consuming quickstart application.
+
+Configuration
+The Playwright configuration (playwright.config.ts) includes settings for running tests in parallel, specifying browser environments, and defining the base URL the tests will perform on.
+
+Running the Tests
+Prior to running the tests you will want to check the Server Command that is used to start up a local instance of the FA SDK consuming quickstart application. Additionally you will want to note the port number this application will run on.
+
+Run Tests:
+`SERVER_COMMAND="your-server-start-command" PORT=your-port-number yarn test:e2e`
+    Example: `SERVER_COMMAND="npm run start" PORT=9011 yarn test:e2e`
+
+The tests cover the following endpoints and functionalities:
+
+-Baseline Authentication: Verifies the login and registration navigation and logout functionality.
+-GET /app/me: Checks if the authenticated user’s information is correctly retrieved.
+-GET /app/logout: Ensures that logging out invalidates the session cookies.
+-GET /app/login: Validates the login process, ensuring proper PKCE (Proof Key for Code Exchange) implementation.
+-GET /app/register: Checks the registration process, ensuring proper PKCE implementation.
+-POST /app/refresh/{clientId}: Validates the token refresh functionality.
+
+Maintenance
+
+Page Object Model (POM):
+The Page Object Model (POM) is a design pattern in test automation that creates an object repository for web UI elements found in the pages directory. This makes tests more maintainable and reusable. 
+    Example: In common.page.ts, methods for navigation and authentication are defined.
+Tests import these page objects to perform actions, ensuring that if the UI changes, only the page object needs updating, not all the tests.
+
+Updating Tests:
+Modify existing tests or add new tests in the e2e tests directory as needed.
+When the UI changes, update the corresponding methods in the page objects.
+
 
 ## Architecture
 
