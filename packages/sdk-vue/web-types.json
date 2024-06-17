@@ -8,6 +8,19 @@
       "types-syntax": "typescript",
       "tags": [
         {
+          "name": "FusionAuthAccountButton",
+          "description": "",
+          "slots": [
+            {
+              "name": "default"
+            }
+          ],
+          "source": {
+            "module": "./src/components/FusionAuthAccountButton/FusionAuthAccountButton.vue",
+            "symbol": "default"
+          }
+        },
+        {
           "name": "FusionAuthLoginButton",
           "description": "",
           "attributes": [

@@ -57,6 +57,10 @@ export const createFusionAuth = (config: FusionAuthConfig): FusionAuth => {
     core.startLogout();
   }
 
+  function manageAccount() {
+    core.manageAccount();
+  }
+
   if (config.shouldAutoFetchUserInfo && core.isLoggedIn === true) {
     getUserInfo();
   }
@@ -76,6 +80,7 @@ export const createFusionAuth = (config: FusionAuthConfig): FusionAuth => {
     login,
     register,
     logout,
+    manageAccount,
     refreshToken,
     initAutoRefresh,
   };
