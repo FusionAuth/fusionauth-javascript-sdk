@@ -63,7 +63,7 @@ The SDKs provide the following functionality:
 - Redirect callback is invoked after login or register
 
 ## Automated testing
-The Playwright end-to-end tests verify the proper functionality of several authentication and authorization endpoints in the FA SDK.
+The [Playwright](https://playwright.dev/docs/intro) end-to-end tests verify the proper functionality of several authentication and authorization endpoints in the FA SDK.
 
 Prerequisites
 - Ensure Playwright has been installed as a dependency 
@@ -81,12 +81,12 @@ Run Tests:
 
 The tests cover the following endpoints and functionalities:
 
--Baseline Authentication: Verifies the login and registration navigation and logout functionality.
--GET /app/me: Checks if the authenticated user’s information is correctly retrieved.
--GET /app/logout: Ensures that logging out invalidates the session cookies.
--GET /app/login: Validates the login process, ensuring proper PKCE (Proof Key for Code Exchange) implementation.
--GET /app/register: Checks the registration process, ensuring proper PKCE implementation.
--POST /app/refresh/{clientId}: Validates the token refresh functionality.
+- Baseline Authentication: Verifies the login and registration navigation and logout functionality.
+- GET /app/me: Checks if the authenticated user’s information is correctly retrieved.
+- GET /app/logout: Ensures that logging out invalidates the session cookies.
+- GET /app/login: Validates the login process, ensuring proper PKCE (Proof Key for Code Exchange) implementation.
+- GET /app/register: Checks the registration process, ensuring proper PKCE implementation.
+- POST /app/refresh/{clientId}: Validates the token refresh functionality.
 
 Maintenance
 
