@@ -88,16 +88,10 @@ The tests cover the following endpoints and functionalities:
 - GET /app/register: Checks the registration process, ensuring proper PKCE implementation.
 - POST /app/refresh/{clientId}: Validates the token refresh functionality.
 
-Maintenance
-
-Page Object Model (POM):
-The Page Object Model (POM) is a design pattern in test automation that creates an object repository for web UI elements found in the pages directory. This makes tests more maintainable and reusable. 
+Structure
+The e2e tests are structured to use the Page Object Model (POM) design pattern. A POM is a design pattern in test automation that creates an object repository for web UI elements found in the pages directory. This makes tests more maintainable and reusable. 
     Example: In common.page.ts, methods for navigation and authentication are defined.
 Tests import these page objects to perform actions, ensuring that if the UI changes, only the page object needs updating, not all the tests.
-
-Updating Tests:
-Modify existing tests or add new tests in the e2e tests directory as needed.
-When the UI changes, update the corresponding methods in the page objects.
 
 
 ## Architecture
