@@ -1,10 +1,11 @@
 import { CookieAdapter } from '@fusionauth-sdk/core';
+import { useCookie as useCookieType } from 'nuxt/app';
 
 /**
  * See docs for more info [useCookie](https://nuxt.com/docs/api/composables/use-cookie).
  */
 export class NuxtUseCookieAdapter implements CookieAdapter {
-  constructor(private useCookie: UseCookie) {
+  constructor(private useCookie: typeof useCookieType) {
     this.useCookie = useCookie;
   }
 
@@ -13,7 +14,3 @@ export class NuxtUseCookieAdapter implements CookieAdapter {
     return this.useCookie(cookieName).value;
   }
 }
-
-export type UseCookie = (key: string) => {
-  value: string | number | undefined;
-};
