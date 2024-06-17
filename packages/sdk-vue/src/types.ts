@@ -1,5 +1,5 @@
 import { Ref } from 'vue';
-import { UseCookie } from './createFusionAuth/NuxtUseCookieAdapter';
+import { useCookie as useCookieType } from 'nuxt/app';
 
 /**
  * Config for the FusionAuth Vue SDK
@@ -54,10 +54,10 @@ export interface FusionAuthConfig {
   onAutoRefreshFailure?: (error: Error) => void;
 
   /**
-   * Pass in `useCookie` from nuxt/app [useCookie](https://nuxt.com/docs/api/composables/use-cookie).
+   * Pass in `useCookieType` from nuxt/app [useCookie](https://nuxt.com/docs/api/composables/use-cookie).
    * This is needed for the Vue SDK to support Nuxt/SSR.
    */
-  nuxtUseCookie?: UseCookie;
+  nuxtUseCookie?: typeof useCookieType;
 
   /**
    * The path to the login endpoint.
