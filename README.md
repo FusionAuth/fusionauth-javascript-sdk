@@ -70,6 +70,7 @@ Prerequisites
 - On a seperate server run the FA SDK consuming quickstart application.
 
 Configuration
+
 The Playwright configuration (playwright.config.ts) includes settings for running tests in parallel, specifying browser environments, and defining the base URL the tests will perform on.
 
 Running the Tests
@@ -77,14 +78,15 @@ Running the Tests
 Prior to running the tests you will want to check the Server Command that is used to start up a local instance of the FA SDK consuming quickstart application. Additionally you will want to note the port number this application will run on.
 
 Run Tests:
+
 `SERVER_COMMAND="your-server-start-command" PORT=your-port-number yarn test:e2e`
     Example: `SERVER_COMMAND="npm run start" PORT=9011 yarn test:e2e`
 
 Structure
+
 The e2e tests are structured to use the Page Object Model (POM) design pattern. A POM is a design pattern in test automation that creates an object repository for web UI elements found in the pages directory. This makes tests more maintainable and reusable. 
     Example: In common.page.ts, methods for navigation and authentication are defined.
 Tests import these page objects to perform actions, ensuring that if the UI changes, only the page object needs updating, not all the tests.
-
 
 ## Architecture
 
