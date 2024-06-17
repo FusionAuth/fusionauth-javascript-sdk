@@ -54,7 +54,7 @@ export interface FusionAuthConfig {
   onAutoRefreshFailure?: (error: Error) => void;
 
   /**
-   * Pass in `useCookieType` from nuxt/app [useCookie](https://nuxt.com/docs/api/composables/use-cookie).
+   * Pass in `useCookie` from nuxt/app [useCookie](https://nuxt.com/docs/api/composables/use-cookie).
    * This is needed for the Vue SDK to support Nuxt/SSR.
    */
   nuxtUseCookie?: typeof useCookieType;
