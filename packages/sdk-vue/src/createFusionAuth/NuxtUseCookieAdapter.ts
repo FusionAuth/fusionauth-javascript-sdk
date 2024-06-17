@@ -11,6 +11,6 @@ export class NuxtUseCookieAdapter implements CookieAdapter {
 
   at_exp(cookieName: string = 'app.at_exp') {
     // useCookie must be invoked with the cookie name every time to get the up-to-date value
-    return this.useCookie(cookieName).value;
+    return this.useCookie(cookieName).value ?? undefined;
   }
 }
