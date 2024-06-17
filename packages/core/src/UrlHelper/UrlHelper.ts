@@ -21,11 +21,11 @@ export class UrlHelper {
     this.scope = config.scope;
     this.postLogoutRedirectUri = config.postLogoutRedirectUri;
 
-    this.mePath = config.mePath ?? '/app/me';
-    this.loginPath = config.loginPath ?? '/app/login';
-    this.registerPath = config.registerPath ?? '/app/register';
-    this.logoutPath = config.logoutPath ?? '/app/logout';
-    this.tokenRefreshPath = config.tokenRefreshPath ?? '/app/refresh';
+    this.mePath = config.mePath ?? '/app/me/';
+    this.loginPath = config.loginPath ?? '/app/login/';
+    this.registerPath = config.registerPath ?? '/app/register/';
+    this.logoutPath = config.logoutPath ?? '/app/logout/';
+    this.tokenRefreshPath = config.tokenRefreshPath ?? '/app/refresh/';
   }
 
   getMeUrl(): URL {
@@ -59,6 +59,12 @@ export class UrlHelper {
 
   getTokenRefreshUrl(): URL {
     return this.generateUrl(this.tokenRefreshPath, {
+      client_id: this.clientId,
+    });
+  }
+
+  getAccountManagementUrl(): URL {
+    return this.generateUrl('/account/', {
       client_id: this.clientId,
     });
   }

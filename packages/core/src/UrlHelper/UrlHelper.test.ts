@@ -16,7 +16,7 @@ describe('UrlHelper', () => {
   it('me url', () => {
     const meUrl = urlHelper.getMeUrl();
     expect(meUrl.origin).toBe(config.serverUrl);
-    expect(meUrl.pathname).toBe('/app/me');
+    expect(meUrl.pathname).toBe('/app/me/');
     expect(meUrl.search).toBe('');
   });
 
@@ -24,7 +24,7 @@ describe('UrlHelper', () => {
     const stateValue = 'login-state-value';
     const loginUrl = urlHelper.getLoginUrl(stateValue);
     expect(loginUrl.origin).toBe(config.serverUrl);
-    expect(loginUrl.pathname).toBe('/app/login');
+    expect(loginUrl.pathname).toBe('/app/login/');
     expect(loginUrl.searchParams.get('client_id')).toBe(config.clientId);
     expect(loginUrl.searchParams.get('redirect_uri')).toBe(config.redirectUri);
     expect(loginUrl.searchParams.get('scope')).toBe(config.scope);
@@ -35,7 +35,7 @@ describe('UrlHelper', () => {
     const stateValue = 'register-state-value';
     const registerUrl = urlHelper.getRegisterUrl(stateValue);
     expect(registerUrl.origin).toBe(config.serverUrl);
-    expect(registerUrl.pathname).toBe('/app/register');
+    expect(registerUrl.pathname).toBe('/app/register/');
     expect(registerUrl.searchParams.get('client_id')).toBe(config.clientId);
     expect(registerUrl.searchParams.get('redirect_uri')).toBe(
       config.redirectUri,
@@ -47,7 +47,7 @@ describe('UrlHelper', () => {
   it('logout url', () => {
     const logoutUrl = urlHelper.getLogoutUrl();
     expect(logoutUrl.origin).toBe(config.serverUrl);
-    expect(logoutUrl.pathname).toBe('/app/logout');
+    expect(logoutUrl.pathname).toBe('/app/logout/');
     expect(logoutUrl.searchParams.get('client_id')).toBe(config.clientId);
     expect(logoutUrl.searchParams.get('post_logout_redirect_uri')).toBe(
       config.postLogoutRedirectUri,
@@ -67,7 +67,7 @@ describe('UrlHelper', () => {
     );
     const logoutUrl = urlHelperWithoutPostLogoutRedirectUri.getLogoutUrl();
     expect(logoutUrl.origin).toBe(configWithoutPostLogoutRedirectUri.serverUrl);
-    expect(logoutUrl.pathname).toBe('/app/logout');
+    expect(logoutUrl.pathname).toBe('/app/logout/');
     expect(logoutUrl.searchParams.get('client_id')).toBe(
       configWithoutPostLogoutRedirectUri.clientId,
     );
@@ -78,8 +78,16 @@ describe('UrlHelper', () => {
 
   it('tokenRefresh url', () => {
     const tokenRefreshUrl = urlHelper.getTokenRefreshUrl();
-    expect(tokenRefreshUrl.pathname).toBe('/app/refresh');
+    expect(tokenRefreshUrl.pathname).toBe('/app/refresh/');
     expect(tokenRefreshUrl.searchParams.get('client_id')).toBe(config.clientId);
+  });
+
+  it('account management url', () => {
+    const accountManagementUrl = urlHelper.getAccountManagementUrl();
+    expect(accountManagementUrl.pathname).toBe('/account/');
+    expect(accountManagementUrl.searchParams.get('client_id')).toBe(
+      config.clientId,
+    );
   });
 
   it('Should generate urls with a specified path', () => {

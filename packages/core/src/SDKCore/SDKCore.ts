@@ -42,6 +42,10 @@ export class SDKCore {
     window.location.assign(this.urlHelper.getLogoutUrl());
   }
 
+  manageAccount() {
+    window.location.assign(this.urlHelper.getAccountManagementUrl());
+  }
+
   async fetchUserInfo() {
     const userInfoResponse = await fetch(this.urlHelper.getMeUrl(), {
       credentials: 'include',
@@ -122,7 +126,11 @@ export class SDKCore {
     );
   }
 
-  /** Schedules `onTokenExpiration` at moment of access token expiration. */
+  /**
+   * Schedules `onTokenExpiration` at moment of access token expiration.
+   * SDKCore is not necessarily reactive like React, Angular, and Vue.
+   * so `onTokenExpiration` is for reactive frameworks to hook in and perform actions as on token expiration.
+   */
   private scheduleTokenExpiration(): void {
     clearTimeout(this.tokenExpirationTimeout);
 
