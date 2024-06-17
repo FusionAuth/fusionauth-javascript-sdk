@@ -15,7 +15,7 @@ export default defineConfig({
       fileName: 'vue-fusionauth',
     },
     rollupOptions: {
-      external: ['vue'],
+      external: ['vue', 'nuxt'],
       output: {
         globals: {
           vue: 'Vue',
