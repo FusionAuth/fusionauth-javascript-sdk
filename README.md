@@ -77,10 +77,11 @@ Running the Tests
 
 Prior to running the tests you will want to check the Server Command that is used to start up a local instance of the FA SDK consuming quickstart application. Additionally you will want to note the port number this application will run on.
 
-Run Tests:
+To run the tests, enter the following command with the FA SDK consuming quickstart application server start command and port number:
 
 `SERVER_COMMAND="your-server-start-command" PORT=your-port-number yarn test:e2e`
-    Example: `SERVER_COMMAND="npm run start" PORT=9011 yarn test:e2e`
+
+Example: `SERVER_COMMAND="npm run start" PORT=9011 yarn test:e2e`
 
 Structure
 
