@@ -1,8 +1,11 @@
 fusionauth-react-sdk Changes
 
-Upcoming release
+Changes in 2.2.0
 
-- sourcemaps included for debugging
+- SDK now supports NextJS. [See further documentation for configuration with nextjs](https://github.com/FusionAuth/fusionauth-javascript-sdk/tree/main/packages/sdk-react#configuration-with-nextjs).
+- [`postLogoutRedirectUri`](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/main/packages/sdk-react/docs/interfaces/FusionAuthProviderConfig.FusionAuthProviderConfig.md#postlogoutredirecturi) config option added.
+- Missing optional properties added to UserInfo type definition.
+- sourcemaps included for debugging.
 
 Changes in 2.1.1
 

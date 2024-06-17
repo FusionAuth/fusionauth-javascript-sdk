@@ -8,12 +8,13 @@ An SDK for using FusionAuth in React applications.
 - [Getting Started](#getting-started)
   - [Installation](#installation)
   - [Configuration](#configuration)
+    - [Configuration with NextJS](#configuration-with-nextjs)
 - [Usage](#usage)
 	- [useFusionAuth](#usefusionauth)
     - [State Parameter](#state-parameter)
 	- [Protecting content](#protecting-content)
 	- [UI Components](#ui-components)
-	- [Known issues](#known-issues)
+- [Known issues](#known-issues)
 - [Quickstart](#quickstart)
 - [Documentation](#documentation)
 - [Formatting](#formatting)
@@ -99,6 +100,28 @@ ReactDOM.createRoot(document.getElementById("my-app")).render(
   </FusionAuthProvider>
 )
 ```
+
+#### Configuration with [NextJS](https://nextjs.org/)
+
+To configure the SDK with Next, install [`next-client-cookies`](https://github.com/moshest/next-client-cookies?tab=readme-ov-file#install) and pass `useCookies` into the config object as `nextCookieAdapter`.
+
+```jsx
+'use client'
+
+import { useCookies } from 'next-client-cookies';
+
+export default function Providers({ children }) {
+  return (
+    <FusionAuthProvider {...config} nextCookieAdapter={useCookies}>
+      {children}
+    </FusionAuthProvider>
+  );
+}
+```
+
+Remember to wrap your layout in the `<CookiesProvider/>` from `next-client-cookies/server`.
+
+Vercel has published a guide for [rendering third party context providers in server components](https://vercel.com/guides/react-context-state-management-nextjs#rendering-third-party-context-providers-in-server-components).
 
 ## Usage
 
@@ -197,7 +220,7 @@ export const AccountPage = () => (
 
 ### Known Issues
 
-None
+The SDK doesn't support SSR (server side rendering) at this moment, but [a feature request](https://github.com/FusionAuth/fusionauth-javascript-sdk/issues/99) is in. Until then, if you are using [Next](https://nextjs.org/) you must use the [`"use client"` directive](https://nextjs.org/docs/app/building-your-application/rendering/client-components#using-client-components-in-nextjs).
 
 ## Quickstart
 
