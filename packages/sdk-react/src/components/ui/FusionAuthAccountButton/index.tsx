@@ -6,17 +6,16 @@ import styles from '#styles/button.module.scss';
 
 interface Props {
   className?: string;
-  state?: string;
 }
 
-export const FusionAuthAccountButton: FC<Props> = ({ className, state }) => {
-  const { startLogin } = useFusionAuth();
+export const FusionAuthAccountButton: FC<Props> = ({ className }) => {
+  const { manageAccount } = useFusionAuth();
 
   return (
     <button
       className={classNames(styles.fusionAuthButton, className)}
       type="button"
-      onClick={() => startLogin(state)}
+      onClick={manageAccount}
     >
       Manage Account
     </button>

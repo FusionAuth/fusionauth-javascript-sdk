@@ -47,6 +47,8 @@ const FusionAuthProvider: FC<
     config.shouldAutoRefresh ?? false,
   );
 
+  const manageAccount = () => core.manageAccount();
+
   const providerValue: FusionAuthProviderContext = {
     startLogin,
     startRegister,
@@ -58,6 +60,7 @@ const FusionAuthProvider: FC<
     refreshToken,
     initAutoRefresh,
     fetchUserInfo,
+    manageAccount,
   };
 
   return (
