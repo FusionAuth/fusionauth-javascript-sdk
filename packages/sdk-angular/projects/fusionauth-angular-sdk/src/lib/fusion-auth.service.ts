@@ -125,4 +125,12 @@ export class FusionAuthService {
   logout(): void {
     this.core.startLogout();
   }
+
+  /**
+   * Redirects to [self service account management](https://fusionauth.io/docs/lifecycle/manage-users/account-management/)
+   * Self service account management is only available in FusionAuth paid plans.
+   */
+  manageAccount(): void {
+    this.core.manageAccount();
+  }
 }

@@ -135,7 +135,7 @@ describe('createFusionAuth', () => {
     fusionAuth.login(stateValue);
 
     const expectedUrl = new URL(config.serverUrl);
-    expectedUrl.pathname = '/app/login';
+    expectedUrl.pathname = '/app/login/';
     expectedUrl.searchParams.set('client_id', config.clientId);
     expectedUrl.searchParams.set('redirect_uri', config.redirectUri);
     expectedUrl.searchParams.set('scope', config.scope!);
@@ -152,7 +152,7 @@ describe('createFusionAuth', () => {
     fusionAuth.register(stateValue);
 
     const expectedUrl = new URL(config.serverUrl);
-    expectedUrl.pathname = '/app/register';
+    expectedUrl.pathname = '/app/register/';
     expectedUrl.searchParams.set('client_id', config.clientId);
     expectedUrl.searchParams.set('redirect_uri', config.redirectUri);
     expectedUrl.searchParams.set('scope', config.scope!);
@@ -168,7 +168,7 @@ describe('createFusionAuth', () => {
     fusionAuth.logout();
 
     const expectedUrl = new URL(config.serverUrl);
-    expectedUrl.pathname = '/app/logout';
+    expectedUrl.pathname = '/app/logout/';
     expectedUrl.searchParams.set('client_id', config.clientId);
     expectedUrl.searchParams.set(
       'post_logout_redirect_uri',
