@@ -32,10 +32,8 @@ const FusionAuthProvider: FC<
 
   const [isLoggedIn, setIsLoggedIn] = useState(core.isLoggedIn);
 
-  const { startLogin, startLogout, startRegister } = useRedirecting(
-    core,
-    config.onRedirect,
-  );
+  const { manageAccount, startLogin, startLogout, startRegister } =
+    useRedirecting(core, config.onRedirect);
 
   const { isFetchingUserInfo, userInfo, fetchUserInfo, error } = useUserInfo(
     core,
@@ -46,8 +44,6 @@ const FusionAuthProvider: FC<
     core,
     config.shouldAutoRefresh ?? false,
   );
-
-  const manageAccount = () => core.manageAccount();
 
   const providerValue: FusionAuthProviderContext = {
     startLogin,
