@@ -121,6 +121,19 @@ export default defineNuxtPlugin((nuxtApp) => {
 });
 ```
 
+##### Alternate way to define your nuxt plugin
+
+```typescript
+export default defineNuxtPlugin((nuxtApp) => {
+  const fusionAuth = createFusionAuth(config);
+  nuxtApp.vueApp.use(FusionAuthVuePlugin, { instance: fusionAuth })
+
+  return {
+    provide: { fusionAuth }
+  }
+})
+```
+
 ### `useFusionAuth` composable
 
 You can interact with the SDK by using the `useFusionAuth`, which leverages [Vue's Composition API](https://vuejs.org/guide/reusability/composables).

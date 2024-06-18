@@ -31,11 +31,7 @@
   "references": [{ "path": "./tsconfig.node.json" }],
   "typedocOptions": {
     "plugin": ["typedoc-plugin-markdown"],
-    "entryPoints": [
-      "src/components/RequireAuth/RequireAuth.vue",
-      "src/composables/useFusionAuth.ts",
-      "src/types.ts"
-    ],
+    "entryPoints": ["src/index.ts"],
     "out": "docs"
   }
 }
