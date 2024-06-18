@@ -5,6 +5,7 @@ export const defaultContext: FusionAuthProviderContext = {
   startLogin: () => {},
   startLogout: () => {},
   startRegister: () => {},
+  manageAccount: () => {},
   userInfo: null,
   fetchUserInfo: () => Promise.resolve({}),
   isFetchingUserInfo: false,

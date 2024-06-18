@@ -11,6 +11,7 @@ export const createContextMock = (
   userInfo: context.userInfo ?? null,
   refreshToken: context.refreshToken ?? vi.fn(),
   initAutoRefresh: context.initAutoRefresh ?? vi.fn(),
+  manageAccount: context.manageAccount ?? vi.fn(),
   isFetchingUserInfo: context.isFetchingUserInfo ?? false,
   error: context.error ?? null,
   fetchUserInfo:

@@ -5,6 +5,7 @@ export function useRedirecting(
   core: SDKCore,
   onRedirect?: (state?: string) => void,
 ) {
+  const manageAccount = useCallback(() => core.manageAccount(), [core]);
   const startLogin = useCallback(
     (state?: string) => core.startLogin(state),
     [core],
@@ -20,6 +21,7 @@ export function useRedirecting(
   }, [core, onRedirect]);
 
   return {
+    manageAccount,
     startLogin,
     startRegister,
     startLogout,
