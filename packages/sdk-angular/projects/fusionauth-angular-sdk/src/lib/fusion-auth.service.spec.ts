@@ -29,16 +29,21 @@ describe('FusionAuthService', () => {
   it('Can be configured to automatically handle getting userInfo', (done: DoneFn) => {
     mockIsLoggedIn();
 
-    const user = { email: 'richard@test.com' };
+    const user = {
+      email: 'richard@test.com',
+      customTrait: 'something special',
+    };
     spyOn(window, 'fetch').and.resolveTo(
       new Response(JSON.stringify(user), { status: 200 }),
     );
 
-    const service = configureTestingModule(config);
+    const service: FusionAuthService<typeof user> =
+      configureTestingModule(config);
 
     service.getUserInfoObservable().subscribe({
       next: userInfo => {
         expect(userInfo.email).toBe('richard@test.com');
+        expect(userInfo.customTrait).toBe('something special');
         done();
       },
     });
