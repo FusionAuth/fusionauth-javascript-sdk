@@ -13,7 +13,7 @@ import { FUSIONAUTH_SERVICE_CONFIG } from './injectionToken';
 @Injectable({
   providedIn: 'root',
 })
-export class FusionAuthService {
+export class FusionAuthService<T = UserInfo> {
   private core: SDKCore;
   private autoRefreshTimer?: NodeJS.Timeout;
   private isLoggedInSubject: BehaviorSubject<boolean>;
@@ -74,11 +74,11 @@ export class FusionAuthService {
   getUserInfoObservable(callbacks?: {
     onBegin?: () => void;
     onDone?: () => void;
-  }): Observable<UserInfo> {
+  }): Observable<T> {
     callbacks?.onBegin?.();
-    return new Observable<UserInfo>(observer => {
+    return new Observable<T>(observer => {
       this.core
-        .fetchUserInfo()
+        .fetchUserInfo<T>()
         .then(userInfo => {
           observer.next(userInfo);
         })
@@ -99,8 +99,8 @@ export class FusionAuthService {
    * Fetches userInfo from the 'me' endpoint.
    * @throws {Error} - if an error occurred while fetching.
    */
-  async getUserInfo(): Promise<UserInfo> {
-    return await this.core.fetchUserInfo();
+  async getUserInfo<T>(): Promise<T> {
+    return await this.core.fetchUserInfo<T>();
   }
 
   /**
