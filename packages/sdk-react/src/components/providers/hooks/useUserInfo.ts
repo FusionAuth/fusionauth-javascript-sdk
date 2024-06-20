@@ -1,10 +1,13 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
 
-import { SDKCore, UserInfo } from '@fusionauth-sdk/core';
+import { SDKCore } from '@fusionauth-sdk/core';
 
-export function useUserInfo(core: SDKCore, shouldAutoFetchUserInfo: boolean) {
+export function useUserInfo<T>(
+  core: SDKCore,
+  shouldAutoFetchUserInfo: boolean,
+) {
   const [isFetchingUserInfo, setIsFetchingUserInfo] = useState(false);
-  const [userInfo, setUserInfo] = useState<UserInfo | null>(null);
+  const [userInfo, setUserInfo] = useState<T | null>(null);
   const [error, setError] = useState<Error | null>(null);
 
   const fetchUserInfo = useCallback(async () => {
@@ -12,7 +15,7 @@ export function useUserInfo(core: SDKCore, shouldAutoFetchUserInfo: boolean) {
     setError(null);
 
     try {
-      const userInfo = await core.fetchUserInfo();
+      const userInfo = await core.fetchUserInfo<T>();
       setUserInfo(userInfo);
       return userInfo;
     } catch (error) {

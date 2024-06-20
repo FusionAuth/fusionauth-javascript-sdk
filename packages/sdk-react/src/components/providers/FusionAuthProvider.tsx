@@ -1,4 +1,4 @@
-import { PropsWithChildren, useContext, useMemo, useState, FC } from 'react';
+import { PropsWithChildren, useContext, useMemo, useState } from 'react';
 
 import { SDKCore } from '@fusionauth-sdk/core';
 
@@ -9,17 +9,13 @@ import {
   useUserInfo,
   useCookieAdapter,
 } from './hooks';
-import { FusionAuthContext } from './Context';
+import { FusionAuthContext, UserInfo as DefaultUserInfo } from './Context';
 import { FusionAuthProviderContext } from './FusionAuthProviderContext';
 
-const FusionAuthProvider: FC<
-  FusionAuthProviderConfig & PropsWithChildren
-> = props => {
-  const config = useMemo<FusionAuthProviderConfig>(() => {
-    const { children, ...config } = props;
-    return config;
-  }, [props]);
-
+function FusionAuthProvider<T = DefaultUserInfo>({
+  children,
+  ...config
+}: PropsWithChildren & FusionAuthProviderConfig) {
   const cookieAdapter = useCookieAdapter(config);
 
   const core: SDKCore = useMemo<SDKCore>(() => {
@@ -35,7 +31,7 @@ const FusionAuthProvider: FC<
   const { manageAccount, startLogin, startLogout, startRegister } =
     useRedirecting(core, config.onRedirect);
 
-  const { isFetchingUserInfo, userInfo, fetchUserInfo, error } = useUserInfo(
+  const { isFetchingUserInfo, userInfo, fetchUserInfo, error } = useUserInfo<T>(
     core,
     config.shouldAutoFetchUserInfo ?? false,
   );
@@ -45,7 +41,7 @@ const FusionAuthProvider: FC<
     config.shouldAutoRefresh ?? false,
   );
 
-  const providerValue: FusionAuthProviderContext = {
+  const providerValue: FusionAuthProviderContext<T> = {
     startLogin,
     startRegister,
     startLogout,
@@ -61,14 +57,16 @@ const FusionAuthProvider: FC<
 
   return (
     <FusionAuthContext.Provider value={providerValue}>
-      {props.children}
+      {children}
     </FusionAuthContext.Provider>
   );
-};
+}
 
 /**
  * A hook that returns `FusionAuthProviderContext`
  */
-const useFusionAuth = () => useContext(FusionAuthContext);
+function useFusionAuth<T = DefaultUserInfo>() {
+  return useContext<FusionAuthProviderContext<T>>(FusionAuthContext);
+}
 
 export { FusionAuthProvider, useFusionAuth };
