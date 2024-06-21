@@ -34,4 +34,6 @@ export type UserInfo = {
 };
 
 export const FusionAuthContext =
-  React.createContext<FusionAuthProviderContext>(defaultContext);
+  React.createContext<FusionAuthProviderContext<UserInfo | any>>(
+    defaultContext,
+  );

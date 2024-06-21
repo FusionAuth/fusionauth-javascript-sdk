@@ -1,7 +1,7 @@
 import { UserInfo } from './Context';
 
 /** The context provided by FusionAuth React SDK */
-export interface FusionAuthProviderContext {
+export interface FusionAuthProviderContext<T = UserInfo> {
   /**
    * Whether the user is logged in.
    */
@@ -10,14 +10,13 @@ export interface FusionAuthProviderContext {
   /**
    * Data fetched from the configured 'me' endpoint.
    */
-  userInfo: UserInfo | null;
+  userInfo: T | null;
 
   /**
    * Fetches user info from the 'me' endpoint.
    * This is handled automatically if the SDK is configured with `shouldAutoFetchUserInfo`.
-   * @returns {Promise<UserInfo>}
    */
-  fetchUserInfo: () => Promise<UserInfo | undefined>;
+  fetchUserInfo: () => Promise<T | undefined>;
 
   /**
    * Indicates that the fetchUserInfo call is unresolved.

@@ -16,10 +16,10 @@ import {
 } from '@fusionauth-sdk/core';
 import { TEST_CONFIG } from '#testing-tools/mocks/testConfig';
 
-function renderWithWrapper(config: FusionAuthProviderConfig) {
-  return renderHook(() => useFusionAuth(), {
+function renderWithWrapper<T = UserInfo>(config: FusionAuthProviderConfig) {
+  return renderHook(() => useFusionAuth<T>(), {
     wrapper: ({ children }: PropsWithChildren) => (
-      <FusionAuthProvider {...config}>{children}</FusionAuthProvider>
+      <FusionAuthProvider<T> {...config}>{children}</FusionAuthProvider>
     ),
   });
 }
@@ -111,14 +111,17 @@ describe('FusionAuthProvider', () => {
   });
 
   test('Will fetch userInfo', async () => {
-    const user: UserInfo = { given_name: 'Mr. Userton' };
+    const user = {
+      name: 'Mr. Userton',
+      age: 501,
+    };
     const mockUserInfoResponse = {
       ok: true,
       json: () => Promise.resolve(user),
     } as Response;
     vi.spyOn(global, 'fetch').mockResolvedValueOnce(mockUserInfoResponse);
 
-    const { result } = renderWithWrapper(TEST_CONFIG);
+    const { result } = renderWithWrapper<typeof user>(TEST_CONFIG);
 
     expect(fetch).not.toHaveBeenCalled();
 
@@ -131,7 +134,8 @@ describe('FusionAuthProvider', () => {
 
     await waitFor(() => {
       expect(result.current.isFetchingUserInfo).toBe(false);
-      expect(result.current.userInfo).toBe(user);
+      expect(result.current.userInfo?.age).toBe(501);
+      expect(result.current.userInfo?.name).toBe('Mr. Userton');
     });
   });
 

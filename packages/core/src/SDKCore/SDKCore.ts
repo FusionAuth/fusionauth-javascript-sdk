@@ -46,7 +46,7 @@ export class SDKCore {
     window.location.assign(this.urlHelper.getAccountManagementUrl());
   }
 
-  async fetchUserInfo() {
+  async fetchUserInfo<T = UserInfo>() {
     const userInfoResponse = await fetch(this.urlHelper.getMeUrl(), {
       credentials: 'include',
     });
@@ -57,7 +57,7 @@ export class SDKCore {
       );
     }
 
-    const userInfo: UserInfo = await userInfoResponse.json();
+    const userInfo: T = await userInfoResponse.json();
     return userInfo;
   }
 
