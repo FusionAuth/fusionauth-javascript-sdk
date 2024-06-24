@@ -25,7 +25,7 @@ export const createFusionAuth = <T extends UserInfo>(
   const isGettingUserInfo = ref<boolean>(false);
   const error = ref<Error | null>(null);
 
-  async function getUserInfo<T>() {
+  async function getUserInfo() {
     isGettingUserInfo.value = true;
     error.value = null;
 
