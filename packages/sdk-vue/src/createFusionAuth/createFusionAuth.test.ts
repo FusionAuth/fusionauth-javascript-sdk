@@ -35,7 +35,11 @@ describe('createFusionAuth', () => {
   });
 
   it('Fetches userInfo', async () => {
-    const user = { given_name: 'JSON', family_name: 'Bourne' };
+    const user = {
+      given_name: 'JSON',
+      family_name: 'Bourne',
+      customTrait: 'additional info',
+    };
     const mockUserInfoResponse = new Response(JSON.stringify(user), {
       status: 200,
     });

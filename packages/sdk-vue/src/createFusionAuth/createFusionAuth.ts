@@ -23,12 +23,12 @@ export const createFusionAuth = (config: FusionAuthConfig): FusionAuth => {
   const isGettingUserInfo = ref<boolean>(false);
   const error = ref<Error | null>(null);
 
-  async function getUserInfo() {
+  async function getUserInfo<T>() {
     isGettingUserInfo.value = true;
     error.value = null;
 
     try {
-      userInfo.value = await core.fetchUserInfo();
+      userInfo.value = await core.fetchUserInfo<T>();
       return userInfo.value;
     } catch (e) {
       error.value = e as Error;
