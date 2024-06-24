@@ -4,14 +4,16 @@ import classNames from 'classnames';
 import { useFusionAuth } from '#components/providers/FusionAuthProvider';
 import styles from '#styles/button.module.scss';
 
-interface Props {
+interface FusionAuthLoginButtonProps {
+  /** Optional string value that will be passed to `onRedirect` after login. */
   state?: string;
+  /** Label displayed by the button. Defaults to "Login". */
   text?: string;
   className?: string;
 }
 
-/** Calls the `startLogin` method from `useFusionAuth`. */
-export const FusionAuthLoginButton: FC<Props> = ({
+/** Calls the `startLogin` method from `FusionAuthContext`. */
+export const FusionAuthLoginButton: FC<FusionAuthLoginButtonProps> = ({
   state,
   text,
   className,
