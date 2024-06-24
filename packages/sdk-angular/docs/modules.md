@@ -6,6 +6,7 @@
 
 ### Classes
 
+- [FusionAuthAccountButtonComponent](classes/FusionAuthAccountButtonComponent.md)
 - [FusionAuthLoginButtonComponent](classes/FusionAuthLoginButtonComponent.md)
 - [FusionAuthLogoutButtonComponent](classes/FusionAuthLogoutButtonComponent.md)
 - [FusionAuthModule](classes/FusionAuthModule.md)

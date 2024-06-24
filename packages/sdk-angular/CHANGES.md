@@ -1,5 +1,34 @@
 @fusionauth/angular-sdk Changes
 
+Changes in 1.2.0
+
+- `userInfo` can now be custom typed with an optional generic argument. This may be helpful for SDK users with a non-hosted backend. Below is an example of what it looks like.
+
+  ```typescript
+  interface MyUserInfo {
+    specialProperty: string;
+    // ...etc
+  }
+
+  @Component({
+    template: ` <p>{{ userInfo?.specialProperty }}</p> `,
+  })
+  class AppComponent implements OnInit {
+    private fusionauth: FusionAuthService<MyUserInfo> =
+      inject(FusionAuthService);
+    userInfo: MyUserInfo | null = null;
+
+    ngOnInit() {
+      this.subscription = this.fusionauth.getUserInfoObservable().subscribe({
+        next: userInfo => (this.userInfo = userInfo),
+      });
+    }
+  }
+  ```
+
+- `manageAccount` function and button added. [Self service account management](https://fusionauth.io/docs/lifecycle/manage-users/account-management/) is only available in FusionAuth paid plans.
+- Some missing optional properties have been added to the [`UserInfo`](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/main/packages/sdk-angular/docs/interfaces/UserInfo.md) type.
+
 Changes in 1.1.0
 
 - SDK now supports Angular apps using SSR. No additional configuration is needed.

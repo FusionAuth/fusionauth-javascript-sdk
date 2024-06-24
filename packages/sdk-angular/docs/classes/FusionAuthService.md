@@ -1,8 +1,14 @@
 [@fusionauth/angular-sdk](../README.md) / [Exports](../modules.md) / FusionAuthService
 
-# Class: FusionAuthService
+# Class: FusionAuthService\<T\>
 
 Service class to use with FusionAuth backend endpoints.
+
+## Type parameters
+
+| Name | Type                                    |
+| :--- | :-------------------------------------- |
+| `T`  | [`UserInfo`](../interfaces/UserInfo.md) |
 
 ## Table of contents
 
@@ -24,6 +30,7 @@ Service class to use with FusionAuth backend endpoints.
 - [initAutoRefresh](FusionAuthService.md#initautorefresh)
 - [isLoggedIn](FusionAuthService.md#isloggedin)
 - [logout](FusionAuthService.md#logout)
+- [manageAccount](FusionAuthService.md#manageaccount)
 - [refreshToken](FusionAuthService.md#refreshtoken)
 - [startLogin](FusionAuthService.md#startlogin)
 - [startRegistration](FusionAuthService.md#startregistration)
@@ -32,7 +39,13 @@ Service class to use with FusionAuth backend endpoints.
 
 ### constructor
 
-• **new FusionAuthService**(`config`, `platformId`): [`FusionAuthService`](FusionAuthService.md)
+• **new FusionAuthService**\<`T`\>(`config`, `platformId`): [`FusionAuthService`](FusionAuthService.md)\<`T`\>
+
+#### Type parameters
+
+| Name | Type                                    |
+| :--- | :-------------------------------------- |
+| `T`  | [`UserInfo`](../interfaces/UserInfo.md) |
 
 #### Parameters
 
@@ -43,11 +56,11 @@ Service class to use with FusionAuth backend endpoints.
 
 #### Returns
 
-[`FusionAuthService`](FusionAuthService.md)
+[`FusionAuthService`](FusionAuthService.md)\<`T`\>
 
 #### Defined in
 
-[lib/fusion-auth.service.ts:21](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/577b2095f8d4b995dc5a020ced655b8e2d042a3a/packages/sdk-angular/projects/fusionauth-angular-sdk/src/lib/fusion-auth.service.ts#L21)
+[lib/fusion-auth.service.ts:21](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/80c01c9ccb450a2187bc0d2cc65fa8c9c38cfabe/packages/sdk-angular/projects/fusionauth-angular-sdk/src/lib/fusion-auth.service.ts#L21)
 
 ## Properties
 
@@ -57,7 +70,7 @@ Service class to use with FusionAuth backend endpoints.
 
 #### Defined in
 
-[lib/fusion-auth.service.ts:18](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/577b2095f8d4b995dc5a020ced655b8e2d042a3a/packages/sdk-angular/projects/fusionauth-angular-sdk/src/lib/fusion-auth.service.ts#L18)
+[lib/fusion-auth.service.ts:18](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/80c01c9ccb450a2187bc0d2cc65fa8c9c38cfabe/packages/sdk-angular/projects/fusionauth-angular-sdk/src/lib/fusion-auth.service.ts#L18)
 
 ---
 
@@ -67,7 +80,7 @@ Service class to use with FusionAuth backend endpoints.
 
 #### Defined in
 
-[lib/fusion-auth.service.ts:17](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/577b2095f8d4b995dc5a020ced655b8e2d042a3a/packages/sdk-angular/projects/fusionauth-angular-sdk/src/lib/fusion-auth.service.ts#L17)
+[lib/fusion-auth.service.ts:17](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/80c01c9ccb450a2187bc0d2cc65fa8c9c38cfabe/packages/sdk-angular/projects/fusionauth-angular-sdk/src/lib/fusion-auth.service.ts#L17)
 
 ---
 
@@ -79,7 +92,7 @@ An observable representing whether the user is logged in.
 
 #### Defined in
 
-[lib/fusion-auth.service.ts:44](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/577b2095f8d4b995dc5a020ced655b8e2d042a3a/packages/sdk-angular/projects/fusionauth-angular-sdk/src/lib/fusion-auth.service.ts#L44)
+[lib/fusion-auth.service.ts:44](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/80c01c9ccb450a2187bc0d2cc65fa8c9c38cfabe/packages/sdk-angular/projects/fusionauth-angular-sdk/src/lib/fusion-auth.service.ts#L44)
 
 ---
 
@@ -89,19 +102,25 @@ An observable representing whether the user is logged in.
 
 #### Defined in
 
-[lib/fusion-auth.service.ts:19](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/577b2095f8d4b995dc5a020ced655b8e2d042a3a/packages/sdk-angular/projects/fusionauth-angular-sdk/src/lib/fusion-auth.service.ts#L19)
+[lib/fusion-auth.service.ts:19](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/80c01c9ccb450a2187bc0d2cc65fa8c9c38cfabe/packages/sdk-angular/projects/fusionauth-angular-sdk/src/lib/fusion-auth.service.ts#L19)
 
 ## Methods
 
 ### getUserInfo
 
-▸ **getUserInfo**(): `Promise`\<[`UserInfo`](../interfaces/UserInfo.md)\>
+▸ **getUserInfo**\<`T`\>(): `Promise`\<`T`\>
 
 Fetches userInfo from the 'me' endpoint.
 
+#### Type parameters
+
+| Name |
+| :--- |
+| `T`  |
+
 #### Returns
 
-`Promise`\<[`UserInfo`](../interfaces/UserInfo.md)\>
+`Promise`\<`T`\>
 
 **`Throws`**
 
@@ -109,13 +128,13 @@ Fetches userInfo from the 'me' endpoint.
 
 #### Defined in
 
-[lib/fusion-auth.service.ts:102](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/577b2095f8d4b995dc5a020ced655b8e2d042a3a/packages/sdk-angular/projects/fusionauth-angular-sdk/src/lib/fusion-auth.service.ts#L102)
+[lib/fusion-auth.service.ts:102](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/80c01c9ccb450a2187bc0d2cc65fa8c9c38cfabe/packages/sdk-angular/projects/fusionauth-angular-sdk/src/lib/fusion-auth.service.ts#L102)
 
 ---
 
 ### getUserInfoObservable
 
-▸ **getUserInfoObservable**(`callbacks?`): `Observable`\<[`UserInfo`](../interfaces/UserInfo.md)\>
+▸ **getUserInfoObservable**(`callbacks?`): `Observable`\<`T`\>
 
 Returns an observable request that fetches userInfo, and catches error.
 
@@ -129,11 +148,11 @@ Returns an observable request that fetches userInfo, and catches error.
 
 #### Returns
 
-`Observable`\<[`UserInfo`](../interfaces/UserInfo.md)\>
+`Observable`\<`T`\>
 
 #### Defined in
 
-[lib/fusion-auth.service.ts:74](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/577b2095f8d4b995dc5a020ced655b8e2d042a3a/packages/sdk-angular/projects/fusionauth-angular-sdk/src/lib/fusion-auth.service.ts#L74)
+[lib/fusion-auth.service.ts:74](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/80c01c9ccb450a2187bc0d2cc65fa8c9c38cfabe/packages/sdk-angular/projects/fusionauth-angular-sdk/src/lib/fusion-auth.service.ts#L74)
 
 ---
 
@@ -150,7 +169,7 @@ This is handled automatically if the SDK is configured with `shouldAutoRefresh`.
 
 #### Defined in
 
-[lib/fusion-auth.service.ts:63](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/577b2095f8d4b995dc5a020ced655b8e2d042a3a/packages/sdk-angular/projects/fusionauth-angular-sdk/src/lib/fusion-auth.service.ts#L63)
+[lib/fusion-auth.service.ts:63](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/80c01c9ccb450a2187bc0d2cc65fa8c9c38cfabe/packages/sdk-angular/projects/fusionauth-angular-sdk/src/lib/fusion-auth.service.ts#L63)
 
 ---
 
@@ -166,7 +185,7 @@ A function that returns whether the user is logged in. This returned value is no
 
 #### Defined in
 
-[lib/fusion-auth.service.ts:47](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/577b2095f8d4b995dc5a020ced655b8e2d042a3a/packages/sdk-angular/projects/fusionauth-angular-sdk/src/lib/fusion-auth.service.ts#L47)
+[lib/fusion-auth.service.ts:47](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/80c01c9ccb450a2187bc0d2cc65fa8c9c38cfabe/packages/sdk-angular/projects/fusionauth-angular-sdk/src/lib/fusion-auth.service.ts#L47)
 
 ---
 
@@ -182,7 +201,24 @@ Initiates logout flow.
 
 #### Defined in
 
-[lib/fusion-auth.service.ts:125](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/577b2095f8d4b995dc5a020ced655b8e2d042a3a/packages/sdk-angular/projects/fusionauth-angular-sdk/src/lib/fusion-auth.service.ts#L125)
+[lib/fusion-auth.service.ts:125](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/80c01c9ccb450a2187bc0d2cc65fa8c9c38cfabe/packages/sdk-angular/projects/fusionauth-angular-sdk/src/lib/fusion-auth.service.ts#L125)
+
+---
+
+### manageAccount
+
+▸ **manageAccount**(): `void`
+
+Redirects to [self service account management](https://fusionauth.io/docs/lifecycle/manage-users/account-management/)
+Self service account management is only available in FusionAuth paid plans.
+
+#### Returns
+
+`void`
+
+#### Defined in
+
+[lib/fusion-auth.service.ts:133](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/80c01c9ccb450a2187bc0d2cc65fa8c9c38cfabe/packages/sdk-angular/projects/fusionauth-angular-sdk/src/lib/fusion-auth.service.ts#L133)
 
 ---
 
@@ -199,7 +235,7 @@ Automatic token refreshing can be enabled if the SDK is configured with `shouldA
 
 #### Defined in
 
-[lib/fusion-auth.service.ts:55](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/577b2095f8d4b995dc5a020ced655b8e2d042a3a/packages/sdk-angular/projects/fusionauth-angular-sdk/src/lib/fusion-auth.service.ts#L55)
+[lib/fusion-auth.service.ts:55](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/80c01c9ccb450a2187bc0d2cc65fa8c9c38cfabe/packages/sdk-angular/projects/fusionauth-angular-sdk/src/lib/fusion-auth.service.ts#L55)
 
 ---
 
@@ -221,7 +257,7 @@ Initiates login flow.
 
 #### Defined in
 
-[lib/fusion-auth.service.ts:110](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/577b2095f8d4b995dc5a020ced655b8e2d042a3a/packages/sdk-angular/projects/fusionauth-angular-sdk/src/lib/fusion-auth.service.ts#L110)
+[lib/fusion-auth.service.ts:110](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/80c01c9ccb450a2187bc0d2cc65fa8c9c38cfabe/packages/sdk-angular/projects/fusionauth-angular-sdk/src/lib/fusion-auth.service.ts#L110)
 
 ---
 
@@ -243,4 +279,4 @@ Initiates register flow.
 
 #### Defined in
 
-[lib/fusion-auth.service.ts:118](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/577b2095f8d4b995dc5a020ced655b8e2d042a3a/packages/sdk-angular/projects/fusionauth-angular-sdk/src/lib/fusion-auth.service.ts#L118)
+[lib/fusion-auth.service.ts:118](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/80c01c9ccb450a2187bc0d2cc65fa8c9c38cfabe/packages/sdk-angular/projects/fusionauth-angular-sdk/src/lib/fusion-auth.service.ts#L118)

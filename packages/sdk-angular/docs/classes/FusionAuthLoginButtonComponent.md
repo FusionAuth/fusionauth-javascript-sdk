@@ -25,9 +25,9 @@
 
 #### Parameters
 
-| Name         | Type                                        |
-| :----------- | :------------------------------------------ |
-| `fusionAuth` | [`FusionAuthService`](FusionAuthService.md) |
+| Name         | Type                                                                                   |
+| :----------- | :------------------------------------------------------------------------------------- |
+| `fusionAuth` | [`FusionAuthService`](FusionAuthService.md)\<[`UserInfo`](../interfaces/UserInfo.md)\> |
 
 #### Returns
 
@@ -35,17 +35,17 @@
 
 #### Defined in
 
-[lib/components/fusionauth-login.button/fusion-auth-login-button.component.ts:12](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/577b2095f8d4b995dc5a020ced655b8e2d042a3a/packages/sdk-angular/projects/fusionauth-angular-sdk/src/lib/components/fusionauth-login.button/fusion-auth-login-button.component.ts#L12)
+[lib/components/fusionauth-login.button/fusion-auth-login-button.component.ts:12](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/80c01c9ccb450a2187bc0d2cc65fa8c9c38cfabe/packages/sdk-angular/projects/fusionauth-angular-sdk/src/lib/components/fusionauth-login.button/fusion-auth-login-button.component.ts#L12)
 
 ## Properties
 
 ### fusionAuth
 
-• `Private` **fusionAuth**: [`FusionAuthService`](FusionAuthService.md)
+• `Private` **fusionAuth**: [`FusionAuthService`](FusionAuthService.md)\<[`UserInfo`](../interfaces/UserInfo.md)\>
 
 #### Defined in
 
-[lib/components/fusionauth-login.button/fusion-auth-login-button.component.ts:12](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/577b2095f8d4b995dc5a020ced655b8e2d042a3a/packages/sdk-angular/projects/fusionauth-angular-sdk/src/lib/components/fusionauth-login.button/fusion-auth-login-button.component.ts#L12)
+[lib/components/fusionauth-login.button/fusion-auth-login-button.component.ts:12](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/80c01c9ccb450a2187bc0d2cc65fa8c9c38cfabe/packages/sdk-angular/projects/fusionauth-angular-sdk/src/lib/components/fusionauth-login.button/fusion-auth-login-button.component.ts#L12)
 
 ---
 
@@ -55,7 +55,7 @@
 
 #### Defined in
 
-[lib/components/fusionauth-login.button/fusion-auth-login-button.component.ts:10](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/577b2095f8d4b995dc5a020ced655b8e2d042a3a/packages/sdk-angular/projects/fusionauth-angular-sdk/src/lib/components/fusionauth-login.button/fusion-auth-login-button.component.ts#L10)
+[lib/components/fusionauth-login.button/fusion-auth-login-button.component.ts:10](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/80c01c9ccb450a2187bc0d2cc65fa8c9c38cfabe/packages/sdk-angular/projects/fusionauth-angular-sdk/src/lib/components/fusionauth-login.button/fusion-auth-login-button.component.ts#L10)
 
 ## Methods
 
@@ -69,4 +69,4 @@
 
 #### Defined in
 
-[lib/components/fusionauth-login.button/fusion-auth-login-button.component.ts:14](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/577b2095f8d4b995dc5a020ced655b8e2d042a3a/packages/sdk-angular/projects/fusionauth-angular-sdk/src/lib/components/fusionauth-login.button/fusion-auth-login-button.component.ts#L14)
+[lib/components/fusionauth-login.button/fusion-auth-login-button.component.ts:14](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/80c01c9ccb450a2187bc0d2cc65fa8c9c38cfabe/packages/sdk-angular/projects/fusionauth-angular-sdk/src/lib/components/fusionauth-login.button/fusion-auth-login-button.component.ts#L14)
