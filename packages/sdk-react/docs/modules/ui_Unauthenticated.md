@@ -12,15 +12,17 @@
 
 ### Unauthenticated
 
-▸ **Unauthenticated**(`props`, `context?`): `ReactNode`
+▸ **Unauthenticated**(`props`, `deprecatedLegacyContext?`): `ReactNode`
+
+Only renders children when user is unauthenticated.
 
 #### Parameters
 
-| Name              | Type        |
-| :---------------- | :---------- |
-| `props`           | `Object`    |
-| `props.children?` | `ReactNode` |
-| `context?`        | `any`       |
+| Name                       | Type        | Description                                                                                                                           |
+| :------------------------- | :---------- | :------------------------------------------------------------------------------------------------------------------------------------ |
+| `props`                    | `Object`    | -                                                                                                                                     |
+| `props.children?`          | `ReactNode` | -                                                                                                                                     |
+| `deprecatedLegacyContext?` | `any`       | **`Deprecated`** **`See`** [React Docs](https://legacy.reactjs.org/docs/legacy-context.html#referencing-context-in-lifecycle-methods) |
 
 #### Returns
 
@@ -28,4 +30,4 @@
 
 #### Defined in
 
-[packages/sdk-react/src/components/ui/Unauthenticated/index.tsx:4](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/546896fe40aeab4bf379a067a721414ce99ca372/packages/sdk-react/src/components/ui/Unauthenticated/index.tsx#L4)
+[packages/sdk-react/src/components/ui/Unauthenticated/index.tsx:5](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/6b00f96f26d9e2dbbacedeab842a037e53b50aa6/packages/sdk-react/src/components/ui/Unauthenticated/index.tsx#L5)

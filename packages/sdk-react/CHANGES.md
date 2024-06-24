@@ -1,5 +1,21 @@
 fusionauth-react-sdk Changes
 
+Changes in 2.3.0
+
+- `userInfo` can now be custom typed with an optional generic argument. This may be helpful for SDK users with a non-hosted backend. Below is an example of what it looks like.
+
+  ```typescript
+  interface MyUserInfo {
+    specialProperty: string;
+    // ...etc
+  }
+  const { userInfo } = useFusionAuth<MyUserInfo>();
+  userInfo.specialProperty;
+  ```
+
+- UI component inline documentation has been fleshed out and added for components that were missing it.
+- `manageAccount` function and button added. [Self service account management](https://fusionauth.io/docs/lifecycle/manage-users/account-management/) is only available in FusionAuth paid plans.
+
 Changes in 2.2.0
 
 - SDK now supports NextJS. [See further documentation for configuration with nextjs](https://github.com/FusionAuth/fusionauth-javascript-sdk/tree/main/packages/sdk-react#configuration-with-nextjs).

@@ -10,7 +10,7 @@ type FusionAuthAccountButtonProps = {
   className?: string;
 };
 
-/** Calls the `manageAccount` method from `FusionAuthContext`. */
+/** Calls the `manageAccount` method from `FusionAuthProviderContext`. */
 export const FusionAuthAccountButton: FC<FusionAuthAccountButtonProps> = ({
   className,
   text,

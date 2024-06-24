@@ -176,13 +176,15 @@ const UserNameDisplay = () => {
   const { userInfo } = useFusionAuth();
 
   return (
-    <RequireAuth>
-      <p>User: {userInfo.given_name}</p> // Only displays if user is authenticated
-    </RequireAuth>
-    
-    <Unauthenticated>
-      <p>Please log in to view this page</p>
-    </Unauthenticated>
+    <>
+      <RequireAuth>
+        <p>User: {userInfo.given_name}</p> // Only displays if user is authenticated
+      </RequireAuth>
+      
+      <Unauthenticated>
+        <p>Please log in to view this page</p>
+      </Unauthenticated>
+    </>
   );
 };
 
