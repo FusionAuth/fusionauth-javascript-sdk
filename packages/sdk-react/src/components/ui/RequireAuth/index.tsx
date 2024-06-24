@@ -1,11 +1,13 @@
 import { FC, PropsWithChildren } from 'react';
 import { useFusionAuth } from '#components/providers/FusionAuthProvider';
 
-interface Props extends PropsWithChildren {
+interface RequireAuthProps extends PropsWithChildren {
+  /** Children are only rendered for user with a matching role when this prop is specified. */
   withRole?: string | string[];
 }
 
-export const RequireAuth: FC<Props> = ({ withRole, children }) => {
+/** Only renders children when user is authenticated. */
+export const RequireAuth: FC<RequireAuthProps> = ({ withRole, children }) => {
   const { userInfo, isLoggedIn } = useFusionAuth();
 
   // Check if the user has the required role

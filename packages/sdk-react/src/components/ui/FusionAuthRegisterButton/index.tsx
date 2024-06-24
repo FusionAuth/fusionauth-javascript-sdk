@@ -3,14 +3,16 @@ import { useFusionAuth } from '#components/providers/FusionAuthProvider';
 import styles from '#styles/button.module.scss';
 import classNames from 'classnames';
 
-interface Props {
+interface FusionAuthRegisterButtonProps {
+  /** Optional string value that will be passed to `onRedirect` after register. */
   state?: string;
+  /** Label displayed by the button. Defaults to "Register Now". */
   text?: string;
   className?: string;
 }
 
-/** Calls the `startRegister` method from `useFusionAuth`. */
-export const FusionAuthRegisterButton: FC<Props> = ({
+/** Calls the `startRegister` method from `FusionAuthContext`. */
+export const FusionAuthRegisterButton: FC<FusionAuthRegisterButtonProps> = ({
   state,
   text,
   className,
