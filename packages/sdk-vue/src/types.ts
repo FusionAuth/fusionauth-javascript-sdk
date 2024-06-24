@@ -105,7 +105,7 @@ export interface UserInfo {
 /**
  * FusionAuth object provided at app-level by FusionAuthVuePlugin
  */
-export interface FusionAuth {
+export interface FusionAuth<T = UserInfo> {
   /**
    * Whether the user is logged in.
    */
@@ -116,12 +116,12 @@ export interface FusionAuth {
    * Internally updates `isFetchingUser` and `userInfo` refs, as well as `error` if the request fails.
    * @returns {Promise<UserInfo>}
    */
-  getUserInfo: () => Promise<UserInfo | undefined>;
+  getUserInfo: () => Promise<T | undefined>;
 
   /**
    * Data fetched from the configured 'me' endpoint.
    */
-  userInfo: Ref<UserInfo | null>;
+  userInfo: Ref<T | null>;
 
   /**
    * Indicates that the getUserInfo call is unresolved.

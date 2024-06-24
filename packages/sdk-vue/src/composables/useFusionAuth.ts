@@ -1,8 +1,8 @@
 import { inject } from 'vue';
 import { fusionAuthKey } from '#/injectionSymbols';
-import type { FusionAuth } from '#/types';
+import type { FusionAuth, UserInfo } from '#/types';
 
-export const useFusionAuth = (): FusionAuth => {
+export const useFusionAuth = <T extends FusionAuth<UserInfo>>(): FusionAuth => {
   const fusionAuth = inject(fusionAuthKey);
 
   if (!fusionAuth) {
@@ -10,5 +10,5 @@ export const useFusionAuth = (): FusionAuth => {
       'No FusionAuth instance found. Did you forget to call Vue.use(FusionAuthVuePlugin)?',
     );
   }
-  return fusionAuth;
+  return fusionAuth as T;
 };
