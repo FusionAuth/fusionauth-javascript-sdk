@@ -167,7 +167,7 @@ The `startLogin` and `startRegister` functions accept an optional string paramet
 
 ### Protecting Content
 
-The `RequireAuth` component can be used to protect information from unauthorized users. It takes an optional prop `withRole` that can be used to ensure the user has a specific role. If an array of roles is passed, the user must have at least one of the roles to be authorized.
+The `RequireAuth` component can be used to protect information from unauthorized users. It takes an optional prop `withRole` that can be used to ensure the user has a specific role. If an array of roles is passed, the user must have at least one of the roles to be authorized. The `Unauthenticated` component provides the inverse functionality.
 
 ```jsx
 import { RequireAuth, useFusionAuth } from '@fusionauth/react-sdk';
@@ -179,6 +179,10 @@ const UserNameDisplay = () => {
     <RequireAuth>
       <p>User: {userInfo.given_name}</p> // Only displays if user is authenticated
     </RequireAuth>
+    
+    <Unauthenticated>
+      <p>Please log in to view this page</p>
+    </Unauthenticated>
   );
 };
 
