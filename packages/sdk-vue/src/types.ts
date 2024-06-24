@@ -151,6 +151,12 @@ export interface FusionAuth {
   logout: () => void;
 
   /**
+   * Redirects to [self service account management](https://fusionauth.io/docs/lifecycle/manage-users/account-management/)
+   * Self service account management is only available in FusionAuth paid plans.
+   */
+  manageAccount: () => void;
+
+  /**
    * Refreshes the access token a single time.
    * Token refreshing is handled automatically if configured with `shouldAutoRefresh`.
    */
