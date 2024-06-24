@@ -105,7 +105,7 @@ export interface UserInfo {
 /**
  * FusionAuth object provided at app-level by FusionAuthVuePlugin
  */
-export interface FusionAuth<T> {
+export interface FusionAuth<T = UserInfo> {
   /**
    * Whether the user is logged in.
    */
