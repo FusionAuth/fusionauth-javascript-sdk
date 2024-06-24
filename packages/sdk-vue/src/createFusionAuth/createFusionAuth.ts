@@ -4,9 +4,9 @@ import { FusionAuth, FusionAuthConfig, UserInfo } from '#/types';
 
 import { NuxtUseCookieAdapter } from './NuxtUseCookieAdapter';
 
-export const createFusionAuth = <T extends UserInfo>(
+export const createFusionAuth = <T = UserInfo>(
   config: FusionAuthConfig,
-): FusionAuth => {
+): FusionAuth<T> => {
   let cookieAdapter;
   if (config.nuxtUseCookie) {
     cookieAdapter = new NuxtUseCookieAdapter(config.nuxtUseCookie);
@@ -21,7 +21,7 @@ export const createFusionAuth = <T extends UserInfo>(
   });
 
   const isLoggedIn = ref<boolean>(core.isLoggedIn);
-  const userInfo = ref<T | null>(null) as Ref<UserInfo>;
+  const userInfo: Ref<T | null> = ref(null);
   const isGettingUserInfo = ref<boolean>(false);
   const error = ref<Error | null>(null);
 
