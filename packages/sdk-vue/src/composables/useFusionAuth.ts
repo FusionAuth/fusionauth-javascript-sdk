@@ -1,9 +1,9 @@
-import { inject } from 'vue';
+import { InjectionKey, inject } from 'vue';
 import { fusionAuthKey } from '#/injectionSymbols';
-import type { FusionAuth } from '#/types';
+import type { FusionAuth, UserInfo } from '#/types';
 
-export const useFusionAuth = (): FusionAuth => {
-  const fusionAuth = inject(fusionAuthKey);
+export const useFusionAuth = <T = UserInfo>(): FusionAuth<T> => {
+  const fusionAuth = inject(fusionAuthKey as InjectionKey<FusionAuth<T>>);
 
   if (!fusionAuth) {
     throw new Error(

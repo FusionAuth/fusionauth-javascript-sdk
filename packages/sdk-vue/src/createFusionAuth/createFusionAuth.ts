@@ -1,10 +1,12 @@
-import { ref } from 'vue';
+import { Ref, ref } from 'vue';
 import { SDKCore } from '@fusionauth-sdk/core';
 import { FusionAuth, FusionAuthConfig, UserInfo } from '#/types';
 
 import { NuxtUseCookieAdapter } from './NuxtUseCookieAdapter';
 
-export const createFusionAuth = (config: FusionAuthConfig): FusionAuth => {
+export const createFusionAuth = <T = UserInfo>(
+  config: FusionAuthConfig,
+): FusionAuth<T> => {
   let cookieAdapter;
   if (config.nuxtUseCookie) {
     cookieAdapter = new NuxtUseCookieAdapter(config.nuxtUseCookie);
@@ -19,7 +21,7 @@ export const createFusionAuth = (config: FusionAuthConfig): FusionAuth => {
   });
 
   const isLoggedIn = ref<boolean>(core.isLoggedIn);
-  const userInfo = ref<UserInfo | null>(null);
+  const userInfo: Ref<T | null> = ref(null);
   const isGettingUserInfo = ref<boolean>(false);
   const error = ref<Error | null>(null);
 
@@ -28,7 +30,7 @@ export const createFusionAuth = (config: FusionAuthConfig): FusionAuth => {
     error.value = null;
 
     try {
-      userInfo.value = await core.fetchUserInfo();
+      userInfo.value = await core.fetchUserInfo<T>();
       return userInfo.value;
     } catch (e) {
       error.value = e as Error;

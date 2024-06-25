@@ -35,7 +35,11 @@ describe('createFusionAuth', () => {
   });
 
   it('Fetches userInfo', async () => {
-    const user = { given_name: 'JSON', family_name: 'Bourne' };
+    const user = {
+      given_name: 'JSON',
+      family_name: 'Bourne',
+      customTrait: 'additional info',
+    };
     const mockUserInfoResponse = new Response(JSON.stringify(user), {
       status: 200,
     });
@@ -45,6 +49,7 @@ describe('createFusionAuth', () => {
     await fusionAuth.getUserInfo();
 
     expect(fusionAuth.userInfo.value).toEqual(user);
+    expect(fusionAuth.userInfo.value.customTrait).toEqual(user.customTrait);
   });
 
   it('Handles a failed user info request', async () => {

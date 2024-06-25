@@ -1,4 +1,4 @@
-import { ref } from 'vue';
+import { InjectionKey, ref } from 'vue';
 import { vi } from 'vitest';
 
 import type { FusionAuth } from '..';
@@ -13,7 +13,7 @@ export const getMockFusionAuth = ({
   userInfo = ref(null),
 }: Partial<FusionAuth>) => {
   return {
-    key: fusionAuthKey as symbol,
+    key: fusionAuthKey as InjectionKey<FusionAuth>,
     mockedValues: {
       login,
       logout,
