@@ -1,9 +1,8 @@
 import { App, InjectionKey } from 'vue';
-import { FusionAuth, FusionAuthConfig } from './types.ts';
+import { FusionAuth, FusionAuthConfig, UserInfo } from './types.ts';
 import * as components from './components/index.ts';
 import { fusionAuthKey } from './injectionSymbols.ts';
 import { createFusionAuth } from './createFusionAuth/index.ts';
-import { UserInfo } from '@fusionauth-sdk/core';
 
 type FusionAuthInstantiated = { instance: FusionAuth<UserInfo | any> };
 

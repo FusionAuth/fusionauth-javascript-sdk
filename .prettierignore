@@ -5,3 +5,4 @@ node_modules
 README.md
 src/**/*.min.css
 .github/ISSUE_TEMPLATE/*.md
+packages/sdk-vue/web-types.json

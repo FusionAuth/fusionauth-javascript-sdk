@@ -1,4 +1,4 @@
-@fusionauth/vue-sdk / [Modules](modules.md)
+@fusionauth/vue-sdk / [Exports](modules.md)
 
 An SDK for using FusionAuth in Vue applications.
 
@@ -123,6 +123,22 @@ export default defineNuxtPlugin((nuxtApp) => {
 });
 ```
 
+##### Alternate ways to define your nuxt plugin
+
+Using `createFusionAuth`, the SDK can be configured more flexibly.
+
+```typescript
+export default defineNuxtPlugin({
+  setup(nuxtApp) {
+    const fusionauth = createFusionAuth(config);   
+    nuxtApp.vueApp.use(FusionAuthVuePlugin, { instance: fusionauth })
+    return {
+      provide: { fusionauth }
+    };
+  },
+})
+```
+
 ### `useFusionAuth` composable
 
 You can interact with the SDK by using the `useFusionAuth`, which leverages [Vue's Composition API](https://vuejs.org/guide/reusability/composables).
@@ -234,7 +250,30 @@ Use backticks for code in this readme. This readme is included on the FusionAuth
 
 ## Known issues
 
-None.
+Using `shouldAutoRefresh` with Nuxt may cause the first refresh attempt to fail with 403, if your plugin instance is instantiated on the server. This is likely because the FusionAuth authorization token is httpOnly and not present in the request sent by the server. Subsequent refresh requests queued up by SDK auto-refreshing should succeed.
+
+You may prefer to invoke `initAutoRefresh` from the [`app:beforeMount` hook](https://nuxt.com/docs/api/advanced/hooks), which runs client-side only.
+
+```typescript
+defineNuxtPlugin({
+  setup: (nuxtApp) => {
+    const fusionauth = createFusionAuth({
+      ...config,
+      shouldAutoRefresh: false, // is false by default
+    });   
+    nuxtApp.vueApp.use(FusionAuthVuePlugin, { instance: fusionauth })
+    return {
+      provide: { fusionauth }
+    };
+  },
+  hooks: {
+    "app:beforeMount"() {
+      const { $fusionauth } = useNuxtApp();
+      $fusionauth.initAutoRefresh();
+    },
+  }
+})
+```
 
 ## Releases
 
