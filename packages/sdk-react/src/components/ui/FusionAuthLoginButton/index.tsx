@@ -12,7 +12,7 @@ interface FusionAuthLoginButtonProps {
   className?: string;
 }
 
-/** Calls the `startLogin` method from `FusionAuthContext`. */
+/** Calls the `startLogin` method from `FusionAuthProviderContext`. */
 export const FusionAuthLoginButton: FC<FusionAuthLoginButtonProps> = ({
   state,
   text,

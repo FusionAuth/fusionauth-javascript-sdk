@@ -11,7 +11,7 @@ interface FusionAuthRegisterButtonProps {
   className?: string;
 }
 
-/** Calls the `startRegister` method from `FusionAuthContext`. */
+/** Calls the `startRegister` method from `FusionAuthProviderContext`. */
 export const FusionAuthRegisterButton: FC<FusionAuthRegisterButtonProps> = ({
   state,
   text,

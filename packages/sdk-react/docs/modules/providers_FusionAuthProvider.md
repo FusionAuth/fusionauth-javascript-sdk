@@ -13,35 +13,46 @@
 
 ### FusionAuthProvider
 
-▸ **FusionAuthProvider**(`props`, `context?`): `ReactNode`
+▸ **FusionAuthProvider**\<`T`\>(`«destructured»`): `Element`
+
+#### Type parameters
+
+| Name | Type       |
+| :--- | :--------- |
+| `T`  | `UserInfo` |
 
 #### Parameters
 
-| Name       | Type                                                                                                                                       |
-| :--------- | :----------------------------------------------------------------------------------------------------------------------------------------- |
-| `props`    | [`FusionAuthProviderConfig`](../interfaces/providers_FusionAuthProviderConfig.FusionAuthProviderConfig.md) & \{ `children?`: `ReactNode` } |
-| `context?` | `any`                                                                                                                                      |
+| Name             | Type                                                                                                                                       |
+| :--------------- | :----------------------------------------------------------------------------------------------------------------------------------------- |
+| `«destructured»` | \{ `children?`: `ReactNode` } & [`FusionAuthProviderConfig`](../interfaces/providers_FusionAuthProviderConfig.FusionAuthProviderConfig.md) |
 
 #### Returns
 
-`ReactNode`
+`Element`
 
 #### Defined in
 
-[packages/sdk-react/src/components/providers/FusionAuthProvider.tsx:15](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/546896fe40aeab4bf379a067a721414ce99ca372/packages/sdk-react/src/components/providers/FusionAuthProvider.tsx#L15)
+[packages/sdk-react/src/components/providers/FusionAuthProvider.tsx:15](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/6b00f96f26d9e2dbbacedeab842a037e53b50aa6/packages/sdk-react/src/components/providers/FusionAuthProvider.tsx#L15)
 
 ---
 
 ### useFusionAuth
 
-▸ **useFusionAuth**(): [`FusionAuthProviderContext`](../interfaces/providers_FusionAuthProviderContext.FusionAuthProviderContext.md)
+▸ **useFusionAuth**\<`T`\>(): [`FusionAuthProviderContext`](../interfaces/providers_FusionAuthProviderContext.FusionAuthProviderContext.md)\<`T`\>
 
 A hook that returns `FusionAuthProviderContext`
 
+#### Type parameters
+
+| Name | Type       |
+| :--- | :--------- |
+| `T`  | `UserInfo` |
+
 #### Returns
 
-[`FusionAuthProviderContext`](../interfaces/providers_FusionAuthProviderContext.FusionAuthProviderContext.md)
+[`FusionAuthProviderContext`](../interfaces/providers_FusionAuthProviderContext.FusionAuthProviderContext.md)\<`T`\>
 
 #### Defined in
 
-[packages/sdk-react/src/components/providers/FusionAuthProvider.tsx:73](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/546896fe40aeab4bf379a067a721414ce99ca372/packages/sdk-react/src/components/providers/FusionAuthProvider.tsx#L73)
+[packages/sdk-react/src/components/providers/FusionAuthProvider.tsx:68](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/6b00f96f26d9e2dbbacedeab842a037e53b50aa6/packages/sdk-react/src/components/providers/FusionAuthProvider.tsx#L68)

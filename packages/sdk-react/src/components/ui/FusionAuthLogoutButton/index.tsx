@@ -9,7 +9,7 @@ interface FusionAuthLogoutButtonProps {
   className?: string;
 }
 
-/** Calls the `startLogout` method from `FusionAuthContext`. */
+/** Calls the `startLogout` method from `FusionAuthProviderContext`. */
 export const FusionAuthLogoutButton: FC<FusionAuthLogoutButtonProps> = ({
   text,
   className,
