@@ -224,7 +224,7 @@ export const AccountPage = () => (
 
 ### Known Issues
 
-The SDK doesn't support SSR (server side rendering) at this moment, but [a feature request](https://github.com/FusionAuth/fusionauth-javascript-sdk/issues/99) is in. Until then, if you are using [Next](https://nextjs.org/) you must use the [`"use client"` directive](https://nextjs.org/docs/app/building-your-application/rendering/client-components#using-client-components-in-nextjs).
+None.
 
 ## Quickstart
 
