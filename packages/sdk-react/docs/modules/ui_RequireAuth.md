@@ -29,4 +29,4 @@ Only renders children when user is authenticated.
 
 #### Defined in
 
-[packages/sdk-react/src/components/ui/RequireAuth/index.tsx:10](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/6b00f96f26d9e2dbbacedeab842a037e53b50aa6/packages/sdk-react/src/components/ui/RequireAuth/index.tsx#L10)
+[packages/sdk-react/src/components/ui/RequireAuth/index.tsx:10](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/ce690f3d040e390c8fcdaa133e0c4df7f0050404/packages/sdk-react/src/components/ui/RequireAuth/index.tsx#L10)

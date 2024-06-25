@@ -29,4 +29,4 @@ Calls the `startRegister` method from `FusionAuthProviderContext`.
 
 #### Defined in
 
-[packages/sdk-react/src/components/ui/FusionAuthRegisterButton/index.tsx:15](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/6b00f96f26d9e2dbbacedeab842a037e53b50aa6/packages/sdk-react/src/components/ui/FusionAuthRegisterButton/index.tsx#L15)
+[packages/sdk-react/src/components/ui/FusionAuthRegisterButton/index.tsx:15](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/ce690f3d040e390c8fcdaa133e0c4df7f0050404/packages/sdk-react/src/components/ui/FusionAuthRegisterButton/index.tsx#L15)
