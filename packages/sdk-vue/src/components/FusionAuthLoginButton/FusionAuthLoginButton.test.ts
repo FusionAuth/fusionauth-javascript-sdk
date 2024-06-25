@@ -11,7 +11,7 @@ const setup = () => {
       props: { state: stateValue },
       global: {
         provide: {
-          [key]: mockedValues,
+          [key as symbol]: mockedValues,
         },
       },
       slots: {

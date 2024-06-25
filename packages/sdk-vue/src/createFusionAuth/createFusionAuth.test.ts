@@ -49,7 +49,6 @@ describe('createFusionAuth', () => {
     await fusionAuth.getUserInfo();
 
     expect(fusionAuth.userInfo.value).toEqual(user);
-    expect(fusionAuth.userInfo.value.customTrait).toEqual(user.customTrait);
   });
 
   it('Handles a failed user info request', async () => {
