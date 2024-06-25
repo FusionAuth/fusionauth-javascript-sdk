@@ -3,8 +3,9 @@ import { FusionAuth, FusionAuthConfig } from './types.ts';
 import * as components from './components/index.ts';
 import { fusionAuthKey } from './injectionSymbols.ts';
 import { createFusionAuth } from './createFusionAuth/index.ts';
+import { UserInfo } from '@fusionauth-sdk/core';
 
-type FusionAuthInstantiated = { instance: FusionAuth };
+type FusionAuthInstantiated = { instance: FusionAuth<UserInfo | any> };
 
 /**
  * Installation method for the FusionAuthVuePlugin.
