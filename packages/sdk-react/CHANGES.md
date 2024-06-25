@@ -1,5 +1,9 @@
 fusionauth-react-sdk Changes
 
+Changes in 2.3.1
+
+- Just a README update. Removing SSR from "Known Issues", since it has been supported since v2.2.0.
+
 Changes in 2.3.0
 
 - `userInfo` can now be custom typed with an optional generic argument. This may be helpful for SDK users with a non-hosted backend. Below is an example of what it looks like.
