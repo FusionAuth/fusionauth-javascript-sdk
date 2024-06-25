@@ -14,7 +14,7 @@ function setup(params: {
   const { key, mockedValues } = getMockFusionAuth(params.fusionAuthMock);
 
   return mount(RequireAuth, {
-    global: { provide: { [key]: mockedValues } },
+    global: { provide: { [key as symbol]: mockedValues } },
     slots: { default: params.content },
     props: {
       withRole: params.withRole,

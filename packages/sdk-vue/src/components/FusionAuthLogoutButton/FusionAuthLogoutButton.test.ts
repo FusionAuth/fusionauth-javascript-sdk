@@ -11,7 +11,7 @@ const setup = () => {
     shallowMount(FusionAuthLogoutButton, {
       global: {
         provide: {
-          [key]: mockedValues,
+          [key as symbol]: mockedValues,
         },
       },
       slots: {
