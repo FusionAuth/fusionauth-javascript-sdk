@@ -69,12 +69,14 @@ export class SDKCore {
         'Content-Type': 'text/plain',
       },
     });
-
     if (!(response.status >= 200 && response.status < 300)) {
-      const message =
-        (await response?.text()) ||
-        'Error refreshing access token in fusionauth';
-      throw new Error(message);
+      const errorDetails = {
+        status: response.status,
+        details:
+          (await response?.text()) ||
+          'Failed to refresh fusionauth access token',
+      };
+      throw new Error(JSON.stringify(errorDetails));
     }
 
     // a successful request means that app_exp was bumped into the future.

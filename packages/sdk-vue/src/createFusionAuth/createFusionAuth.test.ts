@@ -95,7 +95,12 @@ describe('createFusionAuth', () => {
     await vi.advanceTimersByTimeAsync(60 * 60 * 1000);
 
     expect(onAutoRefreshFailure).toHaveBeenCalledWith(
-      Error(JSON.stringify({ msg: 'could not refresh access token' })),
+      Error(
+        JSON.stringify({
+          status: 400,
+          details: JSON.stringify({ msg: 'could not refresh access token' }),
+        }),
+      ),
     );
   });
 
