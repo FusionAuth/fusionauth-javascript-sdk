@@ -2,7 +2,7 @@ fusionauth-vue-sdk Changes
 
 Changes in 1.2.0
 
-- [`postLogoutRedirectUri`](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/main/packages/sdk-vue/docs/interfaces/types.FusionAuthConfig.md#postlogoutredirecturi) config option added.
+- [`postLogoutRedirectUri`](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/main/packages/sdk-vue/docs/interfaces/FusionAuthConfig.md#postlogoutredirecturi) config option added.
 - [`createFusionAuth`](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/main/packages/sdk-vue/docs/modules.md#createfusionauth) factory function is now an exported member of the package. This was suggested in issue [#104](https://github.com/FusionAuth/fusionauth-javascript-sdk/issues/104) and provides more flexibility in setting up your fusionauth plugin.
 - `manageAccount` function and button added. [Self service account management](https://fusionauth.io/docs/lifecycle/manage-users/account-management/) is only available in FusionAuth paid plans.
 - `userInfo` can now be custom typed with an optional generic argument. This may be helpful for SDK users with a non-hosted backend. Below is an example of what it may look like.
