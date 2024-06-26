@@ -1,5 +1,9 @@
 @fusionauth/angular-sdk Changes
 
+Changes in 1.3.0
+
+- The `error` passed to [`onAutoRefreshFailure`](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/main/packages/sdk-angular/docs/interfaces/FusionAuthConfig.md#onautorefreshfailure) should now include the response status code. See [issue #151](https://github.com/FusionAuth/fusionauth-javascript-sdk/issues/151).
+
 Changes in 1.2.0
 
 - `userInfo` can now be custom typed with an optional generic argument. This may be helpful for SDK users with a non-hosted backend. Below is an example of what it looks like.
