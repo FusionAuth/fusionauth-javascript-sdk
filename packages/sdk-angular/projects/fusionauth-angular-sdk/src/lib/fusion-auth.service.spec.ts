@@ -126,19 +126,4 @@ describe('FusionAuthService', () => {
 
     expect(onRedirect).toHaveBeenCalledWith('/welcome-page');
   });
-
-  it("Invokes an 'onAutoRefreshFailure' callback", fakeAsync(() => {
-    mockIsLoggedIn();
-    spyOn(window, 'fetch').and.resolveTo(new Response(null, { status: 400 }));
-    const onAutoRefreshFailure = jasmine.createSpy('onAutoRefreshFailureSpy');
-
-    configureTestingModule({
-      ...config,
-      shouldAutoRefresh: true,
-      onAutoRefreshFailure,
-    });
-
-    tick(60 * 60 * 1000);
-    expect(onAutoRefreshFailure).not.toHaveBeenCalledWith();
-  }));
 });

@@ -233,9 +233,9 @@ describe('FusionAuthProvider', () => {
     vi.useFakeTimers();
     mockIsLoggedIn(); // mock logged in -- expires in 1 hour
 
-    const failureData = { message: 'cannot refresh token' };
+    const failureData = JSON.stringify({ message: 'cannot refresh token' });
     vi.spyOn(global, 'fetch').mockResolvedValueOnce(
-      new Response(JSON.stringify(failureData), { status: 400 }),
+      new Response(failureData, { status: 400 }),
     );
 
     const onAutoRefreshFailure = vi.fn();
@@ -250,7 +250,12 @@ describe('FusionAuthProvider', () => {
 
     expect(fetch).toHaveBeenCalledTimes(1);
     expect(onAutoRefreshFailure).toHaveBeenCalledWith(
-      Error(JSON.stringify({ message: 'cannot refresh token' })),
+      Error(
+        JSON.stringify({
+          status: 400,
+          details: failureData,
+        }),
+      ),
     );
   });
 });
