@@ -111,7 +111,7 @@ export class SDKCore {
   }
 
   handlePostRedirect(callback?: (state?: string) => void) {
-    if (this.isLoggedIn && this.redirectHelper.didRedirect) {
+    if (this.isLoggedIn) {
       this.redirectHelper.handlePostRedirect(callback);
     }
   }

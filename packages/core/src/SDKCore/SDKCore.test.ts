@@ -2,14 +2,16 @@ import { afterEach, describe, it, expect, vi } from 'vitest';
 
 import { SDKConfig } from '../SDKConfig';
 import { SDKCore } from '.';
+import { RedirectHelper } from '../RedirectHelper';
 
-import { mockIsLoggedIn, removeAt_expCookie } from '..';
+import { mockIsLoggedIn, mockWindowLocation, removeAt_expCookie } from '..';
 
 describe('SDKCore', () => {
   afterEach(() => {
     vi.restoreAllMocks();
     vi.useRealTimers();
     removeAt_expCookie();
+    localStorage.clear();
   });
 
   const config: SDKConfig = {
@@ -64,5 +66,50 @@ describe('SDKCore', () => {
     expect(core.refreshToken).toHaveBeenCalledTimes(1);
 
     clearTimeout(timeout);
+  });
+
+  it('Invokes `redirectHelper.handlePreRedirect` before starting login and register', () => {
+    const handlePreRedirect = vi.spyOn(
+      RedirectHelper.prototype,
+      'handlePreRedirect',
+    );
+    mockWindowLocation(vi);
+    const core = new SDKCore(config);
+
+    expect(handlePreRedirect).toHaveBeenCalledTimes(0);
+
+    core.startLogin('/login');
+    core.startRegister();
+
+    expect(handlePreRedirect).toHaveBeenNthCalledWith(1, '/login');
+    expect(handlePreRedirect).toHaveBeenNthCalledWith(2, undefined);
+  });
+
+  it('Stores a redirect value pre-login redirect and cleans up post-login', () => {
+    mockIsLoggedIn();
+    mockWindowLocation(vi);
+    const redirectIndicator = () =>
+      localStorage.getItem('fa-sdk-redirect-value');
+    const onRedirectCallback = vi.fn();
+    const core = new SDKCore(config);
+
+    expect(redirectIndicator()).toBeNull();
+
+    core.startLogin();
+    expect(redirectIndicator()).toBeDefined();
+
+    core.handlePostRedirect(onRedirectCallback);
+    expect(redirectIndicator()).toBeNull();
+    expect(onRedirectCallback).toHaveBeenCalledWith(undefined);
+  });
+
+  it('`handlePostRedirect` Does not invoke the callback given if redirect did not happen', () => {
+    mockIsLoggedIn();
+    const core = new SDKCore({ ...config });
+    const onRedirect = vi.fn();
+
+    core.handlePostRedirect(onRedirect);
+
+    expect(onRedirect).not.toHaveBeenCalled();
   });
 });

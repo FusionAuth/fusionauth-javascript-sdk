@@ -22,24 +22,25 @@ export class RedirectHelper {
   }
 
   handlePostRedirect(callback?: (state?: string) => void) {
-    const stateValue = this.stateValue ?? undefined;
-    callback?.(stateValue);
+    const didRedirect = Boolean(this.storage.getItem(this.REDIRECT_VALUE));
+    if (!didRedirect) {
+      return;
+    }
+
+    const state = this.state;
+    callback?.(state);
     this.storage.removeItem(this.REDIRECT_VALUE);
   }
 
-  get didRedirect() {
-    return Boolean(this.storage.getItem(this.REDIRECT_VALUE));
-  }
-
-  private get stateValue() {
+  private get state() {
     const redirectValue = this.storage.getItem(this.REDIRECT_VALUE);
 
     if (!redirectValue) {
-      return null;
+      return;
     }
 
     const [, ...stateValue] = redirectValue.split(':');
-    return stateValue.join(':');
+    return stateValue.join(':') || undefined;
   }
 
   private generateRandomString() {
