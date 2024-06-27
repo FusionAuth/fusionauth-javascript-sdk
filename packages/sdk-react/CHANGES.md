@@ -1,5 +1,9 @@
 fusionauth-react-sdk Changes
 
+Changes in 2.4.0
+
+- Include the response status code in the error passed to [onAutoRefreshFailure](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/main/packages/sdk-react/docs/interfaces/providers_FusionAuthProviderConfig.FusionAuthProviderConfig.md#onautorefreshfailure). See issue [#151](https://github.com/FusionAuth/fusionauth-javascript-sdk/issues/151).
+
 Changes in 2.3.1
 
 - Just a README update. Removing SSR from "Known Issues", since it has been supported since v2.2.0.
