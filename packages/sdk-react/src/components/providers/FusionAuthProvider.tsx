@@ -13,8 +13,7 @@ import { FusionAuthContext, UserInfo as DefaultUserInfo } from './Context';
 import { FusionAuthProviderContext } from './FusionAuthProviderContext';
 
 function FusionAuthProvider<T = DefaultUserInfo>({
-  children,
-  ...config
+  children
 }: PropsWithChildren & FusionAuthProviderConfig) {
   const cookieAdapter = useCookieAdapter(config);
 
