@@ -103,6 +103,7 @@ export class SDKCore {
     return setTimeout(async () => {
       try {
         await this.refreshToken();
+        this.isLoggedIn = true; // if we have a refreshed token, we stay logged in
         this.initAutoRefresh();
       } catch (error) {
         this.config.onAutoRefreshFailure?.(error as Error);
@@ -118,6 +119,10 @@ export class SDKCore {
 
   get isLoggedIn() {
     return this.at_exp > new Date().getTime();
+  }
+
+  set isLoggedIn(state) {
+    this.isLoggedIn = state;
   }
 
   /** The moment of access token expiration in milliseconds since epoch. */
