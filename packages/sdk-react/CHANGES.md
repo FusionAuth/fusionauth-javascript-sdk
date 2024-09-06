@@ -1,5 +1,9 @@
 fusionauth-react-sdk Changes
 
+Changes in 2.4.1
+
+- Fix the bug where the user is logged out on a successful token refresh.
+
 Changes in 2.4.0
 
 - Include the response status code in the error passed to [onAutoRefreshFailure](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/main/packages/sdk-react/docs/interfaces/providers_FusionAuthProviderConfig.FusionAuthProviderConfig.md#onautorefreshfailure). See issue [#151](https://github.com/FusionAuth/fusionauth-javascript-sdk/issues/151).
