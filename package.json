@@ -1,6 +1,6 @@
 {
   "name": "fusionauth-javascript-sdk",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "The monorepo containing FusionAuth's React, Angular, and Vue SDKs.",
   "main": "index.js",
   "repository": "git@github.com:FusionAuth/fusionauth-javascript-sdk.git",
