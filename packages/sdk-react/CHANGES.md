@@ -2,8 +2,7 @@ fusionauth-react-sdk Changes
 
 Changes in 2.4.1
 
-- Fix the bug where the user is logged out on a successful token refresh.
-Resolved in PR [161](https://github.com/FusionAuth/fusionauth-javascript-sdk/pull/161)
+- Fix the bug where the user is logged out on a successful token refresh. Resolved in PR [161](https://github.com/FusionAuth/fusionauth-javascript-sdk/pull/161).
 
 Changes in 2.4.0
 
