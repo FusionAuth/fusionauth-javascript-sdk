@@ -1,4 +1,4 @@
-import { useEffect, useCallback, useRef } from 'react';
+import { useEffect, useCallback } from 'react';
 import { SDKCore } from '@fusionauth-sdk/core';
 
 export function useTokenRefresh(core: SDKCore, shouldAutoRefresh: boolean) {
@@ -7,12 +7,8 @@ export function useTokenRefresh(core: SDKCore, shouldAutoRefresh: boolean) {
     [core],
   );
 
-  const autoRefreshTimeout = useRef<NodeJS.Timeout | undefined>();
   const initAutoRefresh = useCallback(() => {
-    if (autoRefreshTimeout.current) {
-      return;
-    }
-    autoRefreshTimeout.current = core.initAutoRefresh();
+    core.initAutoRefresh();
   }, [core]);
 
   useEffect(() => {
