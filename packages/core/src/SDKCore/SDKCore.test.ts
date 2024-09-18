@@ -68,6 +68,34 @@ describe('SDKCore', () => {
     clearTimeout(timeout);
   });
 
+  it('Clears existing token refresh timeout on init', async () => {
+    vi.useFakeTimers();
+    mockIsLoggedIn();
+
+    vi.spyOn(window, 'fetch').mockResolvedValue(
+      new Response(null, { status: 200 }),
+    );
+
+    vi.spyOn(SDKCore.prototype, 'refreshToken');
+
+    const core = new SDKCore({ ...config, shouldAutoRefresh: true });
+
+    const timeout1 = core.initAutoRefresh(); // set autorefresh for 30 seconds before expiration
+    const timeout2 = core.initAutoRefresh(); // Mock React StrictMode behaviour
+
+    vi.advanceTimersByTime(59 * 60 * 1000); // advance time 59 minutes
+    expect(core.refreshToken).not.toHaveBeenCalled();
+
+    vi.advanceTimersByTime(49 * 1000); // advance time 50 seconds
+    expect(core.refreshToken).not.toHaveBeenCalled();
+
+    vi.advanceTimersByTime(1000); // advance time 1 second
+    expect(core.refreshToken).toHaveBeenCalledTimes(1);
+
+    clearTimeout(timeout1);
+    clearTimeout(timeout2);
+  });
+
   it('Invokes `redirectHelper.handlePreRedirect` before starting login and register', () => {
     const handlePreRedirect = vi.spyOn(
       RedirectHelper.prototype,
