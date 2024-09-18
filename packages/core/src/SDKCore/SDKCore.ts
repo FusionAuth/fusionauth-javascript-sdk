@@ -95,6 +95,8 @@ export class SDKCore {
   }
 
   initAutoRefresh(): NodeJS.Timeout | undefined {
+    clearTimeout(this.refreshTokenTimeout);
+    
     if (!this.isLoggedIn || this.isDisposed) {
       return;
     }
