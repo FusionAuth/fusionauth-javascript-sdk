@@ -1,6 +1,12 @@
-import { PropsWithChildren, useContext, useMemo, useState } from 'react';
+import {
+  PropsWithChildren,
+  useContext,
+  useMemo,
+  useState,
+  useRef,
+} from 'react';
 
-import { CookieAdapter, SDKCore } from '@fusionauth-sdk/core';
+import { SDKCore } from '@fusionauth-sdk/core';
 
 import { FusionAuthProviderConfig } from './FusionAuthProviderConfig';
 import {
@@ -12,32 +18,25 @@ import {
 import { FusionAuthContext, UserInfo as DefaultUserInfo } from './Context';
 import { FusionAuthProviderContext } from './FusionAuthProviderContext';
 
-let core: SDKCore;
-
-function getNewCore(
-  config: FusionAuthProviderConfig,
-  onTokenExpiration: () => void,
-  cookieAdapter?: CookieAdapter,
-) {
-  if (core) {
-    core.dispose();
-  }
-  core = new SDKCore({
-    ...config,
-    onTokenExpiration,
-    cookieAdapter,
-  });
-  return core;
-}
-
 function FusionAuthProvider<T = DefaultUserInfo>({
   children,
   ...config
 }: PropsWithChildren & FusionAuthProviderConfig) {
   const cookieAdapter = useCookieAdapter(config);
 
+  const coreRef = useRef<SDKCore>();
   const core: SDKCore = useMemo<SDKCore>(() => {
-    return getNewCore(config, () => setIsLoggedIn(false), cookieAdapter);
+    if (coreRef.current) {
+      coreRef.current.dispose();
+    }
+
+    const newCore = new SDKCore({
+      ...config,
+      cookieAdapter,
+      onTokenExpiration: () => setIsLoggedIn(false),
+    });
+    coreRef.current = newCore;
+    return newCore;
   }, [config, cookieAdapter]);
 
   const [isLoggedIn, setIsLoggedIn] = useState(core.isLoggedIn);
