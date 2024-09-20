@@ -1,5 +1,9 @@
 fusionauth-react-sdk Changes
 
+Changes in 2.4.3
+
+- Correctly address issues with config and `isLoggedIn` in [169](https://github.com/FusionAuth/fusionauth-javascript-sdk/pull/169)
+
 Changes in 2.4.2
 
 - Fix a bug where the token is not refreshed in React-SDK.
