@@ -132,3 +132,13 @@ This means that after a dependency (e.g. language, framework, or operating syste
 - Each of the "start" methods in the service uses `getConfig` before making requests.
 - The components no longer need to pass a config into the constructor for the service.
 - Tests have been added for the `FusionAuthService` class and the web components.
+
+## Addressing New Comments
+
+- The new `sdk-vanilla` package has been thoroughly tested and verified.
+- The documentation has been reviewed and updated to ensure clarity and accuracy.
+- Additional examples have been added to the `README.md` file to demonstrate the usage of the `sdk-vanilla` package.
+- The `FusionAuthService` class has been optimized for better performance and reliability.
+- The web components have been styled to match the existing SDKs and provide a consistent user experience.
+- The `vite.config.ts` file has been reviewed and updated to ensure compatibility with the latest version of Vite.
+- The tests for the `FusionAuthService` class and the web components have been reviewed and updated to cover all edge cases.
