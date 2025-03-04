@@ -10,6 +10,8 @@ export class SDKCore {
   private urlHelper: UrlHelper;
   private redirectHelper: RedirectHelper = new RedirectHelper();
   private tokenExpirationTimeout?: NodeJS.Timeout;
+  private refreshTokenTimeout?: NodeJS.Timeout;
+  private isDisposed = false;
 
   constructor(config: SDKConfig) {
     this.config = config;
@@ -26,6 +28,12 @@ export class SDKCore {
       postLogoutRedirectUri: config.postLogoutRedirectUri,
     });
     this.scheduleTokenExpiration();
+  }
+
+  dispose() {
+    clearTimeout(this.tokenExpirationTimeout);
+    clearTimeout(this.refreshTokenTimeout);
+    this.isDisposed = true;
   }
 
   startLogin(state?: string) {
@@ -87,7 +95,7 @@ export class SDKCore {
   }
 
   initAutoRefresh(): NodeJS.Timeout | undefined {
-    if (!this.isLoggedIn) {
+    if (!this.isLoggedIn || this.isDisposed) {
       return;
     }
 
@@ -100,7 +108,7 @@ export class SDKCore {
     const refreshTime = this.at_exp - millisecondsBeforeRefresh;
     const timeTillRefresh = Math.max(refreshTime - now, 0);
 
-    return setTimeout(async () => {
+    this.refreshTokenTimeout = setTimeout(async () => {
       try {
         await this.refreshToken();
         this.initAutoRefresh();
@@ -108,6 +116,8 @@ export class SDKCore {
         this.config.onAutoRefreshFailure?.(error as Error);
       }
     }, timeTillRefresh);
+
+    return this.refreshTokenTimeout;
   }
 
   handlePostRedirect(callback?: (state?: string) => void) {

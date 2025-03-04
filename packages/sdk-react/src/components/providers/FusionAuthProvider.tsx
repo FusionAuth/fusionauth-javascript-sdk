@@ -1,6 +1,12 @@
-import { PropsWithChildren, useContext, useMemo, useState } from 'react';
+import {
+  PropsWithChildren,
+  useContext,
+  useMemo,
+  useState,
+  useRef,
+} from 'react';
 
-import { SDKCore } from '@fusionauth-sdk/core';
+import { SDKConfig, SDKCore } from '@fusionauth-sdk/core';
 
 import { FusionAuthProviderConfig } from './FusionAuthProviderConfig';
 import {
@@ -12,18 +18,64 @@ import {
 import { FusionAuthContext, UserInfo as DefaultUserInfo } from './Context';
 import { FusionAuthProviderContext } from './FusionAuthProviderContext';
 
-function FusionAuthProvider<T = DefaultUserInfo>({
-  children,
-  ...config
-}: PropsWithChildren & FusionAuthProviderConfig) {
+function FusionAuthProvider<T = DefaultUserInfo>(
+  props: PropsWithChildren & FusionAuthProviderConfig,
+) {
+  const config: Omit<SDKConfig, 'cookieAdapter' | 'onTokenExpiration'> =
+    useMemo(
+      () => ({
+        serverUrl: props.serverUrl,
+        clientId: props.clientId,
+        redirectUri: props.redirectUri,
+        scope: props.scope,
+        postLogoutRedirectUri: props.postLogoutRedirectUri,
+        shouldAutoRefresh: props.shouldAutoRefresh,
+        shouldAutoFetchUserInfo: props.shouldAutoFetchUserInfo,
+        autoRefreshSecondsBeforeExpiry: props.autoRefreshSecondsBeforeExpiry,
+        onRedirect: props.onRedirect,
+        loginPath: props.loginPath,
+        logoutPath: props.logoutPath,
+        registerPath: props.registerPath,
+        tokenRefreshPath: props.tokenRefreshPath,
+        mePath: props.mePath,
+        accessTokenExpireCookieName: props.accessTokenExpireCookieName,
+        onAutoRefreshFailure: props.onAutoRefreshFailure,
+      }),
+      [
+        props.serverUrl,
+        props.clientId,
+        props.redirectUri,
+        props.scope,
+        props.postLogoutRedirectUri,
+        props.shouldAutoRefresh,
+        props.shouldAutoFetchUserInfo,
+        props.autoRefreshSecondsBeforeExpiry,
+        props.onRedirect,
+        props.loginPath,
+        props.logoutPath,
+        props.registerPath,
+        props.tokenRefreshPath,
+        props.mePath,
+        props.accessTokenExpireCookieName,
+        props.onAutoRefreshFailure,
+      ],
+    );
+
   const cookieAdapter = useCookieAdapter(config);
 
+  const coreRef = useRef<SDKCore>();
   const core: SDKCore = useMemo<SDKCore>(() => {
-    return new SDKCore({
+    if (coreRef.current) {
+      coreRef.current.dispose();
+    }
+
+    const newCore = new SDKCore({
       ...config,
-      onTokenExpiration: () => setIsLoggedIn(false),
       cookieAdapter,
+      onTokenExpiration: () => setIsLoggedIn(false),
     });
+    coreRef.current = newCore;
+    return newCore;
   }, [config, cookieAdapter]);
 
   const [isLoggedIn, setIsLoggedIn] = useState(core.isLoggedIn);
@@ -57,7 +109,7 @@ function FusionAuthProvider<T = DefaultUserInfo>({
 
   return (
     <FusionAuthContext.Provider value={providerValue}>
-      {children}
+      {props.children}
     </FusionAuthContext.Provider>
   );
 }
