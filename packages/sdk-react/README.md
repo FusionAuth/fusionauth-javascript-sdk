@@ -61,7 +61,7 @@ compliant identity server.
 
 ## Getting Started
 
-If you are new to React development, you may want to start with the Quickstart guide. If you are already familiar with React development, skip to the Configuration section.
+If you are new to React development, you may want to start with the Quickstart guide. If you are already familiar with React development, skip to the Installation section.
 
 ### Quickstart
 

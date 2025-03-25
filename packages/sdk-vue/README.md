@@ -61,7 +61,7 @@ compliant identity server.
 
 ## Getting Started
 
-If you are new to Vue development, you may want to start with the Quickstart guide. If you are already familiar with Vue development, skip to the Configuration section.
+If you are new to Vue development, you may want to start with the Quickstart guide. If you are already familiar with Vue development, skip to the Installation section.
 
 ### Quickstart
 

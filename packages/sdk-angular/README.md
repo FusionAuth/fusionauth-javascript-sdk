@@ -57,7 +57,7 @@ compliant identity server.
 
 ## Getting Started
 
-If you are new to Angular development, you may want to start with the Quickstart guide. If you are already familiar with Angular development, skip to the Configuration section.
+If you are new to Angular development, you may want to start with the Quickstart guide. If you are already familiar with Angular development, skip to the Installation section.
 
 ### Quickstart
 
