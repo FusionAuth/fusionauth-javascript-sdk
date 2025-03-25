@@ -4,7 +4,8 @@ An SDK for using FusionAuth in Vue applications.
 
 - [Overview](#overview)
 - [Getting Started](#getting-started)
-- [Installation](#installation)
+  - [Quickstart](#quickstart)
+  - [Installation](#installation)
 - [Usage](#usage)
   - [Configuring the SDK](#configuring-the-sdk)
     - [Configuring with Nuxt](#configuring-with-nuxt)
@@ -13,7 +14,6 @@ An SDK for using FusionAuth in Vue applications.
   - [UI Components](#ui-components)
     - [Protecting Content](#protecting-content)
     - [Pre-built buttons](#pre-built-buttons)
-- [Quickstart](#quickstart)
 - [Documentation](#documentation)
 - [Known Issues](#known-issues)
 - [Releases](#releases)
@@ -60,6 +60,12 @@ You can use this library against any version of FusionAuth or any OIDC
 compliant identity server.
 
 ## Getting Started
+
+If you are new to Vue development, you may want to start with the Quickstart guide. If you are already familiar with Vue development, skip to the Configuration section.
+
+### Quickstart
+
+See the [FusionAuth Vue Quickstart](https://fusionauth.io/docs/quickstarts/quickstart-javascript-vue-web) for a full tutorial on using FusionAuth and Vue.
 
 ### Installation
 
@@ -229,10 +235,6 @@ is.
 ```
 
 With the CSS variables, you can customize the buttons to match your app’s style.
-
-## Quickstart
-
-See the [FusionAuth Vue Quickstart](https://fusionauth.io/docs/quickstarts/quickstart-javascript-vue-web) for a full tutorial on using FusionAuth and Vue.
 
 ## Documentation
 
