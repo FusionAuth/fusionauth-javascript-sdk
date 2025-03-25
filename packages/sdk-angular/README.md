@@ -4,6 +4,7 @@ An SDK for using FusionAuth in Angular applications.
 
 -   [Overview](#overview)
 -   [Getting Started](#getting-started)
+  -   [Quickstart](#quickstart)
   -   [Installation](#installation)
 -   [Usage](#usage)
   -   [FusionAuthService](#fusionauthservice)
@@ -11,7 +12,6 @@ An SDK for using FusionAuth in Angular applications.
   -   [State Parameter](#state-parameter)
   -   [SSR](#ssr)
 -   [Known issues](#known-issues)
--   [Quickstart](#quickstart)
 -   [Documentation](#documentation)
 -   [Releases](#releases)
 
@@ -56,6 +56,12 @@ You can use this library against any version of FusionAuth or any OIDC
 compliant identity server.
 
 ## Getting Started
+
+If you are new to Angular development, you may want to start with the Quickstart guide. If you are already familiar with Angular development, skip to the Configuration section.
+
+### Quickstart
+
+See the [FusionAuth Angular Quickstart](https://fusionauth.io/docs/quickstarts/quickstart-javascript-angular-web) for a full tutorial on using FusionAuth and Angular.
 
 ### Installation
 
@@ -182,10 +188,6 @@ The SDK supports Angular applications using SSR. No additional configuration is 
 ### Known Issues
 
 None.
-
-## Quickstart
-
-See the [FusionAuth Angular Quickstart](https://fusionauth.io/docs/quickstarts/quickstart-javascript-angular-web) for a full tutorial on using FusionAuth and Angular.
 
 ## Documentation
 
