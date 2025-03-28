@@ -6,6 +6,7 @@ export class UrlHelper {
   clientId: string;
   redirectUri: string;
   scope?: string;
+  authParams?: { [key: string]: any }[];
 
   mePath: string;
   loginPath: string;
@@ -19,6 +20,7 @@ export class UrlHelper {
     this.clientId = config.clientId;
     this.redirectUri = config.redirectUri;
     this.scope = config.scope;
+    this.authParams = config.authParams;
     this.postLogoutRedirectUri = config.postLogoutRedirectUri;
 
     this.mePath = config.mePath ?? '/app/me/';
@@ -37,6 +39,7 @@ export class UrlHelper {
       client_id: this.clientId,
       redirect_uri: this.redirectUri,
       scope: this.scope,
+      authParams: this.authParams,
       state,
     });
   }
@@ -46,6 +49,7 @@ export class UrlHelper {
       client_id: this.clientId,
       redirect_uri: this.redirectUri,
       scope: this.scope,
+      authParams: this.authParams,
       state,
     });
   }
@@ -85,13 +89,22 @@ export class UrlHelper {
     params: UrlHelperQueryParams,
   ): URLSearchParams {
     const urlSearchParams = new URLSearchParams();
+    this.appendParams(params, urlSearchParams);
+    return urlSearchParams;
+  }
 
+  private appendParams(
+    params: Record<string, any>, // or a more specific type if known
+    urlSearchParams: URLSearchParams,
+  ): void {
     Object.entries(params).forEach(([key, value]) => {
-      if (value) {
-        urlSearchParams.append(key, value);
+      if ((value && typeof value === 'object') || Array.isArray(value)) {
+        // Recursively handle nested objects
+        this.appendParams(value, urlSearchParams);
+      } else if (value !== undefined && value !== null) {
+        // Append primitive values
+        urlSearchParams.append(key, String(value));
       }
     });
-
-    return urlSearchParams;
   }
 }

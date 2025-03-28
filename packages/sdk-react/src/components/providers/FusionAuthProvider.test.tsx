@@ -14,7 +14,10 @@ import {
   removeAt_expCookie,
   mockWindowLocation,
 } from '@fusionauth-sdk/core';
-import { TEST_CONFIG } from '#testing-tools/mocks/testConfig';
+import {
+  TEST_CONFIG,
+  TEST_AUTHPARAM_CONFIG,
+} from '#testing-tools/mocks/testConfig';
 
 function renderWithWrapper<T = UserInfo>(config: FusionAuthProviderConfig) {
   return renderHook(() => useFusionAuth<T>(), {
@@ -44,6 +47,31 @@ describe('FusionAuthProvider', () => {
     expectedUrl.searchParams.set('client_id', TEST_CONFIG.clientId);
     expectedUrl.searchParams.set('redirect_uri', TEST_CONFIG.redirectUri);
     expectedUrl.searchParams.set('scope', TEST_CONFIG.scope!);
+    expectedUrl.searchParams.set('state', stateValue);
+
+    expect(mockedLocation.assign).toHaveBeenCalledWith(expectedUrl);
+  });
+
+  test('Redirects to the correct login url with idp_hint', () => {
+    const mockedLocation = mockWindowLocation(vi);
+
+    const { result } = renderWithWrapper(TEST_AUTHPARAM_CONFIG);
+
+    const stateValue = 'state-value';
+    result.current.startLogin(stateValue);
+
+    const expectedUrl = new URL(TEST_AUTHPARAM_CONFIG.serverUrl);
+    expectedUrl.pathname = '/app/login/';
+    expectedUrl.searchParams.set('client_id', TEST_AUTHPARAM_CONFIG.clientId);
+    expectedUrl.searchParams.set(
+      'redirect_uri',
+      TEST_AUTHPARAM_CONFIG.redirectUri,
+    );
+    expectedUrl.searchParams.set('scope', TEST_AUTHPARAM_CONFIG.scope!);
+    expectedUrl.searchParams.set(
+      'idp_hint',
+      TEST_AUTHPARAM_CONFIG?.authParams?.at(0)?.idp_hint,
+    );
     expectedUrl.searchParams.set('state', stateValue);
 
     expect(mockedLocation.assign).toHaveBeenCalledWith(expectedUrl);

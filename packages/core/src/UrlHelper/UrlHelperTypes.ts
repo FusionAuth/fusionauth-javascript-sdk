@@ -12,6 +12,7 @@ export type UrlHelperConfig = Pick<
   | 'logoutPath'
   | 'tokenRefreshPath'
   | 'scope'
+  | 'authParams'
   | 'postLogoutRedirectUri'
 >;
 
@@ -21,5 +22,6 @@ export type UrlHelperQueryParams = {
   redirect_uri?: string;
   post_logout_redirect_uri?: string;
   scope?: string;
+  authParams?: { [key: string]: any }[];
   state?: string;
 };
