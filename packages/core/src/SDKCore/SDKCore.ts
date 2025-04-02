@@ -20,6 +20,7 @@ export class SDKCore {
       clientId: config.clientId,
       redirectUri: config.redirectUri,
       scope: config.scope,
+      authParams: config.authParams,
       mePath: config.mePath,
       loginPath: config.loginPath,
       registerPath: config.registerPath,

@@ -8,6 +8,7 @@ describe('UrlHelper', () => {
     clientId: 'abc123',
     redirectUri: 'http://my-client',
     scope: 'openid email profile offline_access',
+    authParams: [{ idp_hint: '44449786-3dff-42a6-aac6-1f1ceecb6c46' }],
     postLogoutRedirectUri: 'http://example.com',
   };
 
@@ -29,6 +30,16 @@ describe('UrlHelper', () => {
     expect(loginUrl.searchParams.get('redirect_uri')).toBe(config.redirectUri);
     expect(loginUrl.searchParams.get('scope')).toBe(config.scope);
     expect(loginUrl.searchParams.get('state')).toBe(stateValue);
+  });
+
+  it('login url authParams', () => {
+    const stateValue = 'login-state-value';
+    const loginUrl = urlHelper.getLoginUrl(stateValue);
+    expect(loginUrl.origin).toBe(config.serverUrl);
+    expect(loginUrl.pathname).toBe('/app/login/');
+    expect(loginUrl.searchParams.get('idp_hint')).toBe(
+      config.authParams?.at(0)?.idp_hint,
+    );
   });
 
   it('register url', () => {
