@@ -22,7 +22,7 @@ export default defineConfig({
     },
     sourcemap: true,
   },
-  plugins: [react(), dts({ rollupTypes: true, insertTypesEntry: true })],
+  plugins: [react()],
   test: {
     environment: 'jsdom',
     globals: true,
