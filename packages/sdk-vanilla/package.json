@@ -1,0 +1,31 @@
+{
+  "name": "@fusionauth/sdk-vanilla",
+  "version": "0.1.0",
+  "description": "FusionAuth SDK for vanilla JavaScript with web components",
+  "author": "FusionAuth",
+  "license": "Apache",
+  "private": true,
+  "type": "module",
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "vite build",
+    "test": "vitest --watch=false",
+    "test:watch": "vitest",
+    "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0"
+  },
+  "dependencies": {
+    "@fusionauth-sdk/core": "*"
+  },
+  "devDependencies": {
+    "typescript": "^5.2.2",
+    "vite": "^5.2.0",
+    "vite-plugin-dts": "^3.8.0",
+    "vitest": "^1.4.0",
+    "eslint": "^8.32.0"
+  }
+}
