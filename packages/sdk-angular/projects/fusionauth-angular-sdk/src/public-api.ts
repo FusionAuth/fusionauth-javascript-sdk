@@ -9,3 +9,4 @@ export * from './lib/components/fusionauth-register.button/fusion-auth-register-
 export * from './lib/components/fusionauth-account.button/fusion-auth-account-button.component';
 export * from './lib/fusion-auth.module';
 export * from './lib/types';
+export * from './lib/injectionToken';
