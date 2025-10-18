@@ -71,6 +71,11 @@ export interface FusionAuthConfig {
    * The path to the me endpoint.
    */
   mePath?: string;
+
+  /**
+   * Additional params passed to loginPath typically `/app/login/`, which redirects to `/oauth2/authorize`. Example of this might be authParams = [{'response_type': 'code'}] or any params found at https://fusionauth.io/docs/lifecycle/authenticate-users/oauth/endpoints
+   */
+  authParams?: { [key: string]: string }[];
 }
 
 export interface UserInfo {

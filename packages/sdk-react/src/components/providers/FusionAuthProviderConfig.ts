@@ -25,7 +25,7 @@ export interface FusionAuthProviderConfig {
   scope?: string;
 
   /**
-   * Additional params passed to loginPath typically `/app/login/`, which redirects to `/oauth2/authorize`. Example of this might be loginParams = [{idp_hint:'44449786-3dff-42a6-aac6-1f1ceecb6c46'}] or any params found at https://fusionauth.io/docs/lifecycle/authenticate-users/oauth/endpoints
+   * Additional params passed to loginPath typically `/app/login/`, which redirects to `/oauth2/authorize`. Example of this might be authParams = [{idp_hint:'44449786-3dff-42a6-aac6-1f1ceecb6c46'}] or any params found at https://fusionauth.io/docs/lifecycle/authenticate-users/oauth/endpoints
    */
   authParams?: { [key: string]: any }[];
 
