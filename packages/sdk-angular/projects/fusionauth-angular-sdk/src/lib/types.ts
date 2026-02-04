@@ -71,6 +71,11 @@ export interface FusionAuthConfig {
    * The path to the me endpoint.
    */
   mePath?: string;
+
+  /**
+   * Params to be appended to the authorize request.
+   */
+  authParams?: { [key: string]: any }[];
 }
 
 export interface UserInfo {
