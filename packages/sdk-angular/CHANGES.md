@@ -1,5 +1,9 @@
 @fusionauth/angular-sdk Changes
 
+Changes in 1.4.0
+
+- Adds `authParams` to the Angular module's `.forRoot()` config interface so you can pass additional params to the authorize flow, such as `tenantId`.
+
 Changes in 1.3.0
 
 - The `error` passed to [`onAutoRefreshFailure`](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/main/packages/sdk-angular/docs/interfaces/FusionAuthConfig.md#onautorefreshfailure) should now include the response status code. See [issue #151](https://github.com/FusionAuth/fusionauth-javascript-sdk/issues/151).
