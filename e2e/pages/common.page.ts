@@ -2,7 +2,7 @@ import { Locator, Page, expect } from '@playwright/test';
 
 const Locators = {
   logInBtn: 'role=button[name="Login"]',
-  emailInput: 'role=textbox[name="Login"]',
+  loginInput: 'role=textbox[name="Login"]',
   passwordInput: 'role=textbox[name="Password"]',
   submitBtn: 'role=button[name="Submit"]',
   createAccountBtn: 'role=button[name="Create a new account."]',
@@ -29,13 +29,13 @@ export class quickstartPage {
 
   async navToLogIn() {
     await this.locators.logInBtn.nth(0).click();
-    await expect(this.locators.emailInput).toBeVisible();
+    await expect(this.locators.loginInput).toBeVisible();
   }
 
   async authenticate() {
-    await this.locators.emailInput.click();
-    await this.locators.emailInput.clear();
-    await this.locators.emailInput.fill('richard@example.com');
+    await this.locators.loginInput.click();
+    await this.locators.loginInput.clear();
+    await this.locators.loginInput.fill('richard@example.com');
     await this.locators.passwordInput.click();
     await this.locators.passwordInput.clear();
     await this.locators.passwordInput.fill('password');

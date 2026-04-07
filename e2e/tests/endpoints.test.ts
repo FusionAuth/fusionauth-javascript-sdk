@@ -12,7 +12,7 @@ test.describe('Endpoint Tests', () => {
     quickstart = new quickstartPage(page);
   });
 
-  test.beforeEach(async ({ browser }) => {
+  test.beforeEach(async () => {
     await page.goto('/');
     await quickstart.navToLogIn();
     await quickstart.authenticate();
