@@ -2,6 +2,8 @@ import { Page, test, BrowserContext, expect } from '@playwright/test';
 import { quickstartPage } from '../pages/common.page';
 
 test.describe('Endpoint Tests', () => {
+  test.describe.configure({ mode: 'serial' });
+
   let page: Page;
   let quickstart: quickstartPage;
   let browserContext: BrowserContext;
