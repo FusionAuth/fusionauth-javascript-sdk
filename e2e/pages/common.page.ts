@@ -2,7 +2,7 @@ import { Locator, Page, expect } from '@playwright/test';
 
 const Locators = {
   logInBtn: 'role=button[name="Login"]',
-  emailInput: 'role=textbox[name="Email"]',
+  emailInput: 'role=textbox[name="Login"]',
   passwordInput: 'role=textbox[name="Password"]',
   submitBtn: 'role=button[name="Submit"]',
   createAccountBtn: 'role=button[name="Create a new account."]',

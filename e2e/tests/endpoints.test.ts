@@ -10,6 +10,9 @@ test.describe('Endpoint Tests', () => {
     browserContext = await browser.newContext();
     page = await browserContext.newPage();
     quickstart = new quickstartPage(page);
+  });
+
+  test.beforeEach(async ({ browser }) => {
     await page.goto('/');
     await quickstart.navToLogIn();
     await quickstart.authenticate();
@@ -37,6 +40,8 @@ test.describe('Endpoint Tests', () => {
 
     expect(response.headers()['content-type']).toContain('application/json');
     expect(response.ok()).toBeTruthy();
+
+    await quickstart.logOut();
   });
 
   test('GET /app/logout', async () => {

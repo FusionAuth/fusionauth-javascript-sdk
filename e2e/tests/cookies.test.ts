@@ -10,6 +10,9 @@ test.describe('Login Endpoint Tests', () => {
     browserContext = await browser.newContext();
     page = await browserContext.newPage();
     quickstart = new quickstartPage(page);
+  });
+
+  test.beforeEach(async ({ browser }) => {
     await page.goto('/');
     await quickstart.navToLogIn();
   });
@@ -49,6 +52,7 @@ test.describe('Login Endpoint Tests', () => {
     checkCookieExistsAndHttpOnly(cookies, 'app.at_exp', false);
     checkCookieExistsAndHttpOnly(cookies, 'app.idt', false);
     checkCookieExistsAndHttpOnly(cookies, 'app.rt', true);
+    await quickstart.logOut();
   });
 
   test('Post Logout Cookies', async () => {
