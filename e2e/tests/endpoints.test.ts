@@ -2,6 +2,8 @@ import { Page, test, BrowserContext, expect } from '@playwright/test';
 import { quickstartPage } from '../pages/common.page';
 
 test.describe('Endpoint Tests', () => {
+  test.describe.configure({ mode: 'serial' });
+
   let page: Page;
   let quickstart: quickstartPage;
   let browserContext: BrowserContext;
@@ -10,6 +12,13 @@ test.describe('Endpoint Tests', () => {
     browserContext = await browser.newContext();
     page = await browserContext.newPage();
     quickstart = new quickstartPage(page);
+  });
+
+  test.afterAll(async () => {
+    await page?.close();
+    await browserContext?.close();
+  });
+  test.beforeEach(async () => {
     await page.goto('/');
     await quickstart.navToLogIn();
     await quickstart.authenticate();
@@ -37,6 +46,8 @@ test.describe('Endpoint Tests', () => {
 
     expect(response.headers()['content-type']).toContain('application/json');
     expect(response.ok()).toBeTruthy();
+
+    await quickstart.logOut();
   });
 
   test('GET /app/logout', async () => {
