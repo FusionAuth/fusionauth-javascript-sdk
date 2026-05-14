@@ -1,4 +1,8 @@
-fusionauth-react-sdk Changes
+FusionAuth React SDK Changes
+
+Changes in 2.5.2
+
+- Error accessing cookies in FusionAuth. If you are using React Server Side Rendering you must configure the SDK with a cookie adapter. [177](https://github.com/FusionAuth/fusionauth-javascript-sdk/pull/177)
 
 Changes in 2.5.0
 
