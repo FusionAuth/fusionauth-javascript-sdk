@@ -1,5 +1,9 @@
 fusionauth-react-sdk Changes
 
+Changes in 2.5.2
+
+- Error accessing cookies in fusionauth. If you are using React Server Side Rendering you must configure the SDK with a cookie adapter. [177](https://github.com/FusionAuth/fusionauth-javascript-sdk/pull/177)
+
 Changes in 2.5.0
 
 - Allows for available paramaters to be passed for the `/oauth2/authorize` redirect that occurs after the hosted backend login from `/app/login`. Addresses issue [164](https://github.com/FusionAuth/fusionauth-javascript-sdk/issues/164)
