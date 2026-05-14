@@ -37,6 +37,8 @@ jobs:
         run: yarn build:sdk-react
       - name: React SDK - Publish
         working-directory: ./packages/sdk-react/dist
-        run: npm publish
+        run: |
+          npm publish --provenance --access public
         env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN_REACT_SDK }}
+          NODE_AUTH_TOKEN: 'sigstore' # npm uses OIDC when this is any non-empty string
+
