@@ -2,6 +2,10 @@ name: Publish @fusionauth/react-sdk
 
 on: workflow_dispatch
 
+permissions:
+  contents: read
+  id-token: write
+
 jobs:
   test:
     runs-on: ubuntu-latest
@@ -27,18 +31,40 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Use Node.js 20
+      - name: setup node for publishing
         uses: actions/setup-node@v4
         with:
-          node-version: 20
-          registry-url: https://registry.npmjs.org/
-      - run: yarn install --frozen-lockfile
+          node-version: '20'
+          registry-url: 'https://registry.npmjs.org' # This generates the necessary .npmrc
+
+      - name: React SDK - Install packages
+        run: yarn install --frozen-lockfile
+
       - name: React SDK - Build
         run: yarn build:sdk-react
-      - name: React SDK - Publish
-        working-directory: ./packages/sdk-react/dist
-        run: |
-          npm publish
-        env:
-          NODE_AUTH_TOKEN: 'sigstore' # npm uses OIDC when this is any non-empty string
 
+      - name: set aws credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::752443094709:role/gha-fusionauth-typescript-client
+          role-session-name: aws-auth-action
+          aws-region: us-west-2
+
+      - name: get secret
+        run: |
+          while IFS=$'\t' read -r key value; do
+            echo "::add-mask::${value}"
+            echo "${key}=${value}" >> $GITHUB_ENV
+          done < <(aws secretsmanager get-secret-value \
+            --region us-west-2 \
+            --secret-id platform/npmjs \
+            --query SecretString \
+            --output text | \
+            jq -r 'to_entries[] | [.key, .value] | @tsv')
+
+      - name: React SDK - Publish
+        run: |
+          npm install -g npm@latest
+          npm publish --provenance --access public
+        env:
+          NODE_AUTH_TOKEN: 'sigstore' # npm uses OIDC when this is any non-empty strin
