@@ -2,14 +2,18 @@ name: Publish @fusionauth/angular-sdk
 
 on: workflow_dispatch
 
+permissions:
+  contents: read
+  id-token: write
+
 jobs:
   test:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node-version: [18.x, 20.x]
+        node-version: [22.x, 24.x, 26.x]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: Use Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v4
         with:
@@ -27,17 +31,23 @@ jobs:
     needs: test
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - name: Use Node.js 20
+      - uses: actions/checkout@v6
+      - name: setup node for publishing
         uses: actions/setup-node@v4
         with:
-          node-version: 20
-          registry-url: https://registry.npmjs.org/
-      - run: yarn install --frozen-lockfile
+          node-version: '26'
+          registry-url: 'https://registry.npmjs.org' # This generates the necessary .npmrc
+
+      - name: Angular SDK - Install packages
+        run: yarn install --frozen-lockfile
+
       - name: Angular SDK - Build
         run: yarn build:sdk-angular
+
       - name: Angular SDK - Publish
         working-directory: ./packages/sdk-angular/dist/fusionauth-angular-sdk
-        run: npm publish
+        run: |
+          npm install -g npm@latest
+          npm publish --provenance --access public
         env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN_ANGULAR_SDK }}
+          NODE_AUTH_TOKEN: 'sigstore' # npm uses OIDC when this is any non-empty string

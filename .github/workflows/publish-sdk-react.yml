@@ -11,9 +11,9 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node-version: [18.x, 20.x]
+        node-version: [22.x, 24.x, 26.x]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: Use Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v4
         with:
@@ -30,11 +30,11 @@ jobs:
     needs: test
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: setup node for publishing
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '26'
           registry-url: 'https://registry.npmjs.org' # This generates the necessary .npmrc
 
       - name: React SDK - Install packages
