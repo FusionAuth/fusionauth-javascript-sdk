@@ -43,24 +43,24 @@ jobs:
       - name: React SDK - Build
         run: yarn build:sdk-react
 
-      - name: set aws credentials
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          role-to-assume: arn:aws:iam::752443094709:role/gha-fusionauth-javascript-sdk
-          role-session-name: aws-auth-action
-          aws-region: us-west-2
+      # - name: set aws credentials
+      #   uses: aws-actions/configure-aws-credentials@v4
+      #   with:
+      #     role-to-assume: arn:aws:iam::752443094709:role/gha-fusionauth-javascript-sdk
+      #     role-session-name: aws-auth-action
+      #     aws-region: us-west-2
 
-      - name: get secret
-        run: |
-          while IFS=$'\t' read -r key value; do
-            echo "::add-mask::${value}"
-            echo "${key}=${value}" >> $GITHUB_ENV
-          done < <(aws secretsmanager get-secret-value \
-            --region us-west-2 \
-            --secret-id platform/npmjs \
-            --query SecretString \
-            --output text | \
-            jq -r 'to_entries[] | [.key, .value] | @tsv')
+      # - name: get secret
+      #   run: |
+      #     while IFS=$'\t' read -r key value; do
+      #       echo "::add-mask::${value}"
+      #       echo "${key}=${value}" >> $GITHUB_ENV
+      #     done < <(aws secretsmanager get-secret-value \
+      #       --region us-west-2 \
+      #       --secret-id platform/npmjs \
+      #       --query SecretString \
+      #       --output text | \
+      #       jq -r 'to_entries[] | [.key, .value] | @tsv')
 
       - name: React SDK - Publish
         run: |
