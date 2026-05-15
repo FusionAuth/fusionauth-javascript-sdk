@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node-version: [22.x, 24.x, 26.x]
+        node-version: [22.x, 24.x]
     steps:
       - uses: actions/checkout@v6
       - name: Use Node.js ${{ matrix.node-version }}
@@ -35,7 +35,7 @@ jobs:
       - name: setup node for publishing
         uses: actions/setup-node@v4
         with:
-          node-version: '26'
+          node-version: '24'
           registry-url: 'https://registry.npmjs.org' # This generates the necessary .npmrc
 
       - name: Angular SDK - Install packages
