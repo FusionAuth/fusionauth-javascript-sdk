@@ -30,8 +30,8 @@
 
 #### Parameters
 
-| Name               | Type                                                    |
-| :----------------- | :------------------------------------------------------ |
+| Name | Type |
+| :------ | :------ |
 | `fusionAuthConfig` | [`FusionAuthConfig`](../interfaces/FusionAuthConfig.md) |
 
 #### Returns
@@ -40,4 +40,4 @@
 
 #### Defined in
 
-[lib/fusion-auth.module.ts:26](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/80c01c9ccb450a2187bc0d2cc65fa8c9c38cfabe/packages/sdk-angular/projects/fusionauth-angular-sdk/src/lib/fusion-auth.module.ts#L26)
+[lib/fusion-auth.module.ts:26](https://github.com/getabetterpic/fusionauth-javascript-sdk/blob/6caa06a6b24710315cf53a4507c3fcff90aee5cd/packages/sdk-angular/projects/fusionauth-angular-sdk/src/lib/fusion-auth.module.ts#L26)
