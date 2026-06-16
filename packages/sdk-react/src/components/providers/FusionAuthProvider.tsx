@@ -65,7 +65,7 @@ function FusionAuthProvider<T = DefaultUserInfo>(
 
   const cookieAdapter = useCookieAdapter(props);
 
-  const coreRef = useRef<SDKCore>();
+  const coreRef = useRef<SDKCore | undefined>(undefined);
   const core: SDKCore = useMemo<SDKCore>(() => {
     if (coreRef.current) {
       coreRef.current.dispose();
