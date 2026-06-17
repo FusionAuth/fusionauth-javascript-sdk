@@ -198,16 +198,23 @@ test.describe('Endpoint Tests', () => {
     expect(response.status()).toBe(200);
 
     const newCookies = await browserContext.cookies();
-    const newAppAtCookie = newCookies.find(cookie => cookie.name === 'app.at');
-    const newAppAtExpCookie = newCookies.find(
+    // Use filter + last to correctly handle webkit, which may retain the old cookie
+    // alongside the newly-set one; the last entry is always the most recent value.
+    const allNewAppAtCookies = newCookies.filter(
+      cookie => cookie.name === 'app.at',
+    );
+    const allNewAppAtExpCookies = newCookies.filter(
       cookie => cookie.name === 'app.at_exp',
     );
+    const newAppAtCookie = allNewAppAtCookies[allNewAppAtCookies.length - 1];
+    const newAppAtExpCookie =
+      allNewAppAtExpCookies[allNewAppAtExpCookies.length - 1];
 
     expect(newAppAtCookie).toBeDefined();
     expect(newAppAtExpCookie).toBeDefined();
-    // app.at_exp is epoch-seconds so it can be equal if refresh happens in the
-    // same second as login. Assert that the access token JWT itself changed instead —
-    // it always differs between issuances regardless of timing.
+    // The access token JWT value must change on every refresh since a new token is issued.
+    // Comparing app.at rather than app.at_exp avoids false negatives when both happen
+    // within the same epoch-second.
     expect(newAppAtCookie?.value).not.toEqual(originalAccessToken);
   });
 });
