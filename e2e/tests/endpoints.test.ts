@@ -170,7 +170,7 @@ test.describe('Endpoint Tests', () => {
     expect(pkceCookie).toBeDefined();
   });
 
-  test('POST /app/refresh/{clientId}', async ({ browserName }) => {
+  test('POST /app/refresh/{clientId}', async () => {
     const cookies = await browserContext.cookies();
     const appRtCookie = cookies.find(cookie => cookie.name === 'app.rt');
     const appAtCookie = cookies.find(cookie => cookie.name === 'app.at');
@@ -180,7 +180,7 @@ test.describe('Endpoint Tests', () => {
     expect(appRtCookie).toBeDefined();
     expect(appAtExpCookie).toBeDefined();
 
-    const originalExpireTime = appAtExpCookie?.value;
+    const originalAccessToken = appAtCookie?.value;
 
     const response = await browserContext.request.post(
       `http://localhost:9011/app/refresh/${clientId}`,
@@ -198,20 +198,16 @@ test.describe('Endpoint Tests', () => {
     expect(response.status()).toBe(200);
 
     const newCookies = await browserContext.cookies();
+    const newAppAtCookie = newCookies.find(cookie => cookie.name === 'app.at');
     const newAppAtExpCookie = newCookies.find(
       cookie => cookie.name === 'app.at_exp',
     );
-    if (browserName === 'webkit') {
-      const filterCookie = newCookies.filter(
-        cookie => cookie.name === 'app.at_exp',
-      );
-      const lastCookie = filterCookie[filterCookie.length - 1];
-      const newExpireTime = lastCookie?.value;
 
-      expect(newExpireTime).not.toEqual(originalExpireTime);
-    } else {
-      expect(newAppAtExpCookie?.value).not.toEqual(originalExpireTime);
-    }
+    expect(newAppAtCookie).toBeDefined();
     expect(newAppAtExpCookie).toBeDefined();
+    // app.at_exp is epoch-seconds so it can be equal if refresh happens in the
+    // same second as login. Assert that the access token JWT itself changed instead —
+    // it always differs between issuances regardless of timing.
+    expect(newAppAtCookie?.value).not.toEqual(originalAccessToken);
   });
 });

@@ -96,6 +96,10 @@ export class SDKCore {
   }
 
   initAutoRefresh(): NodeJS.Timeout | undefined {
+    // Clear any pending refresh so repeated calls (e.g. a reactive framework
+    // re-running an effect) doesn't leave duplicate timers running.
+    clearTimeout(this.refreshTokenTimeout);
+
     if (!this.isLoggedIn || this.isDisposed) {
       return;
     }
@@ -119,6 +123,16 @@ export class SDKCore {
     }, timeTillRefresh);
 
     return this.refreshTokenTimeout;
+  }
+
+  /**
+   * Cancels a pending automatic token refresh without disposing the core.
+   * Unlike {@link dispose}, the core remains usable and auto refresh can be
+   * restarted via {@link initAutoRefresh}. This makes it safe to stop/start
+   * across React StrictMode's mount → unmount → remount cycle.
+   */
+  stopAutoRefresh(): void {
+    clearTimeout(this.refreshTokenTimeout);
   }
 
   handlePostRedirect(callback?: (state?: string) => void) {
