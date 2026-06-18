@@ -2,6 +2,7 @@ import { Component } from '@angular/core';
 import { FusionAuthService } from '../../fusion-auth.service';
 
 @Component({
+  standalone: false,
   selector: 'fa-logout',
   templateUrl: './fusion-auth-logout-button.component.html',
   styleUrls: [

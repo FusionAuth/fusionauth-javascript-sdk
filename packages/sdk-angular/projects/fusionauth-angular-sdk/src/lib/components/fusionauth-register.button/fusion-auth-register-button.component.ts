@@ -2,6 +2,7 @@ import { Component, Input } from '@angular/core';
 import { FusionAuthService } from '../../fusion-auth.service';
 
 @Component({
+  standalone: false,
   selector: 'fa-register',
   templateUrl: './fusion-auth-register-button.component.html',
   styleUrls: [

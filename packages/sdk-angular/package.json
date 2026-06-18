@@ -5,28 +5,28 @@
     "ng": "ng",
     "get-sdk-core": "node getSDKCore.js",
     "build": "yarn get-sdk-core && ng build && cp README.md dist/fusionauth-angular-sdk/README.md",
-    "test": "ng test --watch=false --browsers=ChromeHeadless",
+    "test": "ng test --watch=false",
     "test:watch": "ng test",
     "docs": "typedoc --plugin typedoc-plugin-markdown"
   },
   "private": false,
   "dependencies": {
-    "@angular/animations": "^17.2.0",
-    "@angular/common": "^17.2.0",
-    "@angular/compiler": "^17.2.0",
-    "@angular/core": "^17.2.0",
-    "@angular/forms": "^17.2.0",
-    "@angular/platform-browser": "^17.2.0",
-    "@angular/platform-browser-dynamic": "^17.2.0",
-    "@angular/router": "^17.2.0",
+    "@angular/animations": "^22.0.0",
+    "@angular/common": "^22.0.0",
+    "@angular/compiler": "^22.0.0",
+    "@angular/core": "^22.0.0",
+    "@angular/forms": "^22.0.0",
+    "@angular/platform-browser": "^22.0.0",
+    "@angular/platform-browser-dynamic": "^22.0.0",
+    "@angular/router": "^22.0.0",
     "rxjs": "~7.8.0",
     "tslib": "^2.3.0",
-    "zone.js": "~0.14.3"
+    "zone.js": "~0.15.0"
   },
   "devDependencies": {
-    "@angular-devkit/build-angular": "^17.2.3",
-    "@angular/cli": "^17.2.0",
-    "@angular/compiler-cli": "^17.2.0",
+    "@angular/build": "^22.0.0",
+    "@angular/cli": "^22.0.0",
+    "@angular/compiler-cli": "^22.0.0",
     "typedoc": "^0.25.13",
     "typedoc-plugin-markdown": "^3.17.1",
     "@types/jasmine": "~5.1.0",
@@ -36,7 +36,7 @@
     "karma-coverage": "~2.2.0",
     "karma-jasmine": "~5.1.0",
     "karma-jasmine-html-reporter": "~2.1.0",
-    "ng-packagr": "^17.2.0",
-    "typescript": "~5.3.2"
+    "ng-packagr": "^22.0.0",
+    "typescript": "~6.0.0"
   }
 }

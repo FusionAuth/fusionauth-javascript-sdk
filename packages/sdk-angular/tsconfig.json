@@ -1,4 +1,4 @@
-/* To learn more about this file see: https://angular.io/config/tsconfig. */
+/* To learn more about this file see: https://angular.dev/config/tsconfig. */
 {
   "extends": "../../tsconfig.json",
   "compileOnSave": false,
@@ -18,7 +18,8 @@
     "sourceMap": true,
     "declaration": true,
     "experimentalDecorators": true,
-    "moduleResolution": "node",
+    "moduleResolution": "bundler",
+    "ignoreDeprecations": "6.0",
     "importHelpers": true,
     "target": "ES2022",
     "useDefineForClassFields": false,

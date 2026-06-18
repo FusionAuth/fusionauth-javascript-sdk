@@ -2,6 +2,7 @@ import { Component } from '@angular/core';
 import { FusionAuthService } from '../../fusion-auth.service';
 
 @Component({
+  standalone: false,
   selector: 'fa-account',
   templateUrl: './fusion-auth-account-button.component.html',
   styleUrls: ['./fusion-auth-account-button.component.scss'],
