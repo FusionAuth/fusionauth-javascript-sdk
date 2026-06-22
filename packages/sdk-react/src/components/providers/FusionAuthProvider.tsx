@@ -65,20 +65,34 @@ function FusionAuthProvider<T = DefaultUserInfo>(
 
   const cookieAdapter = useCookieAdapter(props);
 
-  const coreRef = useRef<SDKCore>();
-  const core: SDKCore = useMemo<SDKCore>(() => {
-    if (coreRef.current) {
-      coreRef.current.dispose();
-    }
+  const coreRef = useRef<SDKCore | undefined>(undefined);
+  const coreDepsRef = useRef<
+    | {
+        config: typeof config;
+        cookieAdapter: typeof cookieAdapter;
+      }
+    | undefined
+  >(undefined);
 
-    const newCore = new SDKCore({
+  if (
+    coreRef.current === undefined ||
+    coreDepsRef.current?.config !== config ||
+    coreDepsRef.current?.cookieAdapter !== cookieAdapter
+  ) {
+    // Recreate the core only when config/cookieAdapter genuinely change,
+    // disposing the previous instance. The guard keeps this a no-op on
+    // StrictMode's second render pass, so the committed `core` is never an
+    // instance we just disposed (which previously left auto refresh broken).
+    coreRef.current?.dispose();
+    coreRef.current = new SDKCore({
       ...config,
       cookieAdapter,
       onTokenExpiration: () => setIsLoggedIn(false),
     });
-    coreRef.current = newCore;
-    return newCore;
-  }, [config, cookieAdapter]);
+    coreDepsRef.current = { config, cookieAdapter };
+  }
+
+  const core: SDKCore = coreRef.current;
 
   const [isLoggedIn, setIsLoggedIn] = useState(core.isLoggedIn);
 

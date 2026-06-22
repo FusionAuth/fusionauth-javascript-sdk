@@ -1,4 +1,4 @@
-import { PropsWithChildren, act } from 'react';
+import { PropsWithChildren, StrictMode, act } from 'react';
 import { waitFor, renderHook } from '@testing-library/react';
 import { describe, afterEach, test, expect, vi } from 'vitest';
 
@@ -246,6 +246,47 @@ describe('FusionAuthProvider', () => {
 
     act(() => vi.advanceTimersByTime(60 * 1000)); // 1 more minute
     expect(fetch).toHaveBeenCalledTimes(1); // called
+
+    const expectedUrl = new URL(TEST_CONFIG.serverUrl);
+    expectedUrl.pathname = '/app/refresh/';
+    expectedUrl.searchParams.set('client_id', TEST_CONFIG.clientId);
+    expect(fetch).toHaveBeenCalledWith(expectedUrl, {
+      method: 'POST',
+      credentials: 'include',
+      headers: { 'Content-Type': 'text/plain' },
+    });
+  });
+
+  test('Auto refresh works when wrapped in StrictMode', () => {
+    // Regression: under StrictMode (React double-invokes render) the core must
+    // not be created with render-phase side effects, otherwise the committed
+    // core ends up disposed and auto refresh never schedules.
+    vi.useFakeTimers();
+    mockIsLoggedIn(); // mock logged in -- expires in 1 hour
+
+    vi.spyOn(global, 'fetch').mockResolvedValueOnce(
+      new Response(null, { status: 200 }),
+    );
+
+    renderHook(() => useFusionAuth(), {
+      wrapper: ({ children }: PropsWithChildren) => (
+        <StrictMode>
+          <FusionAuthProvider
+            {...TEST_CONFIG}
+            shouldAutoRefresh
+            autoRefreshSecondsBeforeExpiry={60}
+          >
+            {children}
+          </FusionAuthProvider>
+        </StrictMode>
+      ),
+    });
+
+    vi.advanceTimersByTime(60 * 58 * 1000); // 58 minutes
+    expect(fetch).not.toHaveBeenCalled();
+
+    act(() => vi.advanceTimersByTime(60 * 1000)); // 1 more minute -> 59 minutes
+    expect(fetch).toHaveBeenCalledTimes(1);
 
     const expectedUrl = new URL(TEST_CONFIG.serverUrl);
     expectedUrl.pathname = '/app/refresh/';

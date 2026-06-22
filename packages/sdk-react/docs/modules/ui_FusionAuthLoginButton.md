@@ -12,21 +12,20 @@
 
 ### FusionAuthLoginButton
 
-▸ **FusionAuthLoginButton**(`props`, `deprecatedLegacyContext?`): `ReactNode`
+▸ **FusionAuthLoginButton**(`props`): `ReactNode` \| `Promise`\<`ReactNode`\>
 
 Calls the `startLogin` method from `FusionAuthProviderContext`.
 
 #### Parameters
 
-| Name                       | Type                         | Description                                                                                                                           |
-| :------------------------- | :--------------------------- | :------------------------------------------------------------------------------------------------------------------------------------ |
-| `props`                    | `FusionAuthLoginButtonProps` | -                                                                                                                                     |
-| `deprecatedLegacyContext?` | `any`                        | **`Deprecated`** **`See`** [React Docs](https://legacy.reactjs.org/docs/legacy-context.html#referencing-context-in-lifecycle-methods) |
+| Name    | Type                         |
+| :------ | :--------------------------- |
+| `props` | `FusionAuthLoginButtonProps` |
 
 #### Returns
 
-`ReactNode`
+`ReactNode` \| `Promise`\<`ReactNode`\>
 
 #### Defined in
 
-[packages/sdk-react/src/components/ui/FusionAuthLoginButton/index.tsx:16](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/ce690f3d040e390c8fcdaa133e0c4df7f0050404/packages/sdk-react/src/components/ui/FusionAuthLoginButton/index.tsx#L16)
+[packages/sdk-react/src/components/ui/FusionAuthLoginButton/index.tsx:16](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/63efa2d5360c2b7e1392ffa730dac8f5a0bc8e19/packages/sdk-react/src/components/ui/FusionAuthLoginButton/index.tsx#L16)

@@ -170,7 +170,7 @@ test.describe('Endpoint Tests', () => {
     expect(pkceCookie).toBeDefined();
   });
 
-  test('POST /app/refresh/{clientId}', async ({ browserName }) => {
+  test('POST /app/refresh/{clientId}', async () => {
     const cookies = await browserContext.cookies();
     const appRtCookie = cookies.find(cookie => cookie.name === 'app.rt');
     const appAtCookie = cookies.find(cookie => cookie.name === 'app.at');
@@ -180,7 +180,7 @@ test.describe('Endpoint Tests', () => {
     expect(appRtCookie).toBeDefined();
     expect(appAtExpCookie).toBeDefined();
 
-    const originalExpireTime = appAtExpCookie?.value;
+    const originalAccessToken = appAtCookie?.value;
 
     const response = await browserContext.request.post(
       `http://localhost:9011/app/refresh/${clientId}`,
@@ -198,20 +198,23 @@ test.describe('Endpoint Tests', () => {
     expect(response.status()).toBe(200);
 
     const newCookies = await browserContext.cookies();
-    const newAppAtExpCookie = newCookies.find(
+    // Use filter + last to correctly handle webkit, which may retain the old cookie
+    // alongside the newly-set one; the last entry is always the most recent value.
+    const allNewAppAtCookies = newCookies.filter(
+      cookie => cookie.name === 'app.at',
+    );
+    const allNewAppAtExpCookies = newCookies.filter(
       cookie => cookie.name === 'app.at_exp',
     );
-    if (browserName === 'webkit') {
-      const filterCookie = newCookies.filter(
-        cookie => cookie.name === 'app.at_exp',
-      );
-      const lastCookie = filterCookie[filterCookie.length - 1];
-      const newExpireTime = lastCookie?.value;
+    const newAppAtCookie = allNewAppAtCookies[allNewAppAtCookies.length - 1];
+    const newAppAtExpCookie =
+      allNewAppAtExpCookies[allNewAppAtExpCookies.length - 1];
 
-      expect(newExpireTime).not.toEqual(originalExpireTime);
-    } else {
-      expect(newAppAtExpCookie?.value).not.toEqual(originalExpireTime);
-    }
+    expect(newAppAtCookie).toBeDefined();
     expect(newAppAtExpCookie).toBeDefined();
+    // The access token JWT value must change on every refresh since a new token is issued.
+    // Comparing app.at rather than app.at_exp avoids false negatives when both happen
+    // within the same epoch-second.
+    expect(newAppAtCookie?.value).not.toEqual(originalAccessToken);
   });
 });

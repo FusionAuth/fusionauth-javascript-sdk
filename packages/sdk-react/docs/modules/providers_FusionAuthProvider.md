@@ -13,7 +13,7 @@
 
 ### FusionAuthProvider
 
-▸ **FusionAuthProvider**\<`T`\>(`«destructured»`): `Element`
+▸ **FusionAuthProvider**\<`T`\>(`props`): `Element`
 
 #### Type parameters
 
@@ -23,9 +23,9 @@
 
 #### Parameters
 
-| Name             | Type                                                                                                                                       |
-| :--------------- | :----------------------------------------------------------------------------------------------------------------------------------------- |
-| `«destructured»` | \{ `children?`: `ReactNode` } & [`FusionAuthProviderConfig`](../interfaces/providers_FusionAuthProviderConfig.FusionAuthProviderConfig.md) |
+| Name    | Type                                                                                                                                       |
+| :------ | :----------------------------------------------------------------------------------------------------------------------------------------- |
+| `props` | \{ `children?`: `ReactNode` } & [`FusionAuthProviderConfig`](../interfaces/providers_FusionAuthProviderConfig.FusionAuthProviderConfig.md) |
 
 #### Returns
 
@@ -33,7 +33,7 @@
 
 #### Defined in
 
-[packages/sdk-react/src/components/providers/FusionAuthProvider.tsx:15](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/ce690f3d040e390c8fcdaa133e0c4df7f0050404/packages/sdk-react/src/components/providers/FusionAuthProvider.tsx#L15)
+[packages/sdk-react/src/components/providers/FusionAuthProvider.tsx:21](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/63efa2d5360c2b7e1392ffa730dac8f5a0bc8e19/packages/sdk-react/src/components/providers/FusionAuthProvider.tsx#L21)
 
 ---
 
@@ -55,4 +55,4 @@ A hook that returns `FusionAuthProviderContext`
 
 #### Defined in
 
-[packages/sdk-react/src/components/providers/FusionAuthProvider.tsx:68](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/ce690f3d040e390c8fcdaa133e0c4df7f0050404/packages/sdk-react/src/components/providers/FusionAuthProvider.tsx#L68)
+[packages/sdk-react/src/components/providers/FusionAuthProvider.tsx:122](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/63efa2d5360c2b7e1392ffa730dac8f5a0bc8e19/packages/sdk-react/src/components/providers/FusionAuthProvider.tsx#L122)

@@ -6,6 +6,7 @@ An SDK for using FusionAuth in React applications.
 
 - [Overview](#overview)
 - [Getting Started](#getting-started)
+  - [Quickstart](#quickstart)
   - [Installation](#installation)
   - [Configuration](#configuration)
     - [Configuration with NextJS](#configuration-with-nextjs)
@@ -15,7 +16,6 @@ An SDK for using FusionAuth in React applications.
 	- [Protecting content](#protecting-content)
 	- [UI Components](#ui-components)
 - [Known issues](#known-issues)
-- [Quickstart](#quickstart)
 - [Documentation](#documentation)
 - [Formatting](#formatting)
 - [Releases](#releases)
@@ -62,6 +62,12 @@ You can use this library against any version of FusionAuth or any OIDC
 compliant identity server.
 
 ## Getting Started
+
+If you are new to React development, you may want to start with the Quickstart guide. If you are already familiar with React development, skip to the Installation section.
+
+### Quickstart
+
+See the [FusionAuth React Quickstart](https://fusionauth.io/docs/quickstarts/quickstart-javascript-react-web) for a full tutorial on using FusionAuth and React.
 
 ### Installation
 
@@ -227,10 +233,6 @@ export const AccountPage = () => (
 ### Known Issues
 
 None.
-
-## Quickstart
-
-See the [FusionAuth React Quickstart](https://fusionauth.io/docs/quickstarts/quickstart-javascript-react-web) for a full tutorial on using FusionAuth and React.
 
 ## Documentation
 

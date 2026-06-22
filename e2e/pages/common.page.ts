@@ -40,6 +40,10 @@ export class quickstartPage {
     await this.locators.passwordInput.clear();
     await this.locators.passwordInput.fill('password');
     await this.locators.submitBtn.click();
+    // Wait for the full OAuth callback chain to complete (form POST → /app/callback
+    // code exchange → redirect back to the app). Without this, webkit doesn't finish
+    // committing the session cookies before the test body reads them.
+    await expect(this.locators.logOutBtn).toBeVisible();
   }
 
   async navToRegister() {

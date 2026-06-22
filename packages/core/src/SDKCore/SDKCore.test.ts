@@ -68,6 +68,59 @@ describe('SDKCore', () => {
     clearTimeout(timeout);
   });
 
+  it('`stopAutoRefresh` cancels a pending refresh without disposing the core', () => {
+    vi.useFakeTimers();
+    mockIsLoggedIn(); // expires in 1 hour
+
+    vi.spyOn(window, 'fetch').mockResolvedValue(
+      new Response(null, { status: 200 }),
+    );
+    vi.spyOn(SDKCore.prototype, 'refreshToken');
+
+    const core = new SDKCore({
+      ...config,
+      shouldAutoRefresh: true,
+      autoRefreshSecondsBeforeExpiry: 60, // refresh 60s before expiry (at 59 min)
+    });
+
+    core.initAutoRefresh();
+    core.stopAutoRefresh();
+
+    // Advance past the refresh point but before expiry; the cancelled timer
+    // must not fire and the user is still logged in.
+    vi.advanceTimersByTime(59 * 60 * 1000 + 30 * 1000); // 59.5 minutes
+    expect(core.refreshToken).not.toHaveBeenCalled();
+
+    // Core is not disposed, so auto refresh can be restarted.
+    core.initAutoRefresh();
+    vi.advanceTimersByTime(1000);
+    expect(core.refreshToken).toHaveBeenCalledTimes(1);
+  });
+
+  it('`initAutoRefresh` is idempotent and does not leave duplicate timers', () => {
+    vi.useFakeTimers();
+    mockIsLoggedIn();
+
+    vi.spyOn(window, 'fetch').mockResolvedValue(
+      new Response(null, { status: 200 }),
+    );
+    vi.spyOn(SDKCore.prototype, 'refreshToken');
+
+    const core = new SDKCore({
+      ...config,
+      shouldAutoRefresh: true,
+      autoRefreshSecondsBeforeExpiry: 60,
+    });
+
+    // Calling repeatedly (e.g. an effect re-running) should not stack timers.
+    core.initAutoRefresh();
+    core.initAutoRefresh();
+    core.initAutoRefresh();
+
+    vi.advanceTimersByTime(60 * 60 * 1000);
+    expect(core.refreshToken).toHaveBeenCalledTimes(1);
+  });
+
   it('Invokes `redirectHelper.handlePreRedirect` before starting login and register', () => {
     const handlePreRedirect = vi.spyOn(
       RedirectHelper.prototype,
