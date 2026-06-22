@@ -20,6 +20,12 @@ export default defineConfig({
         globals: {
           vue: 'Vue',
         },
+        assetFileNames: assetInfo => {
+          if (assetInfo.names?.includes('vue-fusionauth.css')) {
+            return 'style.css';
+          }
+          return assetInfo.names?.[0] ?? '[name][extname]';
+        },
       },
     },
   },

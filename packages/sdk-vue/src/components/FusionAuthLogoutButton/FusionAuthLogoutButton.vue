@@ -15,7 +15,7 @@ function doLogout() {
 </script>
 
 <style lang="scss" scoped>
-@import '#/styles/button.scss';
+@use '#/styles/button.scss' as *;
 
 .logout-button {
   @extend .fusionauth-button;

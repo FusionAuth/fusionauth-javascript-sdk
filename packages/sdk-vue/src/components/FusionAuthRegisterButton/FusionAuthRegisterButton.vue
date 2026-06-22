@@ -19,7 +19,7 @@ function doRegister() {
 </script>
 
 <style lang="scss" scoped>
-@import '#/styles/button.scss';
+@use '#/styles/button.scss' as *;
 
 .register-button {
   @extend .fusionauth-button;
