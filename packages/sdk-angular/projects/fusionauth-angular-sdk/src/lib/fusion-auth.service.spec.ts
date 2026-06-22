@@ -1,5 +1,5 @@
 import { TestBed } from '@angular/core/testing';
-import { fakeAsync, flush, tick } from '@angular/core/testing';
+import { vi } from 'vitest';
 import { take } from 'rxjs';
 
 import { FusionAuthConfig } from './types';
@@ -24,72 +24,79 @@ describe('FusionAuthService', () => {
   afterEach(() => {
     removeAt_expCookie();
     localStorage.clear();
+    vi.restoreAllMocks();
+    vi.useRealTimers();
   });
 
-  it('Can be configured to automatically handle getting userInfo', (done: DoneFn) => {
+  it('Can be configured to automatically handle getting userInfo', async () => {
     mockIsLoggedIn();
 
     const user = {
       email: 'richard@test.com',
       customTrait: 'something special',
     };
-    spyOn(window, 'fetch').and.resolveTo(
+    vi.spyOn(window, 'fetch').mockResolvedValue(
       new Response(JSON.stringify(user), { status: 200 }),
     );
 
     const service: FusionAuthService<typeof user> =
       configureTestingModule(config);
 
-    service.getUserInfoObservable().subscribe({
-      next: userInfo => {
-        expect(userInfo.email).toBe('richard@test.com');
-        expect(userInfo.customTrait).toBe('something special');
-        done();
-      },
+    await new Promise<void>((resolve, reject) => {
+      service.getUserInfoObservable().subscribe({
+        next: userInfo => {
+          expect(userInfo.email).toBe('richard@test.com');
+          expect(userInfo.customTrait).toBe('something special');
+          resolve();
+        },
+        error: reject,
+      });
     });
   });
 
-  it('Handles a failure to get userInfo', (done: DoneFn) => {
+  it('Handles a failure to get userInfo', async () => {
     mockIsLoggedIn();
 
     const responseStatus = 400;
-    spyOn(window, 'fetch').and.resolveTo(
+    vi.spyOn(window, 'fetch').mockResolvedValue(
       new Response(null, { status: responseStatus }),
     );
 
     const service = configureTestingModule(config);
 
-    service.getUserInfoObservable().subscribe({
-      error: error => {
-        expect(error?.message).toBe(
-          `Unable to fetch userInfo in fusionauth. Request failed with status code ${responseStatus}`,
-        );
-        done();
-      },
+    await new Promise<void>((resolve, reject) => {
+      service.getUserInfoObservable().subscribe({
+        error: error => {
+          expect(error?.message).toBe(
+            `Unable to fetch userInfo in fusionauth. Request failed with status code ${responseStatus}`,
+          );
+          resolve();
+        },
+        next: () => reject(new Error('Expected error but got next')),
+      });
     });
   });
 
-  it("Contains an observable 'isLoggedin$' property that becomes false as the access token expires.", fakeAsync(() => {
+  it("Contains an observable 'isLoggedin$' property that becomes false as the access token expires.", async () => {
+    vi.useFakeTimers();
     mockIsLoggedIn(); // sets `app.at_exp` cookie so user is logged in for 1 hour.
 
     const service = configureTestingModule(config);
 
-    tick(60 * 59 * 1000);
+    await vi.advanceTimersByTimeAsync(60 * 59 * 1000);
     service.isLoggedIn$.pipe(take(1)).subscribe(isLoggedIn => {
       expect(isLoggedIn).toBe(true);
     });
 
-    tick(60 * 1000); // access token expires
+    await vi.advanceTimersByTimeAsync(60 * 1000); // access token expires
     service.isLoggedIn$.pipe(take(1)).subscribe(isLoggedIn => {
       expect(isLoggedIn).toBe(false);
     });
-
-    flush();
-  }));
+  });
 
   it('Can be configured to automatically refresh the access token', () => {
     mockIsLoggedIn();
-    const spy = spyOn(FusionAuthService.prototype, 'initAutoRefresh');
+    const spy = vi.spyOn(FusionAuthService.prototype, 'initAutoRefresh');
 
     const service = configureTestingModule({
       ...config,
@@ -101,7 +108,7 @@ describe('FusionAuthService', () => {
   });
 
   it("Does not invoke 'initAutoRefresh' if the user is not logged in", () => {
-    const initAutoRefreshSpy = spyOn(
+    const initAutoRefreshSpy = vi.spyOn(
       FusionAuthService.prototype,
       'initAutoRefresh',
     );
@@ -121,7 +128,7 @@ describe('FusionAuthService', () => {
     const stateValue = '/welcome-page';
     localStorage.setItem('fa-sdk-redirect-value', `abc123:${stateValue}`);
 
-    const onRedirect = jasmine.createSpy('onRedirectSpy');
+    const onRedirect = vi.fn();
     configureTestingModule({ ...config, onRedirect });
 
     expect(onRedirect).toHaveBeenCalledWith('/welcome-page');
