@@ -4,7 +4,7 @@ Changes in 2.0.0
 
 - Upgraded to Angular 22. Angular 17 through 21 are no longer supported.
 - Replaced deprecated `@angular-devkit/build-angular` with `@angular/build`.
-- Updated test builder from `@angular-devkit/build-angular:karma` to `@angular/build:unit-test` with `runner: karma`.
+- Updated test builder from `@angular-devkit/build-angular:karma` to `@angular/build:unit-test` with `runner: vitest`.
 - Bumped `zone.js` from `~0.14.x` to `~0.15.0`.
 - Bumped `typescript` from `~5.3.x` to `~6.0.0`.
 - Updated `moduleResolution` from `node` to `bundler` in `tsconfig.json`.
