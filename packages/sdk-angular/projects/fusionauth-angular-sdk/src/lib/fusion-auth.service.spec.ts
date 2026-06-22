@@ -43,14 +43,17 @@ describe('FusionAuthService', () => {
       configureTestingModule(config);
 
     await new Promise<void>((resolve, reject) => {
-      service.getUserInfoObservable().subscribe({
-        next: userInfo => {
-          expect(userInfo.email).toBe('richard@test.com');
-          expect(userInfo.customTrait).toBe('something special');
-          resolve();
-        },
-        error: reject,
-      });
+      service
+        .getUserInfoObservable()
+        .pipe(take(1))
+        .subscribe({
+          next: userInfo => {
+            expect(userInfo.email).toBe('richard@test.com');
+            expect(userInfo.customTrait).toBe('something special');
+            resolve();
+          },
+          error: reject,
+        });
     });
   });
 
@@ -65,19 +68,22 @@ describe('FusionAuthService', () => {
     const service = configureTestingModule(config);
 
     await new Promise<void>((resolve, reject) => {
-      service.getUserInfoObservable().subscribe({
-        error: error => {
-          expect(error?.message).toBe(
-            `Unable to fetch userInfo in fusionauth. Request failed with status code ${responseStatus}`,
-          );
-          resolve();
-        },
-        next: () => reject(new Error('Expected error but got next')),
-      });
+      service
+        .getUserInfoObservable()
+        .pipe(take(1))
+        .subscribe({
+          error: error => {
+            expect(error?.message).toBe(
+              `Unable to fetch userInfo in fusionauth. Request failed with status code ${responseStatus}`,
+            );
+            resolve();
+          },
+          next: () => reject(new Error('Expected error but got next')),
+        });
     });
   });
 
-  it("Contains an observable 'isLoggedin$' property that becomes false as the access token expires.", async () => {
+  it("Contains an observable 'isLoggedIn$' property that becomes false as the access token expires.", async () => {
     vi.useFakeTimers();
     mockIsLoggedIn(); // sets `app.at_exp` cookie so user is logged in for 1 hour.
 
