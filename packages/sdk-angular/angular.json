@@ -10,7 +10,7 @@
       "prefix": "lib",
       "architect": {
         "build": {
-          "builder": "@angular-devkit/build-angular:ng-packagr",
+          "builder": "@angular/build:ng-packagr",
           "options": {
             "project": "projects/fusionauth-angular-sdk/ng-package.json"
           },
@@ -25,10 +25,11 @@
           "defaultConfiguration": "production"
         },
         "test": {
-          "builder": "@angular-devkit/build-angular:karma",
+          "builder": "@angular/build:unit-test",
           "options": {
-            "tsConfig": "projects/fusionauth-angular-sdk/tsconfig.spec.json",
-            "polyfills": ["zone.js", "zone.js/testing"]
+            "runner": "vitest",
+            "runnerConfig": "vitest.config.ts",
+            "tsConfig": "projects/fusionauth-angular-sdk/tsconfig.spec.json"
           }
         }
       }

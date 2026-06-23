@@ -1,5 +1,15 @@
 @fusionauth/angular-sdk Changes
 
+Changes in 2.0.0
+
+- Upgraded to Angular 22. Angular 17 through 21 are no longer supported.
+- Replaced deprecated `@angular-devkit/build-angular` with `@angular/build`.
+- Updated test builder from `@angular-devkit/build-angular:karma` to `@angular/build:unit-test` with `runner: vitest`.
+- Bumped `zone.js` from `~0.14.x` to `~0.15.0`.
+- Bumped `typescript` from `~5.3.x` to `~6.0.0`.
+- Updated `moduleResolution` from `node` to `bundler` in `tsconfig.json`.
+- Updated peer dependencies minimum to `>=22.0.0` for `@angular/common` and `@angular/core`.
+
 Changes in 1.3.0
 
 - The `error` passed to [`onAutoRefreshFailure`](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/main/packages/sdk-angular/docs/interfaces/FusionAuthConfig.md#onautorefreshfailure) should now include the response status code. See [issue #151](https://github.com/FusionAuth/fusionauth-javascript-sdk/issues/151).

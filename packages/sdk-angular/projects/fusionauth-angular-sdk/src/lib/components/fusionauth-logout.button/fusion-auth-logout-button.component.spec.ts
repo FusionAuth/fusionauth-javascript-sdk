@@ -1,4 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { vi } from 'vitest';
 
 import { FusionAuthLogoutButtonComponent } from './fusion-auth-logout-button.component';
 import { FusionAuthService } from '../../fusion-auth.service';
@@ -6,7 +7,7 @@ import { FusionAuthService } from '../../fusion-auth.service';
 describe('FusionauthLogoutButtonComponent', () => {
   let component: FusionAuthLogoutButtonComponent;
   let fixture: ComponentFixture<FusionAuthLogoutButtonComponent>;
-  const mockService = jasmine.createSpyObj('FusionAuthService', ['logout']);
+  const mockService = { logout: vi.fn() };
 
   beforeEach(() => {
     TestBed.configureTestingModule({

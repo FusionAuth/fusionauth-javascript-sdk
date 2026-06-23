@@ -1,4 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { vi } from 'vitest';
 
 import { FusionAuthRegisterButtonComponent } from './fusion-auth-register-button.component';
 import { FusionAuthService } from '../../fusion-auth.service';
@@ -6,9 +7,7 @@ import { FusionAuthService } from '../../fusion-auth.service';
 describe('FusionauthRegisterButtonComponent', () => {
   let component: FusionAuthRegisterButtonComponent;
   let fixture: ComponentFixture<FusionAuthRegisterButtonComponent>;
-  const mockService = jasmine.createSpyObj('FusionAuthService', [
-    'startRegistration',
-  ]);
+  const mockService = { startRegistration: vi.fn() };
 
   beforeEach(() => {
     TestBed.configureTestingModule({

@@ -2,6 +2,7 @@ import { Component, Input } from '@angular/core';
 import { FusionAuthService } from '../../fusion-auth.service';
 
 @Component({
+  standalone: false,
   selector: 'fa-login',
   templateUrl: './fusion-auth-login-button.component.html',
   styleUrls: ['../fa-button.scss', './fusion-auth-login-button.component.scss'],
