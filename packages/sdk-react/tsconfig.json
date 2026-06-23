@@ -13,7 +13,7 @@
     "jsx": "react-jsx",
     "sourceMap": true
   },
-  "include": ["src", "vite.config.ts"],
+  "include": ["src"],
   "typedocOptions": {
     "plugin": ["typedoc-plugin-markdown"],
     "entryPoints": [
