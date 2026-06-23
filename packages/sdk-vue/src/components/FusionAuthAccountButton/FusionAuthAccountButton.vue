@@ -10,5 +10,5 @@ const { manageAccount } = useFusionAuth();
 </template>
 
 <style lang="scss" scoped>
-@import '#/styles/button.scss';
+@use '#/styles/button.scss' as *;
 </style>

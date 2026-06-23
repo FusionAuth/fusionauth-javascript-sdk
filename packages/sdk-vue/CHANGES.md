@@ -1,5 +1,9 @@
 fusionauth-vue-sdk Changes
 
+Changes in 1.3.0
+
+- Upgraded to Vue 3.5.38. The minimum supported Vue peer dependency is now `>=3.5.0`.
+
 Changes in 1.2.0
 
 - [`postLogoutRedirectUri`](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/main/packages/sdk-vue/docs/interfaces/FusionAuthConfig.md#postlogoutredirecturi) config option added.

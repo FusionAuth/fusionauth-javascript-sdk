@@ -19,7 +19,7 @@ function doLogin() {
 </script>
 
 <style lang="scss" scoped>
-@import '#/styles/button.scss';
+@use '#/styles/button.scss' as *;
 
 .login-button {
   @extend .fusionauth-button;
