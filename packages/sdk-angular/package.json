@@ -9,15 +9,6 @@
     "test:watch": "ng test",
     "docs": "typedoc --plugin typedoc-plugin-markdown"
   },
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/FusionAuth/fusionauth-javascript-sdk"
-  },
-  "author": "FusionAuth",
-  "license": "Apache",
-  "bugs": {
-    "url": "https://github.com/FusionAuth/fusionauth-javascript-sdk/issues"
-  },
   "private": false,
   "dependencies": {
     "@angular/animations": "^22.0.0",
