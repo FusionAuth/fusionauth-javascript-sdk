@@ -8,5 +8,14 @@
   "dependencies": {
     "tslib": "^2.3.0"
   },
-  "sideEffects": false
+  "sideEffects": false,
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/FusionAuth/fusionauth-javascript-sdk"
+  },
+  "author": "FusionAuth",
+  "license": "Apache",
+  "bugs": {
+    "url": "https://github.com/FusionAuth/fusionauth-javascript-sdk/issues"
+  }
 }
