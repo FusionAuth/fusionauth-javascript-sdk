@@ -122,6 +122,68 @@ describe('UrlHelper', () => {
     expect(logout.pathname).toBe(paths.logoutPath);
     expect(tokenRefresh.pathname).toBe(paths.tokenRefreshPath);
   });
+
+  describe('getAuthorizeUrl', () => {
+    const dpopJkt = 'abc123thumbprint';
+    const codeChallenge = 'E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM';
+
+    it('includes all required params', () => {
+      const authorizeUrl = urlHelper.getAuthorizeUrl(dpopJkt, codeChallenge);
+      expect(authorizeUrl.origin).toBe(config.serverUrl);
+      expect(authorizeUrl.pathname).toBe('/oauth2/authorize');
+      expect(authorizeUrl.searchParams.get('response_type')).toBe('code');
+      expect(authorizeUrl.searchParams.get('client_id')).toBe(config.clientId);
+      expect(authorizeUrl.searchParams.get('redirect_uri')).toBe(
+        config.redirectUri,
+      );
+      expect(authorizeUrl.searchParams.get('scope')).toBe(config.scope);
+      expect(authorizeUrl.searchParams.get('dpop_jkt')).toBe(dpopJkt);
+      expect(authorizeUrl.searchParams.get('code_challenge')).toBe(
+        codeChallenge,
+      );
+      expect(authorizeUrl.searchParams.get('code_challenge_method')).toBe(
+        'S256',
+      );
+    });
+
+    it('omits state when not provided', () => {
+      const authorizeUrl = urlHelper.getAuthorizeUrl(dpopJkt, codeChallenge);
+      expect(authorizeUrl.searchParams.get('state')).toBeNull();
+    });
+
+    it('appends state when provided', () => {
+      const authorizeUrl = urlHelper.getAuthorizeUrl(
+        dpopJkt,
+        codeChallenge,
+        'my-state',
+      );
+      expect(authorizeUrl.searchParams.get('state')).toBe('my-state');
+    });
+
+    it('appends all params together', () => {
+      const state = 'my-state';
+      const authorizeUrl = urlHelper.getAuthorizeUrl(
+        dpopJkt,
+        codeChallenge,
+        state,
+      );
+      expect(authorizeUrl.searchParams.get('state')).toBe(state);
+      expect(authorizeUrl.searchParams.get('dpop_jkt')).toBe(dpopJkt);
+      expect(authorizeUrl.searchParams.get('code_challenge')).toBe(
+        codeChallenge,
+      );
+      expect(authorizeUrl.searchParams.get('code_challenge_method')).toBe(
+        'S256',
+      );
+    });
+
+    it('does not affect existing URL methods', () => {
+      const loginUrl = urlHelper.getLoginUrl();
+      expect(loginUrl.pathname).toBe('/app/login/');
+      const registerUrl = urlHelper.getRegisterUrl();
+      expect(registerUrl.pathname).toBe('/app/register/');
+    });
+  });
 });
 
 function getAllUrls(urlHelper: UrlHelper) {

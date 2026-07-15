@@ -73,6 +73,27 @@ export class UrlHelper {
     });
   }
 
+  /**
+   * Builds the direct `/oauth2/authorize` URL used in DPoP mode.
+   * Targets FusionAuth directly (not the companion app server).
+   *
+   * @param dpopJkt  The DPoP public key JWK thumbprint for the `dpop_jkt` parameter.
+   * @param codeChallenge  The PKCE code challenge value.
+   * @param state  Optional OAuth2 `state` parameter.
+   */
+  getAuthorizeUrl(dpopJkt: string, codeChallenge: string, state?: string): URL {
+    return this.generateUrl('/oauth2/authorize', {
+      client_id: this.clientId,
+      redirect_uri: this.redirectUri,
+      response_type: 'code',
+      scope: this.scope,
+      code_challenge: codeChallenge,
+      code_challenge_method: 'S256',
+      dpop_jkt: dpopJkt,
+      state,
+    });
+  }
+
   private generateUrl(path: string, params?: UrlHelperQueryParams): URL {
     const url = new URL(this.serverUrl);
     url.pathname = path;
