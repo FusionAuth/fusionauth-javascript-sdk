@@ -1,4 +1,4 @@
-import { KeyPair } from 'dpop';
+import type { KeyPair } from 'dpop';
 
 const DB_NAME = 'fusionauth-sdk:dpop';
 const DB_VERSION = 1;

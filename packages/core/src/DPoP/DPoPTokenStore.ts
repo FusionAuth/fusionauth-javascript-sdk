@@ -42,7 +42,17 @@ export class DPoPTokenStore {
     if (!raw) return null;
 
     try {
-      return JSON.parse(raw) as DPoPTokens;
+      const parsed = JSON.parse(raw) as Partial<DPoPTokens>;
+      if (
+        typeof parsed.accessToken !== 'string' ||
+        (parsed.refreshToken !== undefined &&
+          typeof parsed.refreshToken !== 'string') ||
+        typeof parsed.expiresAt !== 'number' ||
+        parsed.tokenType !== 'DPoP'
+      ) {
+        return null;
+      }
+      return parsed as DPoPTokens;
     } catch {
       return null;
     }
@@ -78,7 +88,7 @@ export class DPoPTokenStore {
   get isExpired(): boolean {
     const tokens = this.get();
     if (!tokens) return true;
-    return tokens.expiresAt < Date.now();
+    return tokens.expiresAt <= Date.now();
   }
 
   private getLocalStorage(): Storage | null {

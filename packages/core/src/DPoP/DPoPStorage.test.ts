@@ -123,17 +123,20 @@ describe('DPoPStorage', () => {
     });
 
     it('rejects when indexedDB.open() throws synchronously', async () => {
-      const original = globalThis.indexedDB.open.bind(globalThis.indexedDB);
-      globalThis.indexedDB.open = () => {
-        throw new Error('blocked by security policy');
-      };
+      const originalOpen = globalThis.indexedDB.open.bind(globalThis.indexedDB);
 
-      const storage = new DPoPStorage('client-a');
-      await expect(storage.getKeyPair()).rejects.toThrow(
-        'blocked by security policy',
-      );
+      try {
+        globalThis.indexedDB.open = () => {
+          throw new Error('blocked by security policy');
+        };
 
-      globalThis.indexedDB.open = original;
+        const storage = new DPoPStorage('client-a');
+        await expect(storage.getKeyPair()).rejects.toThrow(
+          'blocked by security policy',
+        );
+      } finally {
+        globalThis.indexedDB.open = originalOpen;
+      }
     });
   });
 });
