@@ -76,7 +76,18 @@ export class DPoPStorage {
 
   private openDb(): Promise<IDBDatabase> {
     return new Promise((resolve, reject) => {
-      const req = indexedDB.open(DB_NAME, DB_VERSION);
+      // Graceful fallback for non-browser/SSR environments.
+      if (typeof indexedDB === 'undefined') {
+        reject(new Error('indexedDB is not available in this environment'));
+        return;
+      }
+      let req: IDBOpenDBRequest;
+      try {
+        req = indexedDB.open(DB_NAME, DB_VERSION);
+      } catch (err) {
+        reject(err);
+        return;
+      }
 
       req.onupgradeneeded = event => {
         const db = (event.target as IDBOpenDBRequest).result;

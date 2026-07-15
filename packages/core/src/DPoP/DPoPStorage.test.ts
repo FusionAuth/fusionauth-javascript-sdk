@@ -101,4 +101,39 @@ describe('DPoPStorage', () => {
       keyPairB.privateKey.algorithm,
     );
   });
+
+  describe('openDb() error handling', () => {
+    it('rejects with a descriptive error when indexedDB is unavailable (SSR / non-browser)', async () => {
+      // @ts-ignore
+      delete globalThis.indexedDB;
+
+      const storage = new DPoPStorage('client-a');
+      await expect(storage.getKeyPair()).rejects.toThrow(
+        'indexedDB is not available in this environment',
+      );
+      await expect(
+        storage.setKeyPair(
+          await generateKeyPair('ES256', { extractable: false }),
+        ),
+      ).rejects.toThrow('indexedDB is not available in this environment');
+      await expect(storage.clearKeyPair()).rejects.toThrow(
+        'indexedDB is not available in this environment',
+      );
+      // globalThis.indexedDB is restored by the next beforeEach
+    });
+
+    it('rejects when indexedDB.open() throws synchronously', async () => {
+      const original = globalThis.indexedDB.open.bind(globalThis.indexedDB);
+      globalThis.indexedDB.open = () => {
+        throw new Error('blocked by security policy');
+      };
+
+      const storage = new DPoPStorage('client-a');
+      await expect(storage.getKeyPair()).rejects.toThrow(
+        'blocked by security policy',
+      );
+
+      globalThis.indexedDB.open = original;
+    });
+  });
 });
