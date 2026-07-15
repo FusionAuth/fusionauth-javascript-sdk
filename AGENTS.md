@@ -3,6 +3,7 @@
 ## Repo Layout
 
 Yarn workspace monorepo:
+
 - `packages/core` — `@fusionauth-sdk/core`, shared logic for React/Angular/Vue SDKs
 - `packages/lexicon` — `@fusionauth-sdk/lexicon`, shared utility types (Path, GUID, etc.)
 - `packages/sdk-react` — `@fusionauth/react-sdk`
