@@ -16,7 +16,6 @@ import { DPoPTokens } from './DPoPTokenStore';
 // ---------------------------------------------------------------------------
 
 const CLIENT_ID = 'test-client';
-const TOKEN_ENDPOINT = 'https://auth.example.com/oauth2/token';
 const RESOURCE_URL = 'https://api.example.com/data';
 
 /** Decode the payload of a JWT without verifying the signature. */
@@ -40,7 +39,7 @@ function makeTokens(overrides?: Partial<DPoPTokens>): DPoPTokens {
 function makeManager(
   tokenStorage: 'localStorage' | 'memory' = 'memory',
 ): DPoPManager {
-  return new DPoPManager(CLIENT_ID, TOKEN_ENDPOINT, tokenStorage);
+  return new DPoPManager(CLIENT_ID, tokenStorage);
 }
 
 /** Minimal `Response`-like stub that satisfies the fetch return contract. */

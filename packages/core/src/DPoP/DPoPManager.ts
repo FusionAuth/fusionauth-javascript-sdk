@@ -31,8 +31,7 @@ export class DPoPManager {
   private keyPairPromise: Promise<KeyPair> | undefined;
 
   constructor(
-    private readonly clientId: string,
-    private readonly tokenEndpointUrl: string,
+    clientId: string,
     tokenStorage: 'localStorage' | 'memory' = 'localStorage',
   ) {
     this.storage = new DPoPStorage(clientId);
