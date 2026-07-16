@@ -25,13 +25,17 @@ export class DPoPStorage {
     return new Promise((resolve, reject) => {
       const tx = db.transaction(STORE_NAME, 'readonly');
       const req = tx.objectStore(STORE_NAME).get(this.clientId);
-      req.onsuccess = () => {
+      tx.oncomplete = () => {
         db.close();
         resolve(req.result as KeyPair | undefined);
       };
-      req.onerror = () => {
+      tx.onerror = () => {
         db.close();
-        reject(req.error);
+        reject(tx.error);
+      };
+      tx.onabort = () => {
+        db.close();
+        reject(tx.error ?? new Error('IndexedDB transaction aborted'));
       };
     });
   }
@@ -43,14 +47,18 @@ export class DPoPStorage {
     const db = await this.openDb();
     return new Promise((resolve, reject) => {
       const tx = db.transaction(STORE_NAME, 'readwrite');
-      const req = tx.objectStore(STORE_NAME).put(keyPair, this.clientId);
-      req.onsuccess = () => {
+      tx.objectStore(STORE_NAME).put(keyPair, this.clientId);
+      tx.oncomplete = () => {
         db.close();
         resolve();
       };
-      req.onerror = () => {
+      tx.onerror = () => {
         db.close();
-        reject(req.error);
+        reject(tx.error);
+      };
+      tx.onabort = () => {
+        db.close();
+        reject(tx.error ?? new Error('IndexedDB transaction aborted'));
       };
     });
   }
@@ -62,14 +70,18 @@ export class DPoPStorage {
     const db = await this.openDb();
     return new Promise((resolve, reject) => {
       const tx = db.transaction(STORE_NAME, 'readwrite');
-      const req = tx.objectStore(STORE_NAME).delete(this.clientId);
-      req.onsuccess = () => {
+      tx.objectStore(STORE_NAME).delete(this.clientId);
+      tx.oncomplete = () => {
         db.close();
         resolve();
       };
-      req.onerror = () => {
+      tx.onerror = () => {
         db.close();
-        reject(req.error);
+        reject(tx.error);
+      };
+      tx.onabort = () => {
+        db.close();
+        reject(tx.error ?? new Error('IndexedDB transaction aborted'));
       };
     });
   }

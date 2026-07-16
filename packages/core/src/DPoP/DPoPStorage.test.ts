@@ -138,5 +138,58 @@ describe('DPoPStorage', () => {
         globalThis.indexedDB.open = originalOpen;
       }
     });
+
+    it('rejects when a readwrite transaction is aborted', async () => {
+      const storage = new DPoPStorage('client-a');
+      const keyPair = await generateKeyPair('ES256', { extractable: false });
+
+      // Store a key pair so we have a committed baseline.
+      await storage.setKeyPair(keyPair);
+
+      // Intercept the next open() call to wrap db.transaction() so we can
+      // abort the transaction synchronously inside the request's onsuccess —
+      // after the request fires but before tx.oncomplete, simulating a real
+      // abort scenario (e.g. quota exceeded).
+      const originalOpen = globalThis.indexedDB.open.bind(globalThis.indexedDB);
+      globalThis.indexedDB.open = (...args: Parameters<IDBFactory['open']>) => {
+        const openReq = originalOpen(...args);
+        openReq.addEventListener('success', () => {
+          const db = openReq.result as IDBDatabase;
+          const originalTx = db.transaction.bind(db);
+          db.transaction = (
+            ...txArgs: Parameters<IDBDatabase['transaction']>
+          ) => {
+            const tx = originalTx(...txArgs);
+            // Wrap each request made on this transaction to abort synchronously
+            // inside onsuccess — this fires after the request succeeds but
+            // before tx.oncomplete, which is the exact scenario we want to test.
+            const originalGet = tx.objectStore.bind(tx);
+            const store = originalGet(txArgs[0] as string);
+            const originalDelete = store.delete.bind(store);
+            store.delete = (
+              ...deleteArgs: Parameters<IDBObjectStore['delete']>
+            ) => {
+              const delReq = originalDelete(...deleteArgs);
+              delReq.addEventListener('success', () => {
+                tx.abort();
+              });
+              return delReq;
+            };
+            return tx;
+          };
+        });
+        return openReq;
+      };
+
+      try {
+        await expect(storage.clearKeyPair()).rejects.toThrow();
+      } finally {
+        globalThis.indexedDB.open = originalOpen;
+      }
+
+      // The abort happened before oncomplete — the key pair should still be present.
+      const result = await storage.getKeyPair();
+      expect(result).toBeDefined();
+    });
   });
 });
