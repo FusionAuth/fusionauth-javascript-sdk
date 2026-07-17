@@ -50,8 +50,15 @@ Yarn workspace monorepo:
 
 - Each module lives in its own folder with `X.ts`, `X.test.ts`, and an
   `index.ts` barrel export (see `UrlHelper/`, `CookieHelpers/`, `DPoP/`).
+- Constructors that take more than one argument use a config object (e.g.
+  `DPoPStorageConfig`, `UrlHelperConfig`) rather than positional parameters.
 - Browser-only APIs (`localStorage`, `indexedDB`, etc.) should degrade
   gracefully for non-browser/SSR consumers — see `RedirectHelper.ts`'s
   try/catch fallback pattern.
 - Doc comments (`/** ... */`) on all public `SDKConfig` fields and public
   class methods, matching existing style.
+- **IndexedDB `dbVersion`**: IndexedDB versions can only increase. Never pass
+  a `dbVersion` lower than one already persisted in a browser — doing so
+  produces a `VersionError` and the database will not open. Only increment
+  `dbVersion` when a structural schema change (e.g. new object store) is also
+  being made inside `onupgradeneeded`.
