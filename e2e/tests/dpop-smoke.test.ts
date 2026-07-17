@@ -47,17 +47,26 @@ const SCOPE = 'openid offline_access email profile';
 function decodeJwt(jwt: string): Record<string, unknown> {
   const [, payload] = jwt.split('.');
   return JSON.parse(
-    Buffer.from(payload.replace(/-/g, '+').replace(/_/g, '/'), 'base64').toString('utf8'),
+    Buffer.from(
+      payload.replace(/-/g, '+').replace(/_/g, '/'),
+      'base64',
+    ).toString('utf8'),
   );
 }
 
 /** Generate a PKCE code_verifier and code_challenge (SHA-256 / base64url). */
-async function generatePkce(): Promise<{ verifier: string; challenge: string }> {
+async function generatePkce(): Promise<{
+  verifier: string;
+  challenge: string;
+}> {
   const array = new Uint8Array(32);
   crypto.getRandomValues(array);
   const verifier = Buffer.from(array).toString('base64url');
 
-  const hash = await crypto.subtle.digest('SHA-256', Buffer.from(verifier, 'ascii'));
+  const hash = await crypto.subtle.digest(
+    'SHA-256',
+    Buffer.from(verifier, 'ascii'),
+  );
   const challenge = Buffer.from(hash).toString('base64url');
 
   return { verifier, challenge };
@@ -92,7 +101,11 @@ async function loginAndCaptureCode(
   // Listen for any response whose Location header points to REDIRECT_URI.
   // This fires on the FusionAuth 302 before Chromium follows it.
   const codePromise = new Promise<string>((resolve, reject) => {
-    const handler = (response: { url: () => string; status: () => number; headers: () => Record<string, string> }) => {
+    const handler = (response: {
+      url: () => string;
+      status: () => number;
+      headers: () => Record<string, string>;
+    }) => {
       const location = response.headers()['location'];
       if (location?.startsWith(REDIRECT_URI)) {
         const url = new URL(location);
@@ -118,19 +131,28 @@ async function loginAndCaptureCode(
   if (capturedCode) return capturedCode;
 
   // Otherwise fill in the login form (fresh-session path).
-  const isFormVisible = await page.locator('#loginId').isVisible({ timeout: 3_000 }).catch(() => false);
+  const isFormVisible = await page
+    .locator('#loginId')
+    .isVisible({ timeout: 3_000 })
+    .catch(() => false);
 
   if (isFormVisible) {
     await page.locator('#loginId').fill(TEST_EMAIL);
     await page.locator('#password').fill(TEST_PASSWORD);
-    await page.locator('#submit-button').click().catch(() => {});
+    await page
+      .locator('#submit-button')
+      .click()
+      .catch(() => {});
   }
 
   // Wait for the code from the response listener.
   return Promise.race([
     codePromise,
     new Promise<never>((_, reject) =>
-      setTimeout(() => reject(new Error('Timed out waiting for authorization code')), 15_000),
+      setTimeout(
+        () => reject(new Error('Timed out waiting for authorization code')),
+        15_000,
+      ),
     ),
   ]);
 }
@@ -178,7 +200,9 @@ test.describe('DPoP smoke tests', () => {
       scope: SCOPE,
     });
 
-    const authorizeUrl = urlHelper.getAuthorizeUrl(thumbprint, challenge).toString();
+    const authorizeUrl = urlHelper
+      .getAuthorizeUrl(thumbprint, challenge)
+      .toString();
 
     // FusionAuth should respond with its hosted login page (200), not an error.
     const response = await page.goto(authorizeUrl);
@@ -199,7 +223,9 @@ test.describe('DPoP smoke tests', () => {
       scope: SCOPE,
     });
 
-    const authorizeUrl = urlHelper.getAuthorizeUrl(thumbprint, challenge).toString();
+    const authorizeUrl = urlHelper
+      .getAuthorizeUrl(thumbprint, challenge)
+      .toString();
 
     // Navigate fresh — T1-1 may have left the page in a redirected state.
     await page.goto('about:blank');
@@ -220,7 +246,7 @@ test.describe('DPoP smoke tests', () => {
       method: 'POST',
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded',
-        'DPoP': proof,
+        DPoP: proof,
       },
       body: body.toString(),
     });
@@ -275,13 +301,15 @@ test.describe('DPoP smoke tests', () => {
       method: 'POST',
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded',
-        'DPoP': proof,
+        DPoP: proof,
       },
       body: body.toString(),
     });
 
     const refreshText = await response.text();
-    expect(response.status, `Refresh token grant failed: ${refreshText}`).toBe(200);
+    expect(response.status, `Refresh token grant failed: ${refreshText}`).toBe(
+      200,
+    );
 
     const tokenResponse = JSON.parse(refreshText) as {
       access_token: string;
@@ -320,8 +348,8 @@ test.describe('DPoP smoke tests', () => {
 
     // Capture the actual headers sent by DPoPManager.fetch() using a
     // Playwright route interception so we can assert on them directly.
-    let capturedAuthHeader: string | null = null;
-    let capturedDpopHeader: string | null = null;
+    const capturedAuthHeader: string | null = null;
+    const capturedDpopHeader: string | null = null;
 
     // Intercept at the context level so Node-side fetch() goes through Playwright.
     // Note: Node fetch() bypasses Playwright routing — we assert on the response
@@ -333,7 +361,7 @@ test.describe('DPoP smoke tests', () => {
       `Userinfo request failed — status ${fetchResponse.status}`,
     ).toBe(200);
 
-    const userInfo = await fetchResponse.json() as Record<string, unknown>;
+    const userInfo = (await fetchResponse.json()) as Record<string, unknown>;
 
     // The userinfo response must contain the authenticated user's email.
     expect(userInfo.email).toBe(TEST_EMAIL);
@@ -353,7 +381,11 @@ test.describe('DPoP smoke tests', () => {
     // We can validate proof claims by asking DPoPManager to generate a proof
     // directly and decoding the JWT payload — this is the same proof
     // DPoPManager.fetch() would use, just inspected explicitly here.
-    const proof = await manager.generateProof(USERINFO_ENDPOINT, 'GET', accessToken);
+    const proof = await manager.generateProof(
+      USERINFO_ENDPOINT,
+      'GET',
+      accessToken,
+    );
     const proofPayload = decodeJwt(proof);
 
     expect(proofPayload.htu).toBe(USERINFO_ENDPOINT);
@@ -384,7 +416,10 @@ test.describe('DPoP smoke tests', () => {
 
     let callCount = 0;
     const originalFetch = globalThis.fetch;
-    globalThis.fetch = async (input: RequestInfo | URL, init?: RequestInit): Promise<Response> => {
+    globalThis.fetch = async (
+      input: RequestInfo | URL,
+      init?: RequestInit,
+    ): Promise<Response> => {
       callCount++;
       return originalFetch(input, init);
     };
@@ -399,9 +434,13 @@ test.describe('DPoP smoke tests', () => {
       if (callCount === 2) {
         // A retry happened — FusionAuth issued a nonce challenge. The second
         // call must have carried a nonce claim in its proof.
-        console.log('ℹ️  FusionAuth issued a use_dpop_nonce challenge — retry path exercised.');
+        console.log(
+          'ℹ️  FusionAuth issued a use_dpop_nonce challenge — retry path exercised.',
+        );
       } else {
-        console.log('ℹ️  FusionAuth did not issue a nonce challenge on this request — direct success path.');
+        console.log(
+          'ℹ️  FusionAuth did not issue a nonce challenge on this request — direct success path.',
+        );
       }
     } finally {
       globalThis.fetch = originalFetch;
