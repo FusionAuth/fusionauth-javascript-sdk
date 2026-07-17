@@ -412,7 +412,7 @@ describe('clear()', () => {
     // Before calling getOrCreateKeyPair() we need to peek at storage directly.
     // Import DPoPStorage so we can query independently.
     const { DPoPStorage } = await import('./DPoPStorage');
-    const storage = new DPoPStorage(CLIENT_ID);
+    const storage = new DPoPStorage({ clientId: CLIENT_ID });
     const stored = await storage.getKeyPair();
     expect(stored).toBeUndefined();
     // Silence unused-variable warning — fresh is used to confirm the type.

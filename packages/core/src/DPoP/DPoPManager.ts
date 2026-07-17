@@ -34,7 +34,7 @@ export class DPoPManager {
     clientId: string,
     tokenStorage: 'localStorage' | 'memory' = 'localStorage',
   ) {
-    this.storage = new DPoPStorage(clientId);
+    this.storage = new DPoPStorage({ clientId });
     this.tokenStore = new DPoPTokenStore(clientId, tokenStorage);
   }
 
