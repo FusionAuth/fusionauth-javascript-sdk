@@ -3,6 +3,8 @@ import { afterEach, describe, it, expect, vi } from 'vitest';
 import { SDKConfig } from '../SDKConfig';
 import { SDKCore } from '.';
 import { RedirectHelper } from '../RedirectHelper';
+import { DPoPManager } from '../DPoP';
+import * as Pkce from '../Pkce';
 
 import { mockIsLoggedIn, mockWindowLocation, removeAt_expCookie } from '..';
 
@@ -131,10 +133,12 @@ describe('SDKCore', () => {
 
     expect(handlePreRedirect).toHaveBeenCalledTimes(0);
 
+    // startLogin is async but cookie-mode branch has no awaits — synchronous
+    // side-effects (handlePreRedirect, window.location.assign) fire immediately.
     core.startLogin('/login');
     core.startRegister();
 
-    expect(handlePreRedirect).toHaveBeenNthCalledWith(1, '/login');
+    expect(handlePreRedirect).toHaveBeenNthCalledWith(1, '/login', undefined);
     expect(handlePreRedirect).toHaveBeenNthCalledWith(2, undefined);
   });
 
@@ -164,5 +168,166 @@ describe('SDKCore', () => {
     core.handlePostRedirect(onRedirect);
 
     expect(onRedirect).not.toHaveBeenCalled();
+  });
+
+  // ---------------------------------------------------------------------------
+  // DPoP mode
+  //
+  // DPoPManager methods and Pkce functions are mocked here because jsdom's
+  // crypto implementation lacks `crypto.subtle`, which is required for both
+  // DPoP key-pair generation and PKCE SHA-256 challenge derivation. The
+  // per-module unit tests (DPoPManager.test.ts, Pkce.test.ts) run under
+  // @vitest-environment node where real WebCrypto is available and verify the
+  // cryptographic correctness of those operations.
+  // ---------------------------------------------------------------------------
+
+  describe('DPoP mode', () => {
+    const MOCK_JKT = 'mock-dpop-jkt-thumbprint';
+    const MOCK_VERIFIER = 'mock-code-verifier-43-chars-xxxxxxxxxxxxxxxx';
+    const MOCK_CHALLENGE = 'mock-code-challenge-43-chars-xxxxxxxxxxxx';
+
+    const dpopConfig: SDKConfig = {
+      ...config,
+      useDpop: true,
+      serverUrl: 'http://my-fusionauth-server',
+    };
+
+    it('constructs a DPoPManager when useDpop is true', () => {
+      // The constructor call itself is the assertion: if it throws, the test
+      // fails. We also verify the DPoP-mode isLoggedIn path is used (not cookie).
+      vi.spyOn(DPoPManager.prototype, 'getOrCreateKeyPair').mockResolvedValue(
+        {} as any,
+      );
+      vi.spyOn(DPoPManager.prototype, 'getThumbprint').mockResolvedValue(
+        MOCK_JKT,
+      );
+      vi.spyOn(Pkce, 'generateCodeVerifier').mockReturnValue(MOCK_VERIFIER);
+      vi.spyOn(Pkce, 'generateCodeChallenge').mockResolvedValue(MOCK_CHALLENGE);
+
+      // DPoPManager.isLoggedIn returns false by default (no tokens stored).
+      const core = new SDKCore(dpopConfig);
+      expect(core.isLoggedIn).toBe(false);
+    });
+
+    it('does not construct a DPoPManager when useDpop is false (default)', () => {
+      // isLoggedIn should fall back to cookie path (no tokens, no cookie → false)
+      const core = new SDKCore(config);
+      expect(core.isLoggedIn).toBe(false);
+    });
+
+    it('isLoggedIn reads from DPoPTokenStore (not app.at_exp cookie) in DPoP mode', () => {
+      // Cookie is present but DPoP mode should NOT consult it.
+      mockIsLoggedIn(); // sets app.at_exp cookie → cookie-mode isLoggedIn = true
+      vi.spyOn(DPoPManager.prototype, 'getOrCreateKeyPair').mockResolvedValue(
+        {} as any,
+      );
+
+      const core = new SDKCore(dpopConfig);
+
+      // DPoP tokens are not stored, so isLoggedIn is false even though the
+      // app.at_exp cookie says the user is logged in.
+      expect(core.isLoggedIn).toBe(false);
+    });
+
+    it('startLogin() in DPoP mode redirects to /oauth2/authorize with dpop_jkt and code_challenge', async () => {
+      vi.spyOn(DPoPManager.prototype, 'getOrCreateKeyPair').mockResolvedValue(
+        {} as any,
+      );
+      vi.spyOn(DPoPManager.prototype, 'getThumbprint').mockResolvedValue(
+        MOCK_JKT,
+      );
+      vi.spyOn(Pkce, 'generateCodeVerifier').mockReturnValue(MOCK_VERIFIER);
+      vi.spyOn(Pkce, 'generateCodeChallenge').mockResolvedValue(MOCK_CHALLENGE);
+      const location = mockWindowLocation(vi);
+
+      const core = new SDKCore(dpopConfig);
+      await core.startLogin();
+
+      expect(location.assign).toHaveBeenCalledOnce();
+      const assignedUrl = new URL(
+        (location.assign as ReturnType<typeof vi.fn>).mock.calls[0][0],
+      );
+      expect(assignedUrl.pathname).toBe('/oauth2/authorize');
+      expect(assignedUrl.searchParams.get('dpop_jkt')).toBe(MOCK_JKT);
+      expect(assignedUrl.searchParams.get('code_challenge')).toBe(
+        MOCK_CHALLENGE,
+      );
+      expect(assignedUrl.searchParams.get('code_challenge_method')).toBe(
+        'S256',
+      );
+      expect(assignedUrl.searchParams.get('response_type')).toBe('code');
+    });
+
+    it('startLogin() in DPoP mode persists code_verifier via RedirectHelper', async () => {
+      vi.spyOn(DPoPManager.prototype, 'getOrCreateKeyPair').mockResolvedValue(
+        {} as any,
+      );
+      vi.spyOn(DPoPManager.prototype, 'getThumbprint').mockResolvedValue(
+        MOCK_JKT,
+      );
+      vi.spyOn(Pkce, 'generateCodeVerifier').mockReturnValue(MOCK_VERIFIER);
+      vi.spyOn(Pkce, 'generateCodeChallenge').mockResolvedValue(MOCK_CHALLENGE);
+      mockWindowLocation(vi);
+
+      const core = new SDKCore(dpopConfig);
+      await core.startLogin();
+
+      const redirectHelper = new RedirectHelper();
+      expect(redirectHelper.getCodeVerifier()).toBe(MOCK_VERIFIER);
+    });
+
+    it('startLogin() in DPoP mode includes state in the authorize URL', async () => {
+      vi.spyOn(DPoPManager.prototype, 'getOrCreateKeyPair').mockResolvedValue(
+        {} as any,
+      );
+      vi.spyOn(DPoPManager.prototype, 'getThumbprint').mockResolvedValue(
+        MOCK_JKT,
+      );
+      vi.spyOn(Pkce, 'generateCodeVerifier').mockReturnValue(MOCK_VERIFIER);
+      vi.spyOn(Pkce, 'generateCodeChallenge').mockResolvedValue(MOCK_CHALLENGE);
+      const location = mockWindowLocation(vi);
+
+      const core = new SDKCore(dpopConfig);
+      await core.startLogin('my-state');
+
+      const assignedUrl = new URL(
+        (location.assign as ReturnType<typeof vi.fn>).mock.calls[0][0],
+      );
+      expect(assignedUrl.searchParams.get('state')).toBe('my-state');
+    });
+
+    it('startLogin() in DPoP mode calls getOrCreateKeyPair and getThumbprint', async () => {
+      const getOrCreateKeyPair = vi
+        .spyOn(DPoPManager.prototype, 'getOrCreateKeyPair')
+        .mockResolvedValue({} as any);
+      const getThumbprint = vi
+        .spyOn(DPoPManager.prototype, 'getThumbprint')
+        .mockResolvedValue(MOCK_JKT);
+      vi.spyOn(Pkce, 'generateCodeVerifier').mockReturnValue(MOCK_VERIFIER);
+      vi.spyOn(Pkce, 'generateCodeChallenge').mockResolvedValue(MOCK_CHALLENGE);
+      mockWindowLocation(vi);
+
+      const core = new SDKCore(dpopConfig);
+      await core.startLogin();
+
+      expect(getOrCreateKeyPair).toHaveBeenCalledOnce();
+      expect(getThumbprint).toHaveBeenCalledOnce();
+    });
+
+    it('startLogin() in cookie mode is unaffected by useDpop: false', async () => {
+      const location = mockWindowLocation(vi);
+      const core = new SDKCore(config); // no useDpop
+
+      await core.startLogin('some-state');
+
+      expect(location.assign).toHaveBeenCalledOnce();
+      const assignedUrl = new URL(
+        (location.assign as ReturnType<typeof vi.fn>).mock.calls[0][0],
+      );
+      // Cookie mode uses the app server login path, not /oauth2/authorize.
+      expect(assignedUrl.pathname).not.toBe('/oauth2/authorize');
+      expect(assignedUrl.searchParams.get('dpop_jkt')).toBeNull();
+      expect(assignedUrl.searchParams.get('code_challenge')).toBeNull();
+    });
   });
 });

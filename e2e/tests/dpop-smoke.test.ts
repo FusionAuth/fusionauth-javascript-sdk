@@ -1,17 +1,20 @@
 /**
- * DPoP Smoke Tests — pre-SDKCore wiring
+ * DPoP Smoke Tests — pre-SDKCore wiring + SDKCore.startLogin() integration
  *
- * Exercises DPoPManager + UrlHelper directly against a real FusionAuth
- * Enterprise instance. No quickstart app is needed — the tests drive
- * FusionAuth's hosted login UI via Playwright, capture the authorization
- * code from the redirect, and perform all token operations in the Node
- * test process.
+ * Tier 0 (new): Exercises SDKCore.startLogin() in DPoP mode without a live
+ * FusionAuth instance. Stubs window/localStorage/indexedDB to create a real
+ * SDKCore, calls startLogin(), and asserts the authorize URL shape and
+ * code_verifier persistence.
+ *
+ * Tier 1–2 (existing): Exercise DPoPManager + UrlHelper directly against a
+ * real FusionAuth Enterprise instance. No quickstart app is needed — the tests
+ * drive FusionAuth's hosted login UI via Playwright.
  *
  * Run with:
  *   npx playwright test e2e/tests/dpop-smoke.test.ts \
  *     --config playwright.dpop.config.ts
  *
- * Prerequisites:
+ * Prerequisites (Tier 1–2 only):
  *   - FusionAuth Enterprise instance running at http://localhost:9011
  *   - Application baf3d520-40d7-4000-9b62-e6a7d0091102 configured with:
  *       proofKeyForCodeExchangePolicy: Required
@@ -25,6 +28,12 @@ import { IDBFactory } from 'fake-indexeddb';
 import { DPoPManager } from '../../packages/core/src/DPoP/DPoPManager';
 import { DPoPTokens } from '../../packages/core/src/DPoP/DPoPTokenStore';
 import { UrlHelper } from '../../packages/core/src/UrlHelper/UrlHelper';
+import { SDKCore } from '../../packages/core/src/SDKCore/SDKCore';
+import { RedirectHelper } from '../../packages/core/src/RedirectHelper/RedirectHelper';
+import {
+  generateCodeVerifier,
+  generateCodeChallenge,
+} from '../../packages/core/src/Pkce/Pkce';
 
 // ---------------------------------------------------------------------------
 // Config
@@ -52,24 +61,6 @@ function decodeJwt(jwt: string): Record<string, unknown> {
       'base64',
     ).toString('utf8'),
   );
-}
-
-/** Generate a PKCE code_verifier and code_challenge (SHA-256 / base64url). */
-async function generatePkce(): Promise<{
-  verifier: string;
-  challenge: string;
-}> {
-  const array = new Uint8Array(32);
-  crypto.getRandomValues(array);
-  const verifier = Buffer.from(array).toString('base64url');
-
-  const hash = await crypto.subtle.digest(
-    'SHA-256',
-    Buffer.from(verifier, 'ascii'),
-  );
-  const challenge = Buffer.from(hash).toString('base64url');
-
-  return { verifier, challenge };
 }
 
 /** Build a fresh DPoPManager backed by fake-indexeddb (no browser required in Node). */
@@ -158,7 +149,186 @@ async function loginAndCaptureCode(
 }
 
 // ---------------------------------------------------------------------------
-// Tests
+// Tier 0 — SDKCore.startLogin() DPoP mode (no live FusionAuth required)
+// ---------------------------------------------------------------------------
+
+test.describe('Tier 0: SDKCore.startLogin() DPoP mode', () => {
+  // Provide browser-API polyfills required by SDKCore and its dependencies
+  // when running in Node (Playwright's test process is Node, not a browser).
+  test.beforeAll(() => {
+    // IndexedDB — required by DPoPStorage (via DPoPManager).
+    // @ts-ignore
+    globalThis.indexedDB = new IDBFactory();
+
+    // localStorage — required by RedirectHelper and DPoPTokenStore.
+    if (typeof globalThis.localStorage === 'undefined') {
+      const store: Record<string, string> = {};
+      // @ts-ignore
+      globalThis.localStorage = {
+        getItem: (k: string) => store[k] ?? null,
+        setItem: (k: string, v: string) => {
+          store[k] = v;
+        },
+        removeItem: (k: string) => {
+          delete store[k];
+        },
+        clear: () => {
+          for (const k in store) delete store[k];
+        },
+      };
+    }
+
+    // window — SDKCore calls window.location.assign and DPoPManager uses
+    // indexedDB / crypto globals that browsers expose via window. We stub
+    // window with the minimal surface SDKCore touches.
+    if (typeof globalThis.window === 'undefined') {
+      // @ts-ignore
+      globalThis.window = {
+        location: { assign: () => {} },
+        crypto: globalThis.crypto,
+      };
+    }
+  });
+
+  test.afterEach(() => {
+    // Clear localStorage between tests so each starts clean.
+    globalThis.localStorage.clear();
+    // Fresh IndexedDB so key-pair state doesn't leak across tests.
+    // @ts-ignore
+    globalThis.indexedDB = new IDBFactory();
+  });
+
+  test('T0-1: startLogin() redirects to /oauth2/authorize with dpop_jkt and code_challenge', async () => {
+    let assignedUrl: string | null = null;
+    // @ts-ignore
+    globalThis.window.location = {
+      assign: (url: string) => {
+        assignedUrl = url;
+      },
+    };
+
+    const core = new SDKCore({
+      serverUrl: FA_URL,
+      clientId: CLIENT_ID,
+      redirectUri: REDIRECT_URI,
+      scope: SCOPE,
+      useDpop: true,
+      dpopTokenStorage: 'memory',
+      onTokenExpiration: () => {},
+    });
+
+    await core.startLogin();
+
+    expect(assignedUrl).not.toBeNull();
+    const url = new URL(assignedUrl!);
+
+    expect(url.origin).toBe(FA_URL);
+    expect(url.pathname).toBe('/oauth2/authorize');
+    expect(url.searchParams.get('response_type')).toBe('code');
+    expect(url.searchParams.get('client_id')).toBe(CLIENT_ID);
+    expect(url.searchParams.get('redirect_uri')).toBe(REDIRECT_URI);
+    expect(url.searchParams.get('code_challenge_method')).toBe('S256');
+
+    const dpopJkt = url.searchParams.get('dpop_jkt');
+    const codeChallenge = url.searchParams.get('code_challenge');
+
+    // dpop_jkt: base64url JWK thumbprint — 43 chars, valid base64url charset.
+    expect(dpopJkt).not.toBeNull();
+    expect(dpopJkt).toMatch(/^[A-Za-z0-9\-_]{43}$/);
+
+    // code_challenge: base64url SHA-256 — 43 chars, valid base64url charset.
+    expect(codeChallenge).not.toBeNull();
+    expect(codeChallenge).toMatch(/^[A-Za-z0-9\-_]{43}$/);
+  });
+
+  test('T0-2: startLogin() persists code_verifier and state via RedirectHelper', async () => {
+    const STATE = 'e2e-smoke-state';
+    let assignedUrl: string | null = null;
+    // @ts-ignore
+    globalThis.window.location = {
+      assign: (url: string) => {
+        assignedUrl = url;
+      },
+    };
+
+    const core = new SDKCore({
+      serverUrl: FA_URL,
+      clientId: CLIENT_ID,
+      redirectUri: REDIRECT_URI,
+      scope: SCOPE,
+      useDpop: true,
+      dpopTokenStorage: 'memory',
+      onTokenExpiration: () => {},
+    });
+
+    await core.startLogin(STATE);
+
+    expect(assignedUrl).not.toBeNull();
+    const url = new URL(assignedUrl!);
+
+    // State is included in the authorize URL.
+    expect(url.searchParams.get('state')).toBe(STATE);
+
+    // code_verifier is persisted via RedirectHelper so the post-redirect
+    // handler (ENG-4800) can retrieve it for the token exchange.
+    const redirectHelper = new RedirectHelper();
+    const storedVerifier = redirectHelper.getCodeVerifier();
+    expect(storedVerifier).not.toBeUndefined();
+    expect(storedVerifier).toMatch(/^[A-Za-z0-9\-_]{43}$/);
+
+    // The stored code_verifier must produce the code_challenge in the URL.
+    const expectedChallenge = await generateCodeChallenge(storedVerifier!);
+    expect(url.searchParams.get('code_challenge')).toBe(expectedChallenge);
+  });
+
+  test('T0-3: two startLogin() calls produce different key pairs and PKCE values', async () => {
+    const urls: URL[] = [];
+    // @ts-ignore
+    globalThis.window.location = {
+      assign: (url: string) => {
+        urls.push(new URL(url));
+      },
+    };
+
+    const core1 = new SDKCore({
+      serverUrl: FA_URL,
+      clientId: CLIENT_ID,
+      redirectUri: REDIRECT_URI,
+      useDpop: true,
+      dpopTokenStorage: 'memory',
+      onTokenExpiration: () => {},
+    });
+
+    // Each SDKCore gets its own DPoPManager with its own key pair.
+    // @ts-ignore
+    globalThis.indexedDB = new IDBFactory();
+
+    const core2 = new SDKCore({
+      serverUrl: FA_URL,
+      clientId: CLIENT_ID,
+      redirectUri: REDIRECT_URI,
+      useDpop: true,
+      dpopTokenStorage: 'memory',
+      onTokenExpiration: () => {},
+    });
+
+    await core1.startLogin();
+    globalThis.localStorage.clear();
+    // @ts-ignore
+    globalThis.indexedDB = new IDBFactory();
+    await core2.startLogin();
+
+    expect(urls).toHaveLength(2);
+    // Different key pairs → different dpop_jkt.
+    // Different PKCE verifiers → different code_challenge.
+    expect(urls[0]!.searchParams.get('code_challenge')).not.toBe(
+      urls[1]!.searchParams.get('code_challenge'),
+    );
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Tier 1 — Authorization code flow
 // ---------------------------------------------------------------------------
 
 test.describe('DPoP smoke tests', () => {
@@ -191,7 +361,8 @@ test.describe('DPoP smoke tests', () => {
 
   test('T1-1: getAuthorizeUrl() produces a URL FusionAuth accepts (login page rendered)', async () => {
     thumbprint = await manager.getThumbprint();
-    const { challenge } = await generatePkce();
+    const verifier = generateCodeVerifier();
+    const challenge = await generateCodeChallenge(verifier);
 
     const urlHelper = new UrlHelper({
       serverUrl: FA_URL,
@@ -213,7 +384,8 @@ test.describe('DPoP smoke tests', () => {
   });
 
   test('T1-2: full authorization code exchange — token_type is DPoP, cnf.jkt matches thumbprint', async () => {
-    const { verifier, challenge } = await generatePkce();
+    const verifier = generateCodeVerifier();
+    const challenge = await generateCodeChallenge(verifier);
     thumbprint = await manager.getThumbprint();
 
     const urlHelper = new UrlHelper({

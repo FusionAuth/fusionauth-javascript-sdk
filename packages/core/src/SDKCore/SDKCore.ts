@@ -3,6 +3,8 @@ import { SDKConfig } from '../SDKConfig';
 import { UserInfo } from '../SDKContext';
 import { RedirectHelper } from '../RedirectHelper';
 import { getAccessTokenExpirationMoment } from '../CookieHelpers';
+import { DPoPManager } from '../DPoP';
+import * as Pkce from '../Pkce';
 
 /** A class containing framework-agnostic SDK methods */
 export class SDKCore {
@@ -12,6 +14,7 @@ export class SDKCore {
   private tokenExpirationTimeout?: NodeJS.Timeout;
   private refreshTokenTimeout?: NodeJS.Timeout;
   private isDisposed = false;
+  private dpopManager?: DPoPManager;
 
   constructor(config: SDKConfig) {
     this.config = config;
@@ -28,6 +31,14 @@ export class SDKCore {
       tokenRefreshPath: config.tokenRefreshPath,
       postLogoutRedirectUri: config.postLogoutRedirectUri,
     });
+
+    if (config.useDpop) {
+      this.dpopManager = new DPoPManager(
+        config.clientId,
+        config.dpopTokenStorage,
+      );
+    }
+
     this.scheduleTokenExpiration();
   }
 
@@ -37,7 +48,36 @@ export class SDKCore {
     this.isDisposed = true;
   }
 
-  startLogin(state?: string) {
+  /**
+   * Initiates the login flow.
+   *
+   * In DPoP mode (`useDpop: true`):
+   * 1. Loads or generates the DPoP key pair.
+   * 2. Computes `dpop_jkt` (JWK SHA-256 thumbprint of the public key).
+   * 3. Generates a PKCE `code_verifier` and derives `code_challenge`.
+   * 4. Persists `code_verifier` via `RedirectHelper` for later token exchange.
+   * 5. Redirects to FusionAuth `/oauth2/authorize` directly with `dpop_jkt`
+   *    and `code_challenge` parameters.
+   *
+   * In cookie mode: behaves identically to the previous implementation —
+   * delegates to the companion app server's login path.
+   *
+   * @param state  Optional OAuth2 state value echoed back post-login.
+   */
+  async startLogin(state?: string): Promise<void> {
+    if (this.dpopManager) {
+      await this.dpopManager.getOrCreateKeyPair();
+      const dpopJkt = await this.dpopManager.getThumbprint();
+      const codeVerifier = Pkce.generateCodeVerifier();
+      const codeChallenge = await Pkce.generateCodeChallenge(codeVerifier);
+      this.redirectHelper.handlePreRedirect(state, codeVerifier);
+      window.location.assign(
+        this.urlHelper.getAuthorizeUrl(dpopJkt, codeChallenge, state),
+      );
+      return;
+    }
+
+    // Cookie mode — unchanged behavior.
     this.redirectHelper.handlePreRedirect(state);
     window.location.assign(this.urlHelper.getLoginUrl(state));
   }
@@ -141,7 +181,17 @@ export class SDKCore {
     }
   }
 
+  /**
+   * Whether the user is currently logged in.
+   *
+   * - DPoP mode: delegates to `DPoPManager.isLoggedIn` which checks whether
+   *   the stored tokens exist and have not expired.
+   * - Cookie mode: reads the `app.at_exp` cookie (existing behavior).
+   */
   get isLoggedIn() {
+    if (this.dpopManager) {
+      return this.dpopManager.isLoggedIn;
+    }
     return this.at_exp > new Date().getTime();
   }
 
