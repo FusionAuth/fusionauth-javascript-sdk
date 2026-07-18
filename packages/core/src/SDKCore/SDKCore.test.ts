@@ -1,3 +1,9 @@
+// @vitest-environment jsdom
+// SDKCore uses document.cookie (via CookieHelpers), window.location.assign,
+// and localStorage — all browser-only globals that jsdom provides.
+// This annotation is explicit so that importing DPoPManager (which has its own
+// @vitest-environment node override) does not cause vitest to run this file in
+// the node environment when the full test suite is executed together.
 import { afterEach, describe, it, expect, vi } from 'vitest';
 
 import { SDKConfig } from '../SDKConfig';
@@ -138,7 +144,7 @@ describe('SDKCore', () => {
     core.startLogin('/login');
     core.startRegister();
 
-    expect(handlePreRedirect).toHaveBeenNthCalledWith(1, '/login', undefined);
+    expect(handlePreRedirect).toHaveBeenNthCalledWith(1, '/login');
     expect(handlePreRedirect).toHaveBeenNthCalledWith(2, undefined);
   });
 
