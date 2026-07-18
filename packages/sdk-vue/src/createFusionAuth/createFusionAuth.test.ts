@@ -64,9 +64,10 @@ describe('createFusionAuth', () => {
     mockIsLoggedIn();
     const onRedirect = vi.fn();
     const expectedStateValue = 'redirect-callback-test';
+    // Format: nonce:codeVerifier:state (empty verifier in cookie mode)
     localStorage.setItem(
       'fa-sdk-redirect-value',
-      `rAnd0mStR1ng:${expectedStateValue}`,
+      `rAnd0mStR1ng::${expectedStateValue}`,
     );
 
     createFusionAuth({ ...config, onRedirect });
