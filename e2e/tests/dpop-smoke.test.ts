@@ -153,6 +153,21 @@ async function loginAndCaptureCode(
 // ---------------------------------------------------------------------------
 
 test.describe('Tier 0: SDKCore.startLogin() DPoP mode', () => {
+  // SDKConfig used by every T0 test. The cookieAdapter returning undefined
+  // prevents SDKCore from calling document.cookie (which doesn't exist in the
+  // Node/Playwright process) and eliminates the "Error accessing cookies"
+  // console.error noise from CookieHelpers.getAccessTokenExpirationMoment().
+  const DPOP_CONFIG = {
+    serverUrl: FA_URL,
+    clientId: CLIENT_ID,
+    redirectUri: REDIRECT_URI,
+    scope: SCOPE,
+    useDpop: true as const,
+    dpopTokenStorage: 'memory' as const,
+    onTokenExpiration: () => {},
+    cookieAdapter: { at_exp: () => undefined },
+  };
+
   // Provide browser-API polyfills required by SDKCore and its dependencies
   // when running in Node (Playwright's test process is Node, not a browser).
   test.beforeAll(() => {
@@ -207,17 +222,7 @@ test.describe('Tier 0: SDKCore.startLogin() DPoP mode', () => {
       },
     };
 
-    const core = new SDKCore({
-      serverUrl: FA_URL,
-      clientId: CLIENT_ID,
-      redirectUri: REDIRECT_URI,
-      scope: SCOPE,
-      useDpop: true,
-      dpopTokenStorage: 'memory',
-      onTokenExpiration: () => {},
-    });
-
-    await core.startLogin();
+    await new SDKCore(DPOP_CONFIG).startLogin();
 
     expect(assignedUrl).not.toBeNull();
     const url = new URL(assignedUrl!);
@@ -251,15 +256,7 @@ test.describe('Tier 0: SDKCore.startLogin() DPoP mode', () => {
       },
     };
 
-    const core = new SDKCore({
-      serverUrl: FA_URL,
-      clientId: CLIENT_ID,
-      redirectUri: REDIRECT_URI,
-      scope: SCOPE,
-      useDpop: true,
-      dpopTokenStorage: 'memory',
-      onTokenExpiration: () => {},
-    });
+    const core = new SDKCore(DPOP_CONFIG);
 
     await core.startLogin(STATE);
 
@@ -290,27 +287,13 @@ test.describe('Tier 0: SDKCore.startLogin() DPoP mode', () => {
       },
     };
 
-    const core1 = new SDKCore({
-      serverUrl: FA_URL,
-      clientId: CLIENT_ID,
-      redirectUri: REDIRECT_URI,
-      useDpop: true,
-      dpopTokenStorage: 'memory',
-      onTokenExpiration: () => {},
-    });
+    const core1 = new SDKCore(DPOP_CONFIG);
 
     // Each SDKCore gets its own DPoPManager with its own key pair.
     // @ts-ignore
     globalThis.indexedDB = new IDBFactory();
 
-    const core2 = new SDKCore({
-      serverUrl: FA_URL,
-      clientId: CLIENT_ID,
-      redirectUri: REDIRECT_URI,
-      useDpop: true,
-      dpopTokenStorage: 'memory',
-      onTokenExpiration: () => {},
-    });
+    const core2 = new SDKCore(DPOP_CONFIG);
 
     await core1.startLogin();
     globalThis.localStorage.clear();
