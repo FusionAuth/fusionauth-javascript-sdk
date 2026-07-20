@@ -346,14 +346,11 @@ test.describe('DPoP smoke tests', () => {
   test('T2-1: DPoPManager.fetch() calls /oauth2/userinfo with correct DPoP headers and gets user claims', async () => {
     test.skip(!accessToken, 'No access token from previous test');
 
-    // Capture the actual headers sent by DPoPManager.fetch() using a
-    // Playwright route interception so we can assert on them directly.
-    const capturedAuthHeader: string | null = null;
-    const capturedDpopHeader: string | null = null;
-
-    // Intercept at the context level so Node-side fetch() goes through Playwright.
-    // Note: Node fetch() bypasses Playwright routing — we assert on the response
-    // instead and validate proof claims by decoding the DPoP proof JWT directly.
+    // DPoPManager.fetch() runs in the Node test process, not the browser page,
+    // so Playwright route interception can't observe its outgoing headers.
+    // Correctness is validated end-to-end instead: FusionAuth verifies ath,
+    // cnf.jkt, htu, and htm server-side, so a 200 here proves the real proof
+    // was accepted. T2-2 validates the proof's claims directly by decoding it.
     const fetchResponse = await manager.fetch(USERINFO_ENDPOINT);
 
     expect(
@@ -366,13 +363,6 @@ test.describe('DPoP smoke tests', () => {
     // The userinfo response must contain the authenticated user's email.
     expect(userInfo.email).toBe(TEST_EMAIL);
     expect(userInfo.sub).toBeDefined();
-
-    // Validate that DPoPManager.fetch() generated a proof with ath matching
-    // the access token (can't intercept Node fetch headers via Playwright,
-    // but proof correctness is implicit in the 200 response — FusionAuth
-    // verifies ath, cnf.jkt, htu, and htm server-side).
-    void capturedAuthHeader; // suppress unused warning
-    void capturedDpopHeader;
   });
 
   test('T2-2: DPoPManager.fetch() proof carries correct htu and ath claims', async () => {
