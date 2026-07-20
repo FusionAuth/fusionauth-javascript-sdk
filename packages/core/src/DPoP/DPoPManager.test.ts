@@ -154,6 +154,24 @@ describe('generateProof()', () => {
     expect(payload.htm).toBe('GET');
   });
 
+  it('strips the query string and fragment from htu per RFC 9449', async () => {
+    const manager = makeManager();
+    const urlWithQueryAndFragment = `${RESOURCE_URL}?foo=bar&baz=qux#section`;
+    const proof = await manager.generateProof(urlWithQueryAndFragment, 'GET');
+
+    const payload = decodeJwtPayload(proof);
+    // htu must be normalised to the URL without query/fragment.
+    expect(payload.htu).toBe(RESOURCE_URL);
+  });
+
+  it('normalises htm to uppercase regardless of caller casing', async () => {
+    const manager = makeManager();
+    const proof = await manager.generateProof(RESOURCE_URL, 'post');
+
+    const payload = decodeJwtPayload(proof);
+    expect(payload.htm).toBe('POST');
+  });
+
   it('includes ath claim when an accessToken is provided', async () => {
     const manager = makeManager();
     const proof = await manager.generateProof(
@@ -302,6 +320,50 @@ describe('fetch()', () => {
     expect(capturedHeaders?.has('DPoP')).toBe(true);
   });
 
+  it('merges headers from both a Request object and init when both are provided', async () => {
+    const manager = makeManager();
+    let capturedHeaders: Headers | undefined;
+
+    vi.spyOn(globalThis, 'fetch').mockImplementation(async (_input, init) => {
+      capturedHeaders = new Headers(init?.headers);
+      return makeResponse(200);
+    });
+
+    const request = new Request(RESOURCE_URL, {
+      headers: { 'X-From-Request': 'request-value' },
+    });
+
+    await manager.fetch(request, {
+      headers: { 'X-From-Init': 'init-value' },
+    });
+
+    // Both header sources must survive — neither is silently dropped.
+    expect(capturedHeaders?.get('X-From-Request')).toBe('request-value');
+    expect(capturedHeaders?.get('X-From-Init')).toBe('init-value');
+    expect(capturedHeaders?.has('DPoP')).toBe(true);
+  });
+
+  it('Request headers win over init headers on a conflicting header name', async () => {
+    const manager = makeManager();
+    let capturedHeaders: Headers | undefined;
+
+    vi.spyOn(globalThis, 'fetch').mockImplementation(async (_input, init) => {
+      capturedHeaders = new Headers(init?.headers);
+      return makeResponse(200);
+    });
+
+    const request = new Request(RESOURCE_URL, {
+      headers: { 'X-Conflict': 'from-request' },
+    });
+
+    await manager.fetch(request, {
+      headers: { 'X-Conflict': 'from-init' },
+    });
+
+    // The Request's value must win over the conflicting init.headers value.
+    expect(capturedHeaders?.get('X-Conflict')).toBe('from-request');
+  });
+
   describe('nonce retry', () => {
     it('retries exactly once on 401 + use_dpop_nonce + DPoP-Nonce header', async () => {
       const manager = makeManager();
@@ -392,6 +454,81 @@ describe('fetch()', () => {
 
       expect(fetchSpy).toHaveBeenCalledTimes(1);
       expect(response.status).toBe(401);
+    });
+
+    it('retries successfully when input is a Request with a body (body is not double-consumed)', async () => {
+      const manager = makeManager();
+      let callCount = 0;
+
+      vi.spyOn(globalThis, 'fetch').mockImplementation(async input => {
+        callCount++;
+        // Simulate what native fetch does internally when sending a request
+        // body — reading it. If DPoPManager.fetch() reused the same Request
+        // instance across both attempts, this second read would throw
+        // "body already used" instead of resolving with the text.
+        const bodyText = await (input as Request).text();
+        expect(bodyText).toBe('{"foo":1}');
+
+        if (callCount === 1) {
+          return makeResponse(401, {
+            'WWW-Authenticate': 'DPoP error="use_dpop_nonce"',
+            'DPoP-Nonce': 'nonce-for-request-body-retry',
+          });
+        }
+        return makeResponse(200);
+      });
+
+      const request = new Request(RESOURCE_URL, {
+        method: 'POST',
+        body: '{"foo":1}',
+      });
+
+      const response = await manager.fetch(request);
+
+      expect(callCount).toBe(2);
+      expect(response.status).toBe(200);
+    });
+
+    it('throws a clear error on retry when init.body is a raw ReadableStream', async () => {
+      const manager = makeManager();
+
+      vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce(
+        makeResponse(401, {
+          'WWW-Authenticate': 'DPoP error="use_dpop_nonce"',
+          'DPoP-Nonce': 'some-nonce',
+        }),
+      );
+
+      const stream = new ReadableStream({
+        start(controller) {
+          controller.enqueue(new TextEncoder().encode('stream-body'));
+          controller.close();
+        },
+      });
+
+      await expect(
+        manager.fetch(RESOURCE_URL, { method: 'POST', body: stream }),
+      ).rejects.toThrow(/ReadableStream \(single-use\)/);
+    });
+
+    it('does not throw for a raw ReadableStream body when no retry is needed', async () => {
+      const manager = makeManager();
+
+      vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce(makeResponse(200));
+
+      const stream = new ReadableStream({
+        start(controller) {
+          controller.enqueue(new TextEncoder().encode('stream-body'));
+          controller.close();
+        },
+      });
+
+      const response = await manager.fetch(RESOURCE_URL, {
+        method: 'POST',
+        body: stream,
+      });
+
+      expect(response.status).toBe(200);
     });
   });
 });
