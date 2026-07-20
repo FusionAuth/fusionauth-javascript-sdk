@@ -99,4 +99,17 @@ export interface SDKConfig {
    * Callback to be invoked at the moment of access token expiration
    */
   onTokenExpiration: () => void;
+
+  /**
+   * Opt-in to DPoP mode. When `true`, the SDK calls FusionAuth endpoints
+   * directly and stores tokens in JavaScript-accessible storage.
+   * Defaults to `false`.
+   */
+  useDpop?: boolean;
+
+  /**
+   * Token storage location in DPoP mode. Only meaningful when `useDpop: true`.
+   * Defaults to `'localStorage'`.
+   */
+  dpopTokenStorage?: 'localStorage' | 'memory';
 }
