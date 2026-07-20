@@ -132,13 +132,34 @@ export class DPoPManager {
    *    and retries the request exactly once. A second `401` is returned as-is.
    */
   async fetch(input: RequestInfo | URL, init?: RequestInit): Promise<Response> {
-    const response = await this._doFetch(input, init);
+    // Request bodies can only be read once. If `input` is a Request, clone it
+    // twice up front — before either clone is read from — so the initial
+    // attempt and a potential retry each get an independent, unconsumed body.
+    // Request.clone() safely tees any internal streaming body per spec, so
+    // this also covers a Request constructed with a ReadableStream body.
+    const primaryInput = input instanceof Request ? input.clone() : input;
+    const retryInput = input instanceof Request ? input.clone() : input;
+
+    const response = await this._doFetch(primaryInput, init);
 
     if (
       response.status === 401 &&
       this._isUseNonceError(response) &&
       response.headers.has('DPoP-Nonce')
     ) {
+      // A raw ReadableStream passed via init.body (not wrapped in a Request)
+      // cannot be safely reused for a retry — it's single-read and there is
+      // no Request object to clone. Fail clearly rather than let native
+      // fetch throw an opaque "body already used" error on the retry.
+      if (!(input instanceof Request) && init?.body instanceof ReadableStream) {
+        throw new Error(
+          'DPoPManager.fetch() received a use_dpop_nonce challenge but cannot ' +
+            'automatically retry because init.body is a ReadableStream (single-use). ' +
+            'Pass the body as a string, Blob, ArrayBuffer, or FormData instead, or ' +
+            'handle the nonce retry manually for streaming request bodies.',
+        );
+      }
+
       // Cache the server-provided nonce for this origin.
       const htu = this._resolveUrl(input);
       const origin = new URL(htu).origin;
@@ -146,7 +167,7 @@ export class DPoPManager {
       this.nonces.set(origin, serverNonce);
 
       // Single retry — return the result regardless of status.
-      return this._doFetch(input, init);
+      return this._doFetch(retryInput, init);
     }
 
     return response;
