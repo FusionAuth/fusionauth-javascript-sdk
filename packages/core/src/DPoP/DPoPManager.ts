@@ -99,9 +99,12 @@ export class DPoPManager {
    * - `ath` (access token hash) is included only when `accessToken` is provided.
    * - Nonce precedence: explicit `nonce` argument → cached nonce for the target
    *   origin → `undefined` (no nonce claim).
+   * - Per RFC 9449, `htu` is normalised by stripping any query string and
+   *   fragment (e.g. `Request.url` may include a query string), and `htm` is
+   *   normalised to uppercase (DPoP verifiers commonly require this).
    *
-   * @param htu          HTTP URI of the request (without query/fragment).
-   * @param htm          HTTP method of the request (e.g. `'POST'`).
+   * @param htu          HTTP URI of the request. Any query/fragment is stripped.
+   * @param htm          HTTP method of the request (e.g. `'POST'`). Case-insensitive.
    * @param accessToken  Optional access token; when provided, `ath` is included.
    * @param nonce        Optional explicit nonce; overrides the per-origin cache.
    */
@@ -113,11 +116,21 @@ export class DPoPManager {
   ): Promise<string> {
     const keyPair = await this.getOrCreateKeyPair();
 
-    // Resolve the nonce: explicit arg wins, then fall back to per-origin cache.
-    const effectiveNonce =
-      nonce ?? this.nonces.get(new URL(htu).origin) ?? undefined;
+    // Per RFC 9449, htu MUST NOT include the query or fragment components.
+    const url = new URL(htu);
+    const normalizedHtu = `${url.origin}${url.pathname}`;
+    const normalizedHtm = htm.toUpperCase();
 
-    return dpop.generateProof(keyPair, htu, htm, effectiveNonce, accessToken);
+    // Resolve the nonce: explicit arg wins, then fall back to per-origin cache.
+    const effectiveNonce = nonce ?? this.nonces.get(url.origin) ?? undefined;
+
+    return dpop.generateProof(
+      keyPair,
+      normalizedHtu,
+      normalizedHtm,
+      effectiveNonce,
+      accessToken,
+    );
   }
 
   /**

@@ -154,6 +154,24 @@ describe('generateProof()', () => {
     expect(payload.htm).toBe('GET');
   });
 
+  it('strips the query string and fragment from htu per RFC 9449', async () => {
+    const manager = makeManager();
+    const urlWithQueryAndFragment = `${RESOURCE_URL}?foo=bar&baz=qux#section`;
+    const proof = await manager.generateProof(urlWithQueryAndFragment, 'GET');
+
+    const payload = decodeJwtPayload(proof);
+    // htu must be normalised to the URL without query/fragment.
+    expect(payload.htu).toBe(RESOURCE_URL);
+  });
+
+  it('normalises htm to uppercase regardless of caller casing', async () => {
+    const manager = makeManager();
+    const proof = await manager.generateProof(RESOURCE_URL, 'post');
+
+    const payload = decodeJwtPayload(proof);
+    expect(payload.htm).toBe('POST');
+  });
+
   it('includes ath claim when an accessToken is provided', async () => {
     const manager = makeManager();
     const proof = await manager.generateProof(
