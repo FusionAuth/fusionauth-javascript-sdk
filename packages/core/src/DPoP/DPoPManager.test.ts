@@ -302,6 +302,50 @@ describe('fetch()', () => {
     expect(capturedHeaders?.has('DPoP')).toBe(true);
   });
 
+  it('merges headers from both a Request object and init when both are provided', async () => {
+    const manager = makeManager();
+    let capturedHeaders: Headers | undefined;
+
+    vi.spyOn(globalThis, 'fetch').mockImplementation(async (_input, init) => {
+      capturedHeaders = new Headers(init?.headers);
+      return makeResponse(200);
+    });
+
+    const request = new Request(RESOURCE_URL, {
+      headers: { 'X-From-Request': 'request-value' },
+    });
+
+    await manager.fetch(request, {
+      headers: { 'X-From-Init': 'init-value' },
+    });
+
+    // Both header sources must survive — neither is silently dropped.
+    expect(capturedHeaders?.get('X-From-Request')).toBe('request-value');
+    expect(capturedHeaders?.get('X-From-Init')).toBe('init-value');
+    expect(capturedHeaders?.has('DPoP')).toBe(true);
+  });
+
+  it('Request headers win over init headers on a conflicting header name', async () => {
+    const manager = makeManager();
+    let capturedHeaders: Headers | undefined;
+
+    vi.spyOn(globalThis, 'fetch').mockImplementation(async (_input, init) => {
+      capturedHeaders = new Headers(init?.headers);
+      return makeResponse(200);
+    });
+
+    const request = new Request(RESOURCE_URL, {
+      headers: { 'X-Conflict': 'from-request' },
+    });
+
+    await manager.fetch(request, {
+      headers: { 'X-Conflict': 'from-init' },
+    });
+
+    // The Request's value must win over the conflicting init.headers value.
+    expect(capturedHeaders?.get('X-Conflict')).toBe('from-request');
+  });
+
   describe('nonce retry', () => {
     it('retries exactly once on 401 + use_dpop_nonce + DPoP-Nonce header', async () => {
       const manager = makeManager();

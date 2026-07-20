@@ -184,7 +184,7 @@ export class DPoPManager {
 
     // Merge headers: start from any existing headers on the request/init, then
     // layer in the DPoP-specific ones so we never silently drop caller headers.
-    const headers = new Headers(this._resolveHeaders(input, init));
+    const headers = this._resolveHeaders(input, init);
     if (accessToken) {
       headers.set('Authorization', `DPoP ${accessToken}`);
     }
@@ -216,15 +216,25 @@ export class DPoPManager {
   }
 
   /**
-   * Extracts any pre-existing headers from `input`/`init` so they can be
-   * merged before the DPoP headers are appended.
+   * Merges headers from `init.headers` and, if `input` is a `Request`, its
+   * own headers — so callers never lose headers regardless of which of the
+   * two allowed places they set them on. When the same header name appears
+   * in both, the `Request`'s value wins, since a caller who went to the
+   * trouble of building a `Request` object with specific headers most likely
+   * intended those to be authoritative.
    */
   private _resolveHeaders(
     input: RequestInfo | URL,
     init?: RequestInit,
-  ): HeadersInit | undefined {
-    if (init?.headers) return init.headers;
-    if (input instanceof Request) return input.headers;
-    return undefined;
+  ): Headers {
+    // Base: init.headers (lowest precedence).
+    const headers = new Headers(init?.headers);
+
+    // Overlay: Request.headers wins on any conflicting header name.
+    if (input instanceof Request) {
+      input.headers.forEach((value, key) => headers.set(key, value));
+    }
+
+    return headers;
   }
 }
