@@ -592,6 +592,88 @@ test.describe('DPoP smoke tests', () => {
     }
   });
 
+  test('T2-4: nonce retry (deterministic) — DPoPManager.fetch() retries with the correct nonce claim when the resource server issues a use_dpop_nonce challenge', async () => {
+    // FusionAuth (as the Authorization Server) never issues a use_dpop_nonce
+    // challenge itself — nonce enforcement is explicitly a Resource Server
+    // responsibility that your own APIs implement (see FusionAuth's DPoP
+    // docs: "FusionAuth currently does not require nonce handling, but your
+    // APIs may require one for resource access"). T2-3 above can only assert
+    // structurally against a real FusionAuth endpoint because it can never
+    // reliably force the challenge.
+    //
+    // This test simulates a Resource Server that DOES require a nonce, by
+    // mocking globalThis.fetch (DPoPManager.fetch() calls the native fetch
+    // directly, so this is a faithful substitute for a real RS response).
+    // It uses its own fresh DPoPManager so it does not depend on shared
+    // state/order from the Tier 1 tests above.
+
+    const FAKE_RESOURCE_URL = 'https://fake-resource-server.example.com/data';
+    const SERVER_NONCE = 'server-issued-nonce-abc123';
+
+    const nonceManager = makeManager();
+
+    let callCount = 0;
+    let firstProof: string | null = null;
+    let secondProof: string | null = null;
+
+    const originalFetch = globalThis.fetch;
+    globalThis.fetch = async (
+      input: RequestInfo | URL,
+      init?: RequestInit,
+    ): Promise<Response> => {
+      callCount++;
+      const dpopHeader = new Headers(init?.headers).get('DPoP');
+
+      if (callCount === 1) {
+        firstProof = dpopHeader;
+        // Simulate a Resource Server that requires a fresh nonce — per
+        // RFC 9449 §8, a 401 with a WWW-Authenticate header containing
+        // 'use_dpop_nonce' and a DPoP-Nonce response header.
+        return new Response(null, {
+          status: 401,
+          headers: {
+            'WWW-Authenticate':
+              'DPoP error="use_dpop_nonce", error_description="Resource server requires a nonce"',
+            'DPoP-Nonce': SERVER_NONCE,
+          },
+        });
+      }
+
+      secondProof = dpopHeader;
+      return new Response(JSON.stringify({ ok: true }), { status: 200 });
+    };
+
+    try {
+      const response = await nonceManager.fetch(FAKE_RESOURCE_URL);
+
+      expect(response.status).toBe(200);
+      // Exactly one retry — original call + single nonce retry, no more.
+      expect(callCount).toBe(2);
+
+      expect(firstProof).not.toBeNull();
+      expect(secondProof).not.toBeNull();
+
+      // The first proof (before the server ever provided a nonce) must NOT
+      // carry a nonce claim.
+      const firstPayload = decodeJwt(firstProof!);
+      expect(firstPayload.nonce).toBeUndefined();
+
+      // The retried proof MUST carry the server-issued nonce claim, proving
+      // DPoPManager cached it from the DPoP-Nonce response header and used
+      // it to regenerate the proof before retrying.
+      const secondPayload = decodeJwt(secondProof!);
+      expect(secondPayload.nonce).toBe(SERVER_NONCE);
+
+      // Both proofs must otherwise target the same resource/method.
+      expect(firstPayload.htu).toBe(FAKE_RESOURCE_URL);
+      expect(secondPayload.htu).toBe(FAKE_RESOURCE_URL);
+      expect(firstPayload.htm).toBe('GET');
+      expect(secondPayload.htm).toBe('GET');
+    } finally {
+      globalThis.fetch = originalFetch;
+    }
+  });
+
   // -------------------------------------------------------------------------
   // Tier 1 — Logout / clear
   // -------------------------------------------------------------------------
