@@ -71,6 +71,44 @@ function makeManager(): DPoPManager {
 }
 
 /**
+ * Creates a deferred `window.location.assign` stub paired with a promise
+ * that resolves with the assigned URL.
+ *
+ * `SDKCore.startLogin()` is synchronous (`void`) — in DPoP mode it kicks off
+ * an async chain (key-pair generation, PKCE, etc.) internally and does not
+ * return a promise the caller can await. This helper lets Tier 0 tests wait
+ * deterministically for that async chain to complete (signaled by
+ * `window.location.assign` being called) instead of awaiting `startLogin()`
+ * directly.
+ */
+function createAssignWaiter(timeoutMs = 5_000): {
+  assign: (url: string) => void;
+  waitForUrl: () => Promise<string>;
+} {
+  let resolveUrl!: (url: string) => void;
+  const urlPromise = new Promise<string>(resolve => {
+    resolveUrl = resolve;
+  });
+
+  return {
+    assign: (url: string) => resolveUrl(url),
+    waitForUrl: () =>
+      Promise.race([
+        urlPromise,
+        new Promise<never>((_, reject) =>
+          setTimeout(
+            () =>
+              reject(
+                new Error('Timed out waiting for window.location.assign()'),
+              ),
+            timeoutMs,
+          ),
+        ),
+      ]),
+  };
+}
+
+/**
  * Drive FusionAuth's hosted login page through Playwright and return the
  * authorization `code` captured from the redirect to REDIRECT_URI.
  *
@@ -214,18 +252,15 @@ test.describe('Tier 0: SDKCore.startLogin() DPoP mode', () => {
   });
 
   test('T0-1: startLogin() redirects to /oauth2/authorize with dpop_jkt and code_challenge', async () => {
-    let assignedUrl: string | null = null;
+    const { assign, waitForUrl } = createAssignWaiter();
     // @ts-ignore
-    globalThis.window.location = {
-      assign: (url: string) => {
-        assignedUrl = url;
-      },
-    };
+    globalThis.window.location = { assign };
 
-    await new SDKCore(DPOP_CONFIG).startLogin();
+    // startLogin() is synchronous (void) — fire and wait for the redirect.
+    new SDKCore(DPOP_CONFIG).startLogin();
+    const assignedUrl = await waitForUrl();
 
-    expect(assignedUrl).not.toBeNull();
-    const url = new URL(assignedUrl!);
+    const url = new URL(assignedUrl);
 
     expect(url.origin).toBe(FA_URL);
     expect(url.pathname).toBe('/oauth2/authorize');
@@ -248,20 +283,16 @@ test.describe('Tier 0: SDKCore.startLogin() DPoP mode', () => {
 
   test('T0-2: startLogin() persists code_verifier and state via RedirectHelper', async () => {
     const STATE = 'e2e-smoke-state';
-    let assignedUrl: string | null = null;
+    const { assign, waitForUrl } = createAssignWaiter();
     // @ts-ignore
-    globalThis.window.location = {
-      assign: (url: string) => {
-        assignedUrl = url;
-      },
-    };
+    globalThis.window.location = { assign };
 
     const core = new SDKCore(DPOP_CONFIG);
 
-    await core.startLogin(STATE);
+    core.startLogin(STATE);
+    const assignedUrl = await waitForUrl();
 
-    expect(assignedUrl).not.toBeNull();
-    const url = new URL(assignedUrl!);
+    const url = new URL(assignedUrl);
 
     // State is included in the authorize URL.
     expect(url.searchParams.get('state')).toBe(STATE);
@@ -279,14 +310,6 @@ test.describe('Tier 0: SDKCore.startLogin() DPoP mode', () => {
   });
 
   test('T0-3: two startLogin() calls produce different key pairs and PKCE values', async () => {
-    const urls: URL[] = [];
-    // @ts-ignore
-    globalThis.window.location = {
-      assign: (url: string) => {
-        urls.push(new URL(url));
-      },
-    };
-
     const core1 = new SDKCore(DPOP_CONFIG);
 
     // Each SDKCore gets its own DPoPManager with its own key pair.
@@ -295,17 +318,31 @@ test.describe('Tier 0: SDKCore.startLogin() DPoP mode', () => {
 
     const core2 = new SDKCore(DPOP_CONFIG);
 
-    await core1.startLogin();
+    // Wait for core1's full async chain (including its key pair being
+    // written to the *first* IndexedDB instance) to complete before
+    // swapping IndexedDB out for core2 — startLogin() is fire-and-forget, so
+    // this ordering must be enforced explicitly rather than relying on
+    // sequential awaits on startLogin() itself.
+    const waiter1 = createAssignWaiter();
+    // @ts-ignore
+    globalThis.window.location = { assign: waiter1.assign };
+    core1.startLogin();
+    const url1 = new URL(await waiter1.waitForUrl());
+
     globalThis.localStorage.clear();
     // @ts-ignore
     globalThis.indexedDB = new IDBFactory();
-    await core2.startLogin();
 
-    expect(urls).toHaveLength(2);
+    const waiter2 = createAssignWaiter();
+    // @ts-ignore
+    globalThis.window.location = { assign: waiter2.assign };
+    core2.startLogin();
+    const url2 = new URL(await waiter2.waitForUrl());
+
     // Different key pairs → different dpop_jkt.
     // Different PKCE verifiers → different code_challenge.
-    expect(urls[0]!.searchParams.get('code_challenge')).not.toBe(
-      urls[1]!.searchParams.get('code_challenge'),
+    expect(url1.searchParams.get('code_challenge')).not.toBe(
+      url2.searchParams.get('code_challenge'),
     );
   });
 });

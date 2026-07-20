@@ -112,4 +112,14 @@ export interface SDKConfig {
    * Defaults to `'localStorage'`.
    */
   dpopTokenStorage?: 'localStorage' | 'memory';
+
+  /**
+   * Callback invoked if `startLogin()` fails in DPoP mode (e.g. the DPoP key
+   * pair could not be generated/loaded, or PKCE parameter generation
+   * failed). `startLogin()` is synchronous (`void`), so this is the only way
+   * to observe an async failure in the DPoP login flow. Defaults to logging
+   * the error via `console.error` if not provided. Only relevant when
+   * `useDpop: true`.
+   */
+  onLoginFailure?: (error: Error) => void;
 }

@@ -139,8 +139,8 @@ describe('SDKCore', () => {
 
     expect(handlePreRedirect).toHaveBeenCalledTimes(0);
 
-    // startLogin is async but cookie-mode branch has no awaits — synchronous
-    // side-effects (handlePreRedirect, window.location.assign) fire immediately.
+    // startLogin is synchronous in cookie mode — side-effects
+    // (handlePreRedirect, window.location.assign) fire immediately.
     core.startLogin('/login');
     core.startRegister();
 
@@ -247,9 +247,11 @@ describe('SDKCore', () => {
       const location = mockWindowLocation(vi);
 
       const core = new SDKCore(dpopConfig);
-      await core.startLogin();
+      // startLogin() is synchronous (void) — the DPoP chain runs async
+      // internally. Wait for the redirect to happen before asserting.
+      core.startLogin();
+      await vi.waitFor(() => expect(location.assign).toHaveBeenCalledOnce());
 
-      expect(location.assign).toHaveBeenCalledOnce();
       const assignedUrl = new URL(
         (location.assign as ReturnType<typeof vi.fn>).mock.calls[0][0],
       );
@@ -273,10 +275,11 @@ describe('SDKCore', () => {
       );
       vi.spyOn(Pkce, 'generateCodeVerifier').mockReturnValue(MOCK_VERIFIER);
       vi.spyOn(Pkce, 'generateCodeChallenge').mockResolvedValue(MOCK_CHALLENGE);
-      mockWindowLocation(vi);
+      const location = mockWindowLocation(vi);
 
       const core = new SDKCore(dpopConfig);
-      await core.startLogin();
+      core.startLogin();
+      await vi.waitFor(() => expect(location.assign).toHaveBeenCalledOnce());
 
       const redirectHelper = new RedirectHelper();
       expect(redirectHelper.getCodeVerifier()).toBe(MOCK_VERIFIER);
@@ -294,7 +297,8 @@ describe('SDKCore', () => {
       const location = mockWindowLocation(vi);
 
       const core = new SDKCore(dpopConfig);
-      await core.startLogin('my-state');
+      core.startLogin('my-state');
+      await vi.waitFor(() => expect(location.assign).toHaveBeenCalledOnce());
 
       const assignedUrl = new URL(
         (location.assign as ReturnType<typeof vi.fn>).mock.calls[0][0],
@@ -311,20 +315,58 @@ describe('SDKCore', () => {
         .mockResolvedValue(MOCK_JKT);
       vi.spyOn(Pkce, 'generateCodeVerifier').mockReturnValue(MOCK_VERIFIER);
       vi.spyOn(Pkce, 'generateCodeChallenge').mockResolvedValue(MOCK_CHALLENGE);
-      mockWindowLocation(vi);
+      const location = mockWindowLocation(vi);
 
       const core = new SDKCore(dpopConfig);
-      await core.startLogin();
+      core.startLogin();
+      await vi.waitFor(() => expect(location.assign).toHaveBeenCalledOnce());
 
       expect(getOrCreateKeyPair).toHaveBeenCalledOnce();
       expect(getThumbprint).toHaveBeenCalledOnce();
     });
 
-    it('startLogin() in cookie mode is unaffected by useDpop: false', async () => {
+    it('reports a DPoP startLogin() failure via onLoginFailure instead of an unhandled rejection', async () => {
+      const failure = new Error('crypto.subtle unavailable');
+      vi.spyOn(DPoPManager.prototype, 'getOrCreateKeyPair').mockRejectedValue(
+        failure,
+      );
+      mockWindowLocation(vi);
+
+      const onLoginFailure = vi.fn();
+      const core = new SDKCore({ ...dpopConfig, onLoginFailure });
+
+      core.startLogin();
+      await vi.waitFor(() => expect(onLoginFailure).toHaveBeenCalledOnce());
+
+      expect(onLoginFailure).toHaveBeenCalledWith(failure);
+    });
+
+    it('falls back to console.error when a DPoP startLogin() failure occurs and onLoginFailure is not configured', async () => {
+      const failure = new Error('IndexedDB blocked');
+      vi.spyOn(DPoPManager.prototype, 'getOrCreateKeyPair').mockRejectedValue(
+        failure,
+      );
+      mockWindowLocation(vi);
+      const consoleError = vi
+        .spyOn(console, 'error')
+        .mockImplementation(() => {});
+
+      const core = new SDKCore(dpopConfig); // no onLoginFailure configured
+      core.startLogin();
+      await vi.waitFor(() =>
+        expect(consoleError).toHaveBeenCalledWith(
+          'FusionAuth SDK: startLogin failed',
+          failure,
+        ),
+      );
+    });
+
+    it('startLogin() in cookie mode is unaffected by useDpop: false', () => {
       const location = mockWindowLocation(vi);
       const core = new SDKCore(config); // no useDpop
 
-      await core.startLogin('some-state');
+      // Cookie mode is fully synchronous — no waiting required.
+      core.startLogin('some-state');
 
       expect(location.assign).toHaveBeenCalledOnce();
       const assignedUrl = new URL(

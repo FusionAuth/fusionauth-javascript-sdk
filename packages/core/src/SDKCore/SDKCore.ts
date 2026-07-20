@@ -51,7 +51,8 @@ export class SDKCore {
   /**
    * Initiates the login flow.
    *
-   * In DPoP mode (`useDpop: true`):
+   * In DPoP mode (`useDpop: true`), this synchronously returns after kicking
+   * off an async chain that:
    * 1. Loads or generates the DPoP key pair.
    * 2. Computes `dpop_jkt` (JWK SHA-256 thumbprint of the public key).
    * 3. Generates a PKCE `code_verifier` and derives `code_challenge`.
@@ -59,27 +60,49 @@ export class SDKCore {
    * 5. Redirects to FusionAuth `/oauth2/authorize` directly with `dpop_jkt`
    *    and `code_challenge` parameters.
    *
+   * `startLogin()` itself is `void` (not `async`) so its signature matches
+   * the public `SDKContext`/framework wrapper types exactly. If the async
+   * DPoP chain fails, the error is reported via `SDKConfig.onLoginFailure`
+   * (or `console.error` if not configured) rather than becoming an unhandled
+   * promise rejection.
+   *
    * In cookie mode: behaves identically to the previous implementation —
-   * delegates to the companion app server's login path.
+   * delegates to the companion app server's login path, fully synchronously.
    *
    * @param state  Optional OAuth2 state value echoed back post-login.
    */
-  async startLogin(state?: string): Promise<void> {
+  startLogin(state?: string): void {
     if (this.dpopManager) {
-      await this.dpopManager.getOrCreateKeyPair();
-      const dpopJkt = await this.dpopManager.getThumbprint();
-      const codeVerifier = Pkce.generateCodeVerifier();
-      const codeChallenge = await Pkce.generateCodeChallenge(codeVerifier);
-      this.redirectHelper.handlePreRedirect(state, codeVerifier);
-      window.location.assign(
-        this.urlHelper.getAuthorizeUrl(dpopJkt, codeChallenge, state),
-      );
+      this.startDpopLogin(state).catch(error => {
+        if (this.config.onLoginFailure) {
+          this.config.onLoginFailure(error as Error);
+        } else {
+          console.error('FusionAuth SDK: startLogin failed', error);
+        }
+      });
       return;
     }
 
     // Cookie mode — unchanged behavior.
     this.redirectHelper.handlePreRedirect(state);
     window.location.assign(this.urlHelper.getLoginUrl(state));
+  }
+
+  /**
+   * Performs the DPoP-mode login flow. See {@link startLogin} for the full
+   * step-by-step description. Split out as its own async method so that
+   * `startLogin()` itself can remain synchronous (`void`) while still
+   * performing the necessary async key-pair/PKCE work before redirecting.
+   */
+  private async startDpopLogin(state?: string): Promise<void> {
+    await this.dpopManager!.getOrCreateKeyPair();
+    const dpopJkt = await this.dpopManager!.getThumbprint();
+    const codeVerifier = Pkce.generateCodeVerifier();
+    const codeChallenge = await Pkce.generateCodeChallenge(codeVerifier);
+    this.redirectHelper.handlePreRedirect(state, codeVerifier);
+    window.location.assign(
+      this.urlHelper.getAuthorizeUrl(dpopJkt, codeChallenge, state),
+    );
   }
 
   startRegister(state?: string) {
