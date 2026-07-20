@@ -8,8 +8,9 @@
  * - `codeVerifier`  — PKCE `code_verifier` persisted for DPoP token exchange
  *                     (ENG-4800). Empty string when not in DPoP mode.
  * - `state`         — optional caller-supplied OAuth2 state value. May contain
- *                     colons; retrieved by joining all segments after index 1
- *                     (skipping the verifier segment).
+ *                     colons; retrieved by skipping the nonce and codeVerifier
+ *                     segments (indices 0 and 1) and joining all remaining
+ *                     segments (index 2 onward) with `:`.
  */
 export class RedirectHelper {
   private readonly REDIRECT_VALUE = 'fa-sdk-redirect-value';
