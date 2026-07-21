@@ -1,14 +1,20 @@
 /**
- * DPoP Smoke Tests — pre-SDKCore wiring + SDKCore.startLogin() integration
+ * DPoP Smoke Tests — pre-SDKCore wiring + SDKCore integration
  *
- * Tier 0 (new): Exercises SDKCore.startLogin() in DPoP mode without a live
+ * Tier 0: Exercises SDKCore.startLogin() in DPoP mode without a live
  * FusionAuth instance. Stubs window/localStorage/indexedDB to create a real
  * SDKCore, calls startLogin(), and asserts the authorize URL shape and
  * code_verifier persistence.
  *
  * Tier 1–2 (existing): Exercise DPoPManager + UrlHelper directly against a
  * real FusionAuth Enterprise instance. No quickstart app is needed — the tests
- * drive FusionAuth's hosted login UI via Playwright.
+ * drive FusionAuth's hosted login UI via Playwright. T1-2 drives the full
+ * authorization code grant through the real SDKCore.startLogin() +
+ * handlePostRedirect() (ENG-4800), rather than replicating the exchange
+ * manually — DPoPStorage namespaces its persisted key pair by `clientId`
+ * within one shared IndexedDB database, so SDKCore's internal DPoPManager
+ * transparently reuses the same key pair the shared `manager` generated in
+ * T1-1, keeping the tokens it exchanges usable by the rest of this suite.
  *
  * Run with:
  *   npx playwright test e2e/tests/dpop-smoke.test.ts \
@@ -26,7 +32,7 @@
 import { Page, expect, test } from '@playwright/test';
 import { IDBFactory } from 'fake-indexeddb';
 import { DPoPManager } from '../../packages/core/src/DPoP/DPoPManager';
-import { DPoPTokens } from '../../packages/core/src/DPoP/DPoPTokenStore';
+import { DPoPTokenStore } from '../../packages/core/src/DPoP/DPoPTokenStore';
 import { UrlHelper } from '../../packages/core/src/UrlHelper/UrlHelper';
 import { SDKCore } from '../../packages/core/src/SDKCore/SDKCore';
 import { RedirectHelper } from '../../packages/core/src/RedirectHelper/RedirectHelper';
@@ -68,6 +74,45 @@ function makeManager(): DPoPManager {
   // @ts-ignore — Node has no native indexedDB; fake-indexeddb fills the gap.
   globalThis.indexedDB = new IDBFactory();
   return new DPoPManager(CLIENT_ID, 'memory');
+}
+
+/**
+ * Idempotently polyfills `window` and `localStorage` in the Node/Playwright
+ * test process so that a real `SDKCore` (and its dependencies —
+ * `RedirectHelper`, `DPoPTokenStore`) can run outside a browser:
+ *  - `window.location.assign` — used by `SDKCore.startLogin()`.
+ *  - `window.crypto` — used by `RedirectHelper.generateRandomString()`.
+ *  - `localStorage` — used by `RedirectHelper` and `DPoPTokenStore`.
+ *
+ * Safe to call from both Tier 0 and Tier 1 — each polyfill is only
+ * installed if not already present, so repeated calls (and calls across
+ * describe blocks sharing a worker) are no-ops after the first.
+ */
+function ensureNodeBrowserPolyfills(): void {
+  if (typeof globalThis.localStorage === 'undefined') {
+    const store: Record<string, string> = {};
+    // @ts-ignore
+    globalThis.localStorage = {
+      getItem: (k: string) => store[k] ?? null,
+      setItem: (k: string, v: string) => {
+        store[k] = v;
+      },
+      removeItem: (k: string) => {
+        delete store[k];
+      },
+      clear: () => {
+        for (const k in store) delete store[k];
+      },
+    };
+  }
+
+  if (typeof globalThis.window === 'undefined') {
+    // @ts-ignore
+    globalThis.window = {
+      location: { assign: () => {} },
+      crypto: globalThis.crypto,
+    };
+  }
 }
 
 /**
@@ -213,34 +258,7 @@ test.describe('Tier 0: SDKCore.startLogin() DPoP mode', () => {
     // @ts-ignore
     globalThis.indexedDB = new IDBFactory();
 
-    // localStorage — required by RedirectHelper and DPoPTokenStore.
-    if (typeof globalThis.localStorage === 'undefined') {
-      const store: Record<string, string> = {};
-      // @ts-ignore
-      globalThis.localStorage = {
-        getItem: (k: string) => store[k] ?? null,
-        setItem: (k: string, v: string) => {
-          store[k] = v;
-        },
-        removeItem: (k: string) => {
-          delete store[k];
-        },
-        clear: () => {
-          for (const k in store) delete store[k];
-        },
-      };
-    }
-
-    // window — SDKCore calls window.location.assign and DPoPManager uses
-    // indexedDB / crypto globals that browsers expose via window. We stub
-    // window with the minimal surface SDKCore touches.
-    if (typeof globalThis.window === 'undefined') {
-      // @ts-ignore
-      globalThis.window = {
-        location: { assign: () => {} },
-        crypto: globalThis.crypto,
-      };
-    }
+    ensureNodeBrowserPolyfills();
   });
 
   test.afterEach(() => {
@@ -368,6 +386,7 @@ test.describe('DPoP smoke tests', () => {
     context = await browser.newContext();
     page = await context.newPage();
     manager = makeManager();
+    ensureNodeBrowserPolyfills();
   });
 
   test.afterAll(async () => {
@@ -403,77 +422,102 @@ test.describe('DPoP smoke tests', () => {
     await expect(page.locator('#loginId')).toBeVisible();
   });
 
-  test('T1-2: full authorization code exchange — token_type is DPoP, cnf.jkt matches thumbprint', async () => {
-    const verifier = generateCodeVerifier();
-    const challenge = await generateCodeChallenge(verifier);
-    thumbprint = await manager.getThumbprint();
+  test('T1-2: full authorization code grant via SDKCore.startLogin() + handlePostRedirect() — token_type is DPoP, cnf.jkt matches thumbprint', async () => {
+    const STATE = 'e2e-t1-2-state';
 
-    const urlHelper = new UrlHelper({
+    ensureNodeBrowserPolyfills();
+
+    // A real SDKCore in DPoP mode, running in the Node/Playwright test
+    // process (see ensureNodeBrowserPolyfills). `dpopTokenStorage:
+    // 'localStorage'` so the exchanged tokens can be read back directly —
+    // SDKCore.getAccessToken() doesn't exist yet (ENG-4802).
+    let notify:
+      ((result: { state?: string } | { error: Error }) => void) | undefined;
+
+    const core = new SDKCore({
       serverUrl: FA_URL,
       clientId: CLIENT_ID,
       redirectUri: REDIRECT_URI,
       scope: SCOPE,
+      useDpop: true,
+      dpopTokenStorage: 'localStorage',
+      onTokenExpiration: () => {},
+      // handlePostRedirect() reports exchange failures here instead of
+      // throwing — wire it into the same single-shot `notify` used by the
+      // handlePostRedirect() callback below so either outcome resolves the
+      // same promise.
+      onLoginFailure: error => notify?.({ error }),
     });
 
-    const authorizeUrl = urlHelper
-      .getAuthorizeUrl(thumbprint, challenge)
-      .toString();
+    // startLogin() kicks off an async chain (key pair, PKCE, etc.) and
+    // redirects via window.location.assign() — capture the assigned URL.
+    const { assign, waitForUrl } = createAssignWaiter();
+    // @ts-ignore
+    globalThis.window.location = { assign };
+
+    core.startLogin(STATE);
+    // waitForUrl()'s declared return type is `string`, but SDKCore actually
+    // calls window.location.assign() with a URL object (UrlHelper.getAuthorizeUrl()
+    // returns URL) — stringify explicitly so page.goto() below (which requires
+    // a real string) doesn't silently fail navigation.
+    const authorizeUrl = String(await waitForUrl());
 
     // Navigate fresh — T1-1 may have left the page in a redirected state.
     await page.goto('about:blank');
     const code = await loginAndCaptureCode(page, authorizeUrl);
 
-    // Exchange the code at the token endpoint using a real DPoP proof.
-    const proof = await manager.generateProof(TOKEN_ENDPOINT, 'POST');
-
-    const body = new URLSearchParams({
-      grant_type: 'authorization_code',
-      code,
-      code_verifier: verifier,
-      client_id: CLIENT_ID,
-      redirect_uri: REDIRECT_URI,
-    });
-
-    const response = await fetch(TOKEN_ENDPOINT, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-        DPoP: proof,
-      },
-      body: body.toString(),
-    });
-
-    const responseText = await response.text();
-    expect(response.status, `Token exchange failed: ${responseText}`).toBe(200);
-
-    const tokenResponse = JSON.parse(responseText) as {
-      access_token: string;
-      refresh_token?: string;
-      token_type: string;
-      expires_in: number;
+    // Simulate landing back on the redirect URI with ?code=... in the query
+    // string, then let handlePostRedirect() run the real exchange.
+    // @ts-ignore
+    globalThis.window.location = {
+      assign: () => {},
+      search: `?code=${code}`,
     };
 
+    const outcome = await new Promise<{ state?: string } | { error: Error }>(
+      (resolve, reject) => {
+        const timeout = setTimeout(
+          () => reject(new Error('Timed out waiting for handlePostRedirect()')),
+          15_000,
+        );
+        notify = result => {
+          clearTimeout(timeout);
+          resolve(result);
+        };
+        core.handlePostRedirect(state => notify?.({ state }));
+      },
+    );
+
+    if ('error' in outcome) {
+      throw outcome.error;
+    }
+    // state round-trips through RedirectHelper's persisted storage.
+    expect(outcome.state).toBe(STATE);
+    expect(core.isLoggedIn).toBe(true);
+
+    // Read the tokens SDKCore just persisted, directly via DPoPTokenStore
+    // (same clientId/storage mode SDKCore's internal DPoPManager used).
+    const tokenStore = new DPoPTokenStore(CLIENT_ID, 'localStorage');
+    const tokens = tokenStore.get();
+    expect(tokens).not.toBeNull();
+
     // token_type must be 'DPoP' — proves FusionAuth recognised and bound the proof.
-    expect(tokenResponse.token_type.toLowerCase()).toBe('dpop');
-    expect(tokenResponse.access_token).toBeDefined();
+    expect(tokens!.tokenType).toBe('DPoP');
+    expect(tokens!.accessToken).toBeDefined();
 
     // Decode the access token and verify cnf.jkt matches our key's thumbprint.
-    const atPayload = decodeJwt(tokenResponse.access_token);
+    // SDKCore's internal DPoPManager transparently reused the key pair the
+    // shared `manager` persisted in T1-1 (DPoPStorage namespaces by
+    // clientId within one shared IndexedDB database).
+    const atPayload = decodeJwt(tokens!.accessToken);
     expect(atPayload.cnf).toBeDefined();
     expect((atPayload.cnf as { jkt: string }).jkt).toBe(thumbprint);
 
-    // Persist tokens for subsequent tests.
-    accessToken = tokenResponse.access_token;
-    refreshToken = tokenResponse.refresh_token ?? '';
-
-    const expiresAt = Date.now() + tokenResponse.expires_in * 1000;
-    const tokens: DPoPTokens = {
-      accessToken,
-      refreshToken: refreshToken || undefined,
-      expiresAt,
-      tokenType: 'DPoP',
-    };
-    manager.setTokens(tokens);
+    // Persist tokens for subsequent tests — same key pair as `manager`, so
+    // proofs `manager` signs for these tokens remain valid.
+    accessToken = tokens!.accessToken;
+    refreshToken = tokens!.refreshToken ?? '';
+    manager.setTokens(tokens!);
 
     expect(manager.isLoggedIn).toBe(true);
   });

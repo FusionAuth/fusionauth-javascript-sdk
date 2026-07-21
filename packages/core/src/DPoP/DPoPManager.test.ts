@@ -534,6 +534,33 @@ describe('fetch()', () => {
 });
 
 // ---------------------------------------------------------------------------
+// getExpiresAt()
+// ---------------------------------------------------------------------------
+
+describe('getExpiresAt()', () => {
+  it('returns -1 when no tokens are stored', () => {
+    const manager = makeManager();
+    expect(manager.getExpiresAt()).toBe(-1);
+  });
+
+  it('returns the expiresAt of the stored tokens', () => {
+    const manager = makeManager();
+    const expiresAt = Date.now() + 60_000;
+    manager.setTokens(makeTokens({ expiresAt }));
+    expect(manager.getExpiresAt()).toBe(expiresAt);
+  });
+
+  it('returns -1 after clear()', async () => {
+    const manager = makeManager();
+    manager.setTokens(makeTokens());
+
+    await manager.clear();
+
+    expect(manager.getExpiresAt()).toBe(-1);
+  });
+});
+
+// ---------------------------------------------------------------------------
 // clear()
 // ---------------------------------------------------------------------------
 

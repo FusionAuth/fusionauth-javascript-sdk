@@ -184,6 +184,19 @@ describe('UrlHelper', () => {
       expect(registerUrl.pathname).toBe('/app/register/');
     });
   });
+
+  describe('getTokenUrl', () => {
+    it('targets the FusionAuth /oauth2/token endpoint directly', () => {
+      const tokenUrl = urlHelper.getTokenUrl();
+      expect(tokenUrl.origin).toBe(config.serverUrl);
+      expect(tokenUrl.pathname).toBe('/oauth2/token');
+    });
+
+    it('has no query params — request params are sent in the POST body', () => {
+      const tokenUrl = urlHelper.getTokenUrl();
+      expect(tokenUrl.search).toBe('');
+    });
+  });
 });
 
 function getAllUrls(urlHelper: UrlHelper) {
