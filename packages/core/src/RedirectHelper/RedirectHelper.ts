@@ -5,8 +5,8 @@
  * Storage format: `${randomNonce}:${codeVerifier ?? ''}:${state ?? ''}`
  *
  * - `randomNonce`   — prevents replay; marks that a redirect was initiated.
- * - `codeVerifier`  — PKCE `code_verifier` persisted for DPoP token exchange
- *                     (ENG-4800). Empty string when not in DPoP mode.
+ * - `codeVerifier`  — PKCE `code_verifier` persisted for DPoP token exchange.
+ *                     Empty string when not in DPoP mode.
  * - `state`         — optional caller-supplied OAuth2 state value. May contain
  *                     colons; retrieved by skipping the nonce and codeVerifier
  *                     segments (indices 0 and 1) and joining all remaining

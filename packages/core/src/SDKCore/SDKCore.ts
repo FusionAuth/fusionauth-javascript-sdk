@@ -67,7 +67,7 @@ export class SDKCore {
    * promise rejection.
    *
    * In cookie mode: behaves identically to the previous implementation —
-   * delegates to the companion app server's login path, fully synchronously.
+   * delegates to the Hosted Backend API, fully synchronously.
    *
    * @param state  Optional OAuth2 state value echoed back post-login.
    */
