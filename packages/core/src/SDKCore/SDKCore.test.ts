@@ -379,7 +379,7 @@ describe('SDKCore', () => {
     });
 
     // -------------------------------------------------------------------------
-    // handlePostRedirect() — authorization code exchange (ENG-4800)
+    // handlePostRedirect() — authorization code exchange
     // -------------------------------------------------------------------------
 
     describe('handlePostRedirect() in DPoP mode', () => {
@@ -564,7 +564,7 @@ describe('SDKCore', () => {
         );
         // Avoid an actual (cookie-mode) network call from the real
         // refreshToken() — DPoP mode's refreshToken() is implemented in a
-        // later ticket (ENG-4801). We only assert *that* a refresh was
+        // later ticket. We only assert *that* a refresh was
         // scheduled and fires at the right time.
         const refreshToken = vi
           .spyOn(SDKCore.prototype, 'refreshToken')
