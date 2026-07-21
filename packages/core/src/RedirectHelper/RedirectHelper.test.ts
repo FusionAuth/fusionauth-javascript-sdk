@@ -140,4 +140,61 @@ describe('RedirectHelper', () => {
       expect(helper.getCodeVerifier()).toBeUndefined();
     });
   });
+
+  // ---------------------------------------------------------------------------
+  // Legacy 2-segment format (nonce:state) backward-compatibility
+  //
+  // Pre-DPoP SDK versions wrote `${nonce}:${state}` (2 segments) instead of
+  // the current `${nonce}:${codeVerifier}:${state}` (3 segments). A value in
+  // this legacy format can still be sitting in localStorage if a user
+  // initiates a login redirect on an older SDK version and the app is
+  // upgraded to a newer version before they land back (e.g. a deploy that
+  // happens while they're on FusionAuth's hosted login page). These tests
+  // seed localStorage directly with the legacy format to simulate that.
+  // ---------------------------------------------------------------------------
+
+  describe('legacy 2-segment format backward-compatibility', () => {
+    it('handlePostRedirect() invokes the callback with the legacy state value', () => {
+      const helper = new RedirectHelper();
+      const callback = vi.fn();
+
+      localStorage.setItem(
+        'fa-sdk-redirect-value',
+        'legacy-nonce:legacy-state',
+      );
+      helper.handlePostRedirect(callback);
+
+      expect(callback).toHaveBeenCalledWith('legacy-state');
+    });
+
+    it('handlePostRedirect() invokes the callback with undefined for an empty legacy state', () => {
+      const helper = new RedirectHelper();
+      const callback = vi.fn();
+
+      localStorage.setItem('fa-sdk-redirect-value', 'legacy-nonce:');
+      helper.handlePostRedirect(callback);
+
+      expect(callback).toHaveBeenCalledWith(undefined);
+    });
+
+    it('removes the legacy redirect marker from localStorage after post-redirect', () => {
+      localStorage.setItem(
+        'fa-sdk-redirect-value',
+        'legacy-nonce:legacy-state',
+      );
+
+      new RedirectHelper().handlePostRedirect();
+
+      expect(localStorage.getItem('fa-sdk-redirect-value')).toBeNull();
+    });
+
+    it('getCodeVerifier() returns undefined for a legacy value (never carried a verifier)', () => {
+      localStorage.setItem(
+        'fa-sdk-redirect-value',
+        'legacy-nonce:legacy-state',
+      );
+
+      expect(new RedirectHelper().getCodeVerifier()).toBeUndefined();
+    });
+  });
 });

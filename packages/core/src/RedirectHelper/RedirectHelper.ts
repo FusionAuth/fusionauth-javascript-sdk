@@ -64,6 +64,12 @@ export class RedirectHelper {
     const raw = this.storage.getItem(this.REDIRECT_VALUE);
     if (!raw) return undefined;
 
+    // Legacy 2-segment format (nonce:state) from pre-DPoP SDK versions never
+    // carried a code_verifier. Guard against misreading a fragment of a
+    // legacy state value as a verifier — see the `state` getter below for the
+    // full rationale of this legacy-format detection.
+    if (raw.split(':').length === 2) return undefined;
+
     // Format: randomNonce:codeVerifier:state
     const firstColon = raw.indexOf(':');
     if (firstColon === -1) return undefined;
@@ -80,10 +86,31 @@ export class RedirectHelper {
     const redirectValue = this.storage.getItem(this.REDIRECT_VALUE);
     if (!redirectValue) return undefined;
 
-    // Format: randomNonce:codeVerifier:state
+    const segments = redirectValue.split(':');
+
+    // Legacy 2-segment format (nonce:state) from pre-DPoP SDK versions.
+    // Exactly one colon can only be this legacy format — the current writer
+    // always produces at least two colons (it always includes a
+    // codeVerifier segment, even when empty). This preserves `state` for
+    // users who initiate a login redirect on an older SDK version and land
+    // back on a newer one (e.g. an app deploy that happens while they're on
+    // FusionAuth's hosted login page).
+    //
+    // Known limitation: if a legacy state value itself contained a colon
+    // (e.g. old state "return:/page" stored as "nonce:return:/page"), it is
+    // indistinguishable from a current-format value with a non-empty
+    // codeVerifier and simple state. This ambiguity is inherent to a
+    // delimiter-based format without a version marker and is accepted as an
+    // edge case, given the narrow window (a single redirect round-trip) and
+    // that state values are typically simple opaque strings/paths.
+    if (segments.length === 2) {
+      return segments[1] || undefined;
+    }
+
+    // Current format: randomNonce:codeVerifier:state
     // Skip the nonce segment and the codeVerifier segment; join remainder with
     // ':' to correctly reconstruct state values that themselves contain colons.
-    const [, , ...stateSegments] = redirectValue.split(':');
+    const [, , ...stateSegments] = segments;
     return stateSegments.join(':') || undefined;
   }
 
