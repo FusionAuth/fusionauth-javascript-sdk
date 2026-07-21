@@ -9,11 +9,6 @@ import { DPoPTokenStore, DPoPTokens } from './DPoPTokenStore';
  *
  * `SDKCore` constructs a `DPoPManager` instance when `useDpop: true`. Framework
  * layers hold a reference to expose `dpopFetch` and `generateProof`.
- *
- * Internal structure:
- * - `DPoPStorage`   — IndexedDB persistence for the ES256 `CryptoKeyPair`
- * - `DPoPTokenStore` — access/refresh token storage (localStorage or memory)
- * - `nonces`        — in-memory `Map<string, string>` of per-origin DPoP nonces
  */
 export class DPoPManager {
   private readonly tokenStore: DPoPTokenStore;

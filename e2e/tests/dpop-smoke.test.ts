@@ -185,11 +185,7 @@ test.describe('DPoP smoke tests', () => {
     await context?.close();
   });
 
-  // -------------------------------------------------------------------------
-  // Tier 1 — Authorization code flow
-  // -------------------------------------------------------------------------
-
-  test('T1-1: getAuthorizeUrl() produces a URL FusionAuth accepts (login page rendered)', async () => {
+  test('getAuthorizeUrl() produces a URL FusionAuth accepts (login page rendered)', async () => {
     thumbprint = await manager.getThumbprint();
     const { challenge } = await generatePkce();
 
@@ -212,7 +208,7 @@ test.describe('DPoP smoke tests', () => {
     await expect(page.locator('#loginId')).toBeVisible();
   });
 
-  test('T1-2: full authorization code exchange — token_type is DPoP, cnf.jkt matches thumbprint', async () => {
+  test('full authorization code exchange — token_type is DPoP, cnf.jkt matches thumbprint', async () => {
     const { verifier, challenge } = await generatePkce();
     thumbprint = await manager.getThumbprint();
 
@@ -227,7 +223,7 @@ test.describe('DPoP smoke tests', () => {
       .getAuthorizeUrl(thumbprint, challenge)
       .toString();
 
-    // Navigate fresh — T1-1 may have left the page in a redirected state.
+    // Navigate fresh
     await page.goto('about:blank');
     const code = await loginAndCaptureCode(page, authorizeUrl);
 
@@ -286,7 +282,7 @@ test.describe('DPoP smoke tests', () => {
     expect(manager.isLoggedIn).toBe(true);
   });
 
-  test('T1-3: refresh token grant — issues new DPoP-bound tokens', async () => {
+  test('refresh token grant — issues new DPoP-bound tokens', async () => {
     test.skip(!refreshToken, 'No refresh token from previous test');
 
     const proof = await manager.generateProof(TOKEN_ENDPOINT, 'POST');
@@ -339,18 +335,14 @@ test.describe('DPoP smoke tests', () => {
     });
   });
 
-  // -------------------------------------------------------------------------
-  // Tier 2 — Resource access via DPoPManager.fetch()
-  // -------------------------------------------------------------------------
-
-  test('T2-1: DPoPManager.fetch() calls /oauth2/userinfo with correct DPoP headers and gets user claims', async () => {
+  test('DPoPManager.fetch() calls /oauth2/userinfo with correct DPoP headers and gets user claims', async () => {
     test.skip(!accessToken, 'No access token from previous test');
 
     // DPoPManager.fetch() runs in the Node test process, not the browser page,
     // so Playwright route interception can't observe its outgoing headers.
     // Correctness is validated end-to-end instead: FusionAuth verifies ath,
     // cnf.jkt, htu, and htm server-side, so a 200 here proves the real proof
-    // was accepted. T2-2 validates the proof's claims directly by decoding it.
+    // was accepted.
     const fetchResponse = await manager.fetch(USERINFO_ENDPOINT);
 
     expect(
@@ -365,7 +357,7 @@ test.describe('DPoP smoke tests', () => {
     expect(userInfo.sub).toBeDefined();
   });
 
-  test('T2-2: DPoPManager.fetch() proof carries correct htu and ath claims', async () => {
+  test('DPoPManager.fetch() proof carries correct htu and ath claims', async () => {
     test.skip(!accessToken, 'No access token from previous test');
 
     // We can validate proof claims by asking DPoPManager to generate a proof
@@ -393,7 +385,7 @@ test.describe('DPoP smoke tests', () => {
     expect(proofPayload.ath).toBe(expectedAth);
   });
 
-  test('T2-3: nonce retry — DPoPManager.fetch() retries once if /oauth2/userinfo challenges with use_dpop_nonce', async () => {
+  test('nonce retry — DPoPManager.fetch() retries once if /oauth2/userinfo challenges with use_dpop_nonce', async () => {
     test.skip(!accessToken, 'No access token from previous test');
 
     // Whether FusionAuth /oauth2/userinfo actually issues a nonce challenge is
@@ -437,11 +429,7 @@ test.describe('DPoP smoke tests', () => {
     }
   });
 
-  // -------------------------------------------------------------------------
-  // Tier 1 — Logout / clear
-  // -------------------------------------------------------------------------
-
-  test('T1-4: clear() removes key pair, tokens, and nonces — isLoggedIn becomes false', async () => {
+  test('clear() removes key pair, tokens, and nonces — isLoggedIn becomes false', async () => {
     expect(manager.isLoggedIn).toBe(true);
 
     await manager.clear();
