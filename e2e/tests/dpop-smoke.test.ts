@@ -100,6 +100,8 @@ function ensureNodeBrowserPolyfills(): void {
     globalThis.window = {
       location: { assign: () => {} },
       crypto: globalThis.crypto,
+      // Needed by SDKCore.clearRedirectQueryParams() (history.replaceState).
+      history: { replaceState: () => {} },
     };
   }
 }
@@ -441,10 +443,24 @@ test.describe('DPoP smoke tests', () => {
 
     // Simulate landing back on the redirect URI with ?code=... in the query
     // string, then let handlePostRedirect() run the real exchange.
+    // origin/pathname/hash are needed by SDKCore.clearRedirectQueryParams(),
+    // which rebuilds the URL from these parts (not .href) after a
+    // successful exchange, to strip code/state via history.replaceState().
+    const redirectUrl = new URL(REDIRECT_URI);
+    const replaceStateCalls: string[] = [];
     // @ts-ignore
     globalThis.window.location = {
       assign: () => {},
+      origin: redirectUrl.origin,
+      pathname: redirectUrl.pathname,
+      hash: '',
       search: `?code=${code}`,
+    };
+    // @ts-ignore
+    globalThis.window.history = {
+      replaceState: (_state: unknown, _title: string, url?: string | URL) => {
+        if (url) replaceStateCalls.push(url.toString());
+      },
     };
 
     const outcome = await new Promise<{ state?: string } | { error: Error }>(
@@ -467,6 +483,14 @@ test.describe('DPoP smoke tests', () => {
     // state round-trips through RedirectHelper's persisted storage.
     expect(outcome.state).toBe(STATE);
     expect(core.isLoggedIn).toBe(true);
+
+    // code/state were stripped from the URL via history.replaceState() once
+    // the exchange succeeded, so they don't linger in the address bar,
+    // browser history, referrers, logs, or screenshots.
+    expect(replaceStateCalls).toHaveLength(1);
+    const cleanedUrl = new URL(replaceStateCalls[0]!);
+    expect(cleanedUrl.searchParams.get('code')).toBeNull();
+    expect(cleanedUrl.searchParams.get('state')).toBeNull();
 
     // Read the tokens SDKCore just persisted, directly via DPoPTokenStore
     // (same clientId/storage mode SDKCore's internal DPoPManager used).
