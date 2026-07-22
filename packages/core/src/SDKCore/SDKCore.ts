@@ -240,6 +240,11 @@ export class SDKCore {
   private async handleDpopPostRedirect(
     callback?: (state?: string) => void,
   ): Promise<void> {
+    // SSR/non-browser guard
+    if (typeof window === 'undefined') {
+      return;
+    }
+
     const code = new URLSearchParams(window.location.search).get('code');
     const codeVerifier = this.redirectHelper.getCodeVerifier();
 
@@ -292,12 +297,24 @@ export class SDKCore {
       tokenType: 'DPoP',
     });
 
+    this.clearRedirectQueryParams();
     this.scheduleTokenExpiration();
     if (this.config.shouldAutoRefresh) {
       this.initAutoRefresh();
     }
 
     this.redirectHelper.handlePostRedirect(callback);
+  }
+
+  /**
+   * Removes `code` and `state` from the current URL regarding security.
+   */
+  private clearRedirectQueryParams(): void {
+    const { origin, pathname, search, hash } = window.location;
+    const url = new URL(`${origin}${pathname}${search}${hash}`);
+    url.searchParams.delete('code');
+    url.searchParams.delete('state');
+    window.history.replaceState(null, '', url.toString());
   }
 
   /**

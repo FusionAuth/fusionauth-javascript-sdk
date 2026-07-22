@@ -521,6 +521,54 @@ describe('SDKCore', () => {
         expect(redirectIndicator()).toBeNull();
       });
 
+      it('strips code and state from the URL via history.replaceState() after a successful exchange', async () => {
+        mockDpopLoginDependencies();
+        vi.spyOn(DPoPManager.prototype, 'generateProof').mockResolvedValue(
+          MOCK_PROOF,
+        );
+        const replaceState = vi.spyOn(window.history, 'replaceState');
+
+        const core = new SDKCore(dpopConfig);
+        const location = mockWindowLocation(vi);
+        core.startLogin('my-post-redirect-state');
+        await vi.waitFor(() => expect(location.assign).toHaveBeenCalledOnce());
+        location.search = `?code=${MOCK_CODE}&state=my-post-redirect-state`;
+        mockTokenResponse();
+
+        core.handlePostRedirect();
+        await vi.waitFor(() => expect(core.isLoggedIn).toBe(true));
+
+        expect(replaceState).toHaveBeenCalledOnce();
+        const [, , url] = replaceState.mock.calls[0];
+        const cleanedUrl = new URL(url as string);
+        expect(cleanedUrl.searchParams.get('code')).toBeNull();
+        expect(cleanedUrl.searchParams.get('state')).toBeNull();
+      });
+
+      it('does not throw or report a failure when window is undefined (SSR)', async () => {
+        // Some framework layers (e.g. Angular's FusionAuthService) call
+        // handlePostRedirect() unconditionally from their constructor, which
+        // also runs during SSR — window is not defined in that environment.
+        const consoleError = vi
+          .spyOn(console, 'error')
+          .mockImplementation(() => {});
+        const onLoginFailure = vi.fn();
+        const core = new SDKCore({ ...dpopConfig, onLoginFailure });
+        const onRedirect = vi.fn();
+
+        vi.stubGlobal('window', undefined);
+        try {
+          core.handlePostRedirect(onRedirect);
+          await Promise.resolve();
+        } finally {
+          vi.unstubAllGlobals();
+        }
+
+        expect(onRedirect).not.toHaveBeenCalled();
+        expect(onLoginFailure).not.toHaveBeenCalled();
+        expect(consoleError).not.toHaveBeenCalled();
+      });
+
       it('schedules token expiration from expires_in', async () => {
         vi.useFakeTimers();
         mockDpopLoginDependencies();
