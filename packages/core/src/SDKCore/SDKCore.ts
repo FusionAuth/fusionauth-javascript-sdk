@@ -66,8 +66,7 @@ export class SDKCore {
    * (or `console.error` if not configured) rather than becoming an unhandled
    * promise rejection.
    *
-   * In cookie mode: behaves identically to the previous implementation —
-   * delegates to the Hosted Backend API, fully synchronously.
+   * In cookie mode: delegates to the Hosted Backend API, fully synchronously.
    *
    * @param state  Optional OAuth2 state value echoed back post-login.
    */
