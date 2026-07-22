@@ -202,19 +202,8 @@ export class SDKCore {
    * Handles the return trip from a login/register redirect.
    *
    * In DPoP mode (`useDpop: true`), this synchronously returns after
-   * kicking off an async chain that:
-   * 1. Detects the `code` query parameter on the current URL.
-   * 2. Retrieves the persisted PKCE `code_verifier`.
-   * 3. Exchanges the code for tokens at FusionAuth's `/oauth2/token`,
-   *    signing the request with a DPoP proof (no `ath`, since this is a
-   *    token endpoint request, not a resource server request).
-   * 4. Stores the returned tokens via `DPoPManager.setTokens()`.
-   * 5. Schedules token expiration and (if `shouldAutoRefresh`) auto-refresh
-   *    from the tokens' `expiresAt`.
-   * 6. Invokes `callback` with the `state` value and cleans up the
-   *    redirect marker, via `RedirectHelper.handlePostRedirect()`.
-   *
-   * In cookie mode: behaves identically to the previous implementation.
+   * kicking off an async chain, otherwise continue using the Hosted
+   * Backend API.
    */
   handlePostRedirect(callback?: (state?: string) => void): void {
     if (this.dpopManager) {
@@ -234,8 +223,19 @@ export class SDKCore {
   }
 
   /**
-   * Performs the DPoP-mode authorization code exchange. See
-   * {@link handlePostRedirect} for the full step-by-step description.
+   * Performs the DPoP-mode authorization code exchange. The full
+   * step-by-step description:
+   *
+   * 1. Detects the `code` query parameter on the current URL.
+   * 2. Retrieves the persisted PKCE `code_verifier`.
+   * 3. Exchanges the code for tokens at FusionAuth's `/oauth2/token`,
+   *    signing the request with a DPoP proof (no `ath`, since this is a
+   *    token endpoint request, not a resource server request).
+   * 4. Stores the returned tokens via `DPoPManager.setTokens()`.
+   * 5. Schedules token expiration and (if `shouldAutoRefresh`) auto-refresh
+   *    from the tokens' `expiresAt`.
+   * 6. Invokes `callback` with the `state` value and cleans up the
+   *    redirect marker, via `RedirectHelper.handlePostRedirect()`.
    */
   private async handleDpopPostRedirect(
     callback?: (state?: string) => void,
@@ -248,9 +248,7 @@ export class SDKCore {
     const code = new URLSearchParams(window.location.search).get('code');
     const codeVerifier = this.redirectHelper.getCodeVerifier();
 
-    // No pending exchange (no code), or it was already handled (the
-    // redirect marker — and therefore the code_verifier — is cleared by
-    // handlePostRedirect() below once an exchange succeeds).
+    // No pending exchange
     if (!code || !codeVerifier) {
       return;
     }
