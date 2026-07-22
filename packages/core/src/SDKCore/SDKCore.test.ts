@@ -139,8 +139,6 @@ describe('SDKCore', () => {
 
     expect(handlePreRedirect).toHaveBeenCalledTimes(0);
 
-    // startLogin is synchronous in cookie mode — side-effects
-    // (handlePreRedirect, window.location.assign) fire immediately.
     core.startLogin('/login');
     core.startRegister();
 
@@ -175,17 +173,6 @@ describe('SDKCore', () => {
 
     expect(onRedirect).not.toHaveBeenCalled();
   });
-
-  // ---------------------------------------------------------------------------
-  // DPoP mode
-  //
-  // DPoPManager methods and Pkce functions are mocked here because jsdom's
-  // crypto implementation lacks `crypto.subtle`, which is required for both
-  // DPoP key-pair generation and PKCE SHA-256 challenge derivation. The
-  // per-module unit tests (DPoPManager.test.ts, Pkce.test.ts) run under
-  // @vitest-environment node where real WebCrypto is available and verify the
-  // cryptographic correctness of those operations.
-  // ---------------------------------------------------------------------------
 
   describe('DPoP mode', () => {
     const MOCK_JKT = 'mock-dpop-jkt-thumbprint';
