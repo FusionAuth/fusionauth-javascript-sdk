@@ -51,10 +51,6 @@ function makeResponse(
   return new Response(body ?? null, { status, headers });
 }
 
-// ---------------------------------------------------------------------------
-// Test setup
-// ---------------------------------------------------------------------------
-
 beforeEach(() => {
   // Provide a fresh in-process IndexedDB for each test so tests are isolated.
   // @ts-ignore — the node environment does not implement indexedDB; fake-indexeddb fills the gap.
@@ -84,10 +80,6 @@ beforeEach(() => {
 afterEach(() => {
   vi.restoreAllMocks();
 });
-
-// ---------------------------------------------------------------------------
-// getOrCreateKeyPair()
-// ---------------------------------------------------------------------------
 
 describe('getOrCreateKeyPair()', () => {
   it('generates and persists a key pair on the first call', async () => {
@@ -139,10 +131,6 @@ describe('getOrCreateKeyPair()', () => {
     expect(second).not.toBe(first);
   });
 });
-
-// ---------------------------------------------------------------------------
-// generateProof()
-// ---------------------------------------------------------------------------
 
 describe('generateProof()', () => {
   it('produces a well-formed DPoP proof JWT with correct htu and htm', async () => {
@@ -249,10 +237,6 @@ describe('generateProof()', () => {
     expect(payload.nonce).toBeUndefined();
   });
 });
-
-// ---------------------------------------------------------------------------
-// fetch()
-// ---------------------------------------------------------------------------
 
 describe('fetch()', () => {
   it('sets DPoP header on outgoing requests', async () => {
@@ -533,10 +517,6 @@ describe('fetch()', () => {
   });
 });
 
-// ---------------------------------------------------------------------------
-// getExpiresAt()
-// ---------------------------------------------------------------------------
-
 describe('getExpiresAt()', () => {
   it('returns -1 when no tokens are stored', () => {
     const manager = makeManager();
@@ -559,10 +539,6 @@ describe('getExpiresAt()', () => {
     expect(manager.getExpiresAt()).toBe(-1);
   });
 });
-
-// ---------------------------------------------------------------------------
-// clear()
-// ---------------------------------------------------------------------------
 
 describe('clear()', () => {
   it('removes the key pair from DPoPStorage', async () => {

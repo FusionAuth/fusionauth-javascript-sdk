@@ -1,26 +1,19 @@
 /**
  * DPoP Smoke Tests — pre-SDKCore wiring + SDKCore integration
  *
- * Tier 0: Exercises SDKCore.startLogin() in DPoP mode without a live
+ * Exercises SDKCore.startLogin() in DPoP mode with a live
  * FusionAuth instance. Stubs window/localStorage/indexedDB to create a real
  * SDKCore, calls startLogin(), and asserts the authorize URL shape and
  * code_verifier persistence.
  *
- * Tier 1–2 (existing): Exercise DPoPManager + UrlHelper directly against a
- * real FusionAuth Enterprise instance. No quickstart app is needed — the tests
- * drive FusionAuth's hosted login UI via Playwright. T1-2 drives the full
- * authorization code grant through the real SDKCore.startLogin() +
- * handlePostRedirect() (ENG-4800), rather than replicating the exchange
- * manually — DPoPStorage namespaces its persisted key pair by `clientId`
- * within one shared IndexedDB database, so SDKCore's internal DPoPManager
- * transparently reuses the same key pair the shared `manager` generated in
- * T1-1, keeping the tokens it exchanges usable by the rest of this suite.
+ * Exercise DPoPManager + UrlHelper directly against a
+ * real FusionAuth instance.
  *
  * Run with:
  *   npx playwright test e2e/tests/dpop-smoke.test.ts \
  *     --config playwright.dpop.config.ts
  *
- * Prerequisites (Tier 1–2 only):
+ * Prerequisites:
  *   - FusionAuth Enterprise instance running at http://localhost:9011
  *   - Application baf3d520-40d7-4000-9b62-e6a7d0091102 configured with:
  *       proofKeyForCodeExchangePolicy: Required
@@ -83,10 +76,6 @@ function makeManager(): DPoPManager {
  *  - `window.location.assign` — used by `SDKCore.startLogin()`.
  *  - `window.crypto` — used by `RedirectHelper.generateRandomString()`.
  *  - `localStorage` — used by `RedirectHelper` and `DPoPTokenStore`.
- *
- * Safe to call from both Tier 0 and Tier 1 — each polyfill is only
- * installed if not already present, so repeated calls (and calls across
- * describe blocks sharing a worker) are no-ops after the first.
  */
 function ensureNodeBrowserPolyfills(): void {
   if (typeof globalThis.localStorage === 'undefined') {
@@ -121,7 +110,7 @@ function ensureNodeBrowserPolyfills(): void {
  *
  * `SDKCore.startLogin()` is synchronous (`void`) — in DPoP mode it kicks off
  * an async chain (key-pair generation, PKCE, etc.) internally and does not
- * return a promise the caller can await. This helper lets Tier 0 tests wait
+ * return a promise the caller can await. This helper waits
  * deterministically for that async chain to complete (signaled by
  * `window.location.assign` being called) instead of awaiting `startLogin()`
  * directly.
@@ -231,15 +220,7 @@ async function loginAndCaptureCode(
   ]);
 }
 
-// ---------------------------------------------------------------------------
-// Tier 0 — SDKCore.startLogin() DPoP mode (no live FusionAuth required)
-// ---------------------------------------------------------------------------
-
-test.describe('Tier 0: SDKCore.startLogin() DPoP mode', () => {
-  // SDKConfig used by every T0 test. The cookieAdapter returning undefined
-  // prevents SDKCore from calling document.cookie (which doesn't exist in the
-  // Node/Playwright process) and eliminates the "Error accessing cookies"
-  // console.error noise from CookieHelpers.getAccessTokenExpirationMoment().
+test.describe('SDKCore.startLogin() DPoP mode', () => {
   const DPOP_CONFIG = {
     serverUrl: FA_URL,
     clientId: CLIENT_ID,
@@ -269,7 +250,7 @@ test.describe('Tier 0: SDKCore.startLogin() DPoP mode', () => {
     globalThis.indexedDB = new IDBFactory();
   });
 
-  test('T0-1: startLogin() redirects to /oauth2/authorize with dpop_jkt and code_challenge', async () => {
+  test('startLogin() redirects to /oauth2/authorize with dpop_jkt and code_challenge', async () => {
     const { assign, waitForUrl } = createAssignWaiter();
     // @ts-ignore
     globalThis.window.location = { assign };
@@ -299,7 +280,7 @@ test.describe('Tier 0: SDKCore.startLogin() DPoP mode', () => {
     expect(codeChallenge).toMatch(/^[A-Za-z0-9\-_]{43}$/);
   });
 
-  test('T0-2: startLogin() persists code_verifier and state via RedirectHelper', async () => {
+  test('startLogin() persists code_verifier and state via RedirectHelper', async () => {
     const STATE = 'e2e-smoke-state';
     const { assign, waitForUrl } = createAssignWaiter();
     // @ts-ignore
@@ -327,7 +308,7 @@ test.describe('Tier 0: SDKCore.startLogin() DPoP mode', () => {
     expect(url.searchParams.get('code_challenge')).toBe(expectedChallenge);
   });
 
-  test('T0-3: two startLogin() calls produce different key pairs and PKCE values', async () => {
+  test('two startLogin() calls produce different key pairs and PKCE values', async () => {
     const core1 = new SDKCore(DPOP_CONFIG);
 
     // Each SDKCore gets its own DPoPManager with its own key pair.
@@ -365,10 +346,6 @@ test.describe('Tier 0: SDKCore.startLogin() DPoP mode', () => {
   });
 });
 
-// ---------------------------------------------------------------------------
-// Tier 1 — Authorization code flow
-// ---------------------------------------------------------------------------
-
 test.describe('DPoP smoke tests', () => {
   test.describe.configure({ mode: 'serial' });
 
@@ -394,11 +371,7 @@ test.describe('DPoP smoke tests', () => {
     await context?.close();
   });
 
-  // -------------------------------------------------------------------------
-  // Tier 1 — Authorization code flow
-  // -------------------------------------------------------------------------
-
-  test('T1-1: getAuthorizeUrl() produces a URL FusionAuth accepts (login page rendered)', async () => {
+  test('getAuthorizeUrl() produces a URL FusionAuth accepts (login page rendered)', async () => {
     thumbprint = await manager.getThumbprint();
     const verifier = generateCodeVerifier();
     const challenge = await generateCodeChallenge(verifier);
@@ -422,8 +395,8 @@ test.describe('DPoP smoke tests', () => {
     await expect(page.locator('#loginId')).toBeVisible();
   });
 
-  test('T1-2: full authorization code grant via SDKCore.startLogin() + handlePostRedirect() — token_type is DPoP, cnf.jkt matches thumbprint', async () => {
-    const STATE = 'e2e-t1-2-state';
+  test('full authorization code grant via SDKCore.startLogin() + handlePostRedirect() — token_type is DPoP, cnf.jkt matches thumbprint', async () => {
+    const STATE = 'e2e-state';
 
     ensureNodeBrowserPolyfills();
 
@@ -462,7 +435,7 @@ test.describe('DPoP smoke tests', () => {
     // a real string) doesn't silently fail navigation.
     const authorizeUrl = String(await waitForUrl());
 
-    // Navigate fresh — T1-1 may have left the page in a redirected state.
+    // Navigate fresh
     await page.goto('about:blank');
     const code = await loginAndCaptureCode(page, authorizeUrl);
 
@@ -506,9 +479,6 @@ test.describe('DPoP smoke tests', () => {
     expect(tokens!.accessToken).toBeDefined();
 
     // Decode the access token and verify cnf.jkt matches our key's thumbprint.
-    // SDKCore's internal DPoPManager transparently reused the key pair the
-    // shared `manager` persisted in T1-1 (DPoPStorage namespaces by
-    // clientId within one shared IndexedDB database).
     const atPayload = decodeJwt(tokens!.accessToken);
     expect(atPayload.cnf).toBeDefined();
     expect((atPayload.cnf as { jkt: string }).jkt).toBe(thumbprint);
@@ -522,7 +492,7 @@ test.describe('DPoP smoke tests', () => {
     expect(manager.isLoggedIn).toBe(true);
   });
 
-  test('T1-3: refresh token grant — issues new DPoP-bound tokens', async () => {
+  test('refresh token grant — issues new DPoP-bound tokens', async () => {
     test.skip(!refreshToken, 'No refresh token from previous test');
 
     const proof = await manager.generateProof(TOKEN_ENDPOINT, 'POST');
@@ -562,7 +532,6 @@ test.describe('DPoP smoke tests', () => {
     const atPayload = decodeJwt(tokenResponse.access_token);
     expect((atPayload.cnf as { jkt: string }).jkt).toBe(thumbprint);
 
-    // Update shared state for Tier 2.
     accessToken = tokenResponse.access_token;
     refreshToken = tokenResponse.refresh_token ?? refreshToken;
 
@@ -575,18 +544,14 @@ test.describe('DPoP smoke tests', () => {
     });
   });
 
-  // -------------------------------------------------------------------------
-  // Tier 2 — Resource access via DPoPManager.fetch()
-  // -------------------------------------------------------------------------
-
-  test('T2-1: DPoPManager.fetch() calls /oauth2/userinfo with correct DPoP headers and gets user claims', async () => {
+  test('DPoPManager.fetch() calls /oauth2/userinfo with correct DPoP headers and gets user claims', async () => {
     test.skip(!accessToken, 'No access token from previous test');
 
     // DPoPManager.fetch() runs in the Node test process, not the browser page,
     // so Playwright route interception can't observe its outgoing headers.
     // Correctness is validated end-to-end instead: FusionAuth verifies ath,
     // cnf.jkt, htu, and htm server-side, so a 200 here proves the real proof
-    // was accepted. T2-2 validates the proof's claims directly by decoding it.
+    // was accepted.
     const fetchResponse = await manager.fetch(USERINFO_ENDPOINT);
 
     expect(
@@ -601,7 +566,7 @@ test.describe('DPoP smoke tests', () => {
     expect(userInfo.sub).toBeDefined();
   });
 
-  test('T2-2: DPoPManager.fetch() proof carries correct htu and ath claims', async () => {
+  test('DPoPManager.fetch() proof carries correct htu and ath claims', async () => {
     test.skip(!accessToken, 'No access token from previous test');
 
     // We can validate proof claims by asking DPoPManager to generate a proof
@@ -629,7 +594,7 @@ test.describe('DPoP smoke tests', () => {
     expect(proofPayload.ath).toBe(expectedAth);
   });
 
-  test('T2-3: nonce retry — DPoPManager.fetch() retries once if /oauth2/userinfo challenges with use_dpop_nonce', async () => {
+  test('nonce retry — DPoPManager.fetch() retries once if /oauth2/userinfo challenges with use_dpop_nonce', async () => {
     test.skip(!accessToken, 'No access token from previous test');
 
     // Whether FusionAuth /oauth2/userinfo actually issues a nonce challenge is
@@ -673,20 +638,18 @@ test.describe('DPoP smoke tests', () => {
     }
   });
 
-  test('T2-4: nonce retry (deterministic) — DPoPManager.fetch() retries with the correct nonce claim when the resource server issues a use_dpop_nonce challenge', async () => {
+  test('nonce retry (deterministic) — DPoPManager.fetch() retries with the correct nonce claim when the resource server issues a use_dpop_nonce challenge', async () => {
     // FusionAuth (as the Authorization Server) never issues a use_dpop_nonce
     // challenge itself — nonce enforcement is explicitly a Resource Server
     // responsibility that your own APIs implement (see FusionAuth's DPoP
     // docs: "FusionAuth currently does not require nonce handling, but your
-    // APIs may require one for resource access"). T2-3 above can only assert
-    // structurally against a real FusionAuth endpoint because it can never
-    // reliably force the challenge.
+    // APIs may require one for resource access").
     //
     // This test simulates a Resource Server that DOES require a nonce, by
     // mocking globalThis.fetch (DPoPManager.fetch() calls the native fetch
-    // directly, so this is a faithful substitute for a real RS response).
+    // directly, so this is a substitute for a real RS response).
     // It uses its own fresh DPoPManager so it does not depend on shared
-    // state/order from the Tier 1 tests above.
+    // state/order.
 
     const FAKE_RESOURCE_URL = 'https://fake-resource-server.example.com/data';
     const SERVER_NONCE = 'server-issued-nonce-abc123';
@@ -755,11 +718,7 @@ test.describe('DPoP smoke tests', () => {
     }
   });
 
-  // -------------------------------------------------------------------------
-  // Tier 1 — Logout / clear
-  // -------------------------------------------------------------------------
-
-  test('T1-4: clear() removes key pair, tokens, and nonces — isLoggedIn becomes false', async () => {
+  test('clear() removes key pair, tokens, and nonces — isLoggedIn becomes false', async () => {
     expect(manager.isLoggedIn).toBe(true);
 
     await manager.clear();
