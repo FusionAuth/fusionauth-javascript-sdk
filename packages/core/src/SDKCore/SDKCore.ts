@@ -214,14 +214,6 @@ export class SDKCore {
    * 6. Invokes `callback` with the `state` value and cleans up the
    *    redirect marker, via `RedirectHelper.handlePostRedirect()`.
    *
-   * If `code` or the persisted `code_verifier` is missing (e.g. no redirect
-   * is pending, or this is a second invocation after the exchange already
-   * completed — such as a React StrictMode remount), this silently no-ops
-   * rather than erroring. A genuine exchange failure (network error, or a
-   * non-2xx response from FusionAuth) is reported via
-   * `SDKConfig.onLoginFailure` (or `console.error` if not configured),
-   * mirroring {@link startLogin}.
-   *
    * In cookie mode: behaves identically to the previous implementation.
    */
   handlePostRedirect(callback?: (state?: string) => void): void {
