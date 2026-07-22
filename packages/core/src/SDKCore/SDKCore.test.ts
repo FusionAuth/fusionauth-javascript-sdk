@@ -365,10 +365,6 @@ describe('SDKCore', () => {
       expect(assignedUrl.searchParams.get('code_challenge')).toBeNull();
     });
 
-    // -------------------------------------------------------------------------
-    // handlePostRedirect() — authorization code exchange
-    // -------------------------------------------------------------------------
-
     describe('handlePostRedirect() in DPoP mode', () => {
       const MOCK_PROOF = 'mock-dpop-proof-jwt';
       const MOCK_CODE = 'mock-authorization-code';
@@ -485,9 +481,6 @@ describe('SDKCore', () => {
         expect(body.get('client_id')).toBe(dpopConfig.clientId);
         expect(body.get('redirect_uri')).toBe(dpopConfig.redirectUri);
 
-        // generateProof() is called for the token endpoint with no access
-        // token (no `ath`) — this is a token endpoint request, not a
-        // resource server request.
         expect(DPoPManager.prototype.generateProof).toHaveBeenCalledWith(
           expect.stringContaining('/oauth2/token'),
           'POST',

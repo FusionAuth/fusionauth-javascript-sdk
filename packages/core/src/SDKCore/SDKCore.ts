@@ -228,8 +228,7 @@ export class SDKCore {
    * 1. Detects the `code` query parameter on the current URL.
    * 2. Retrieves the persisted PKCE `code_verifier`.
    * 3. Exchanges the code for tokens at FusionAuth's `/oauth2/token`,
-   *    signing the request with a DPoP proof (no `ath`, since this is a
-   *    token endpoint request, not a resource server request).
+   *    signing the request with a DPoP proof.
    * 4. Stores the returned tokens via `DPoPManager.setTokens()`.
    * 5. Schedules token expiration and (if `shouldAutoRefresh`) auto-refresh
    *    from the tokens' `expiresAt`.
@@ -253,7 +252,6 @@ export class SDKCore {
     }
 
     const tokenUrl = this.urlHelper.getTokenUrl();
-    // No `ath` — this proof is for the token endpoint, not a resource server.
     const proof = await this.dpopManager!.generateProof(
       tokenUrl.toString(),
       'POST',
@@ -304,7 +302,7 @@ export class SDKCore {
   }
 
   /**
-   * Removes `code` and `state` from the current URL regarding security.
+   * Removes `code` and `state` from the current URL for security.
    */
   private clearRedirectQueryParams(): void {
     const { origin, pathname, search, hash } = window.location;
