@@ -109,12 +109,58 @@ export class SDKCore {
     window.location.assign(this.urlHelper.getRegisterUrl(state));
   }
 
-  startLogout() {
+  /**
+   * Initiates the logout flow.
+   *
+   * In DPoP mode (`useDpop: true`), this synchronously returns after kicking
+   * off an async chain that calls `DPoPManager.clear()` — clearing the key
+   * pair, stored tokens, and in-memory nonces — before redirecting. Mirrors
+   * `startLogin()`'s fire-and-forget pattern so the public signature stays
+   * `void`.
+   *
+   * In cookie mode: unchanged, fully synchronous redirect.
+   */
+  startLogout(): void {
+    if (this.dpopManager) {
+      this.startDpopLogout().catch(error => {
+        console.error('FusionAuth SDK: startLogout failed', error);
+      });
+      return;
+    }
+
+    window.location.assign(this.urlHelper.getLogoutUrl());
+  }
+
+  /**
+   * Performs the DPoP-mode logout flow. See {@link startLogout} for the
+   * full description. Split out as its own async method so that
+   * `startLogout()` itself can remain synchronous (`void`).
+   */
+  private async startDpopLogout(): Promise<void> {
+    await this.dpopManager!.clear();
     window.location.assign(this.urlHelper.getLogoutUrl());
   }
 
   manageAccount() {
     window.location.assign(this.urlHelper.getAccountManagementUrl());
+  }
+
+  /**
+   * Returns the current DPoP-bound access token.
+   *
+   * Only available in DPoP mode (`useDpop: true`). In cookie mode, tokens
+   * are stored in HttpOnly cookies and are never accessible to JavaScript,
+   * so this method throws instead.
+   *
+   * @throws {Error} if called in cookie mode (`useDpop: false`).
+   */
+  getAccessToken(): string | null {
+    if (!this.dpopManager) {
+      throw new Error(
+        'getAccessToken() is only available in DPoP mode. In cookie mode, tokens are stored in HttpOnly cookies and are not accessible to JavaScript.',
+      );
+    }
+    return this.dpopManager.getAccessToken();
   }
 
   async fetchUserInfo<T = UserInfo>() {

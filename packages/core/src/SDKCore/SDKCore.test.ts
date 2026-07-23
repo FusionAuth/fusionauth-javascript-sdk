@@ -365,6 +365,95 @@ describe('SDKCore', () => {
       expect(assignedUrl.searchParams.get('code_challenge')).toBeNull();
     });
 
+    it('startLogout() in DPoP mode calls DPoPManager.clear() before redirecting', async () => {
+      vi.spyOn(DPoPManager.prototype, 'getOrCreateKeyPair').mockResolvedValue(
+        {} as any,
+      );
+      const clearSpy = vi
+        .spyOn(DPoPManager.prototype, 'clear')
+        .mockResolvedValue(undefined);
+      const location = mockWindowLocation(vi);
+
+      const core = new SDKCore(dpopConfig);
+      // startLogout() is synchronous (void) — the DPoP clear() runs async
+      // internally. Wait for the redirect to happen before asserting.
+      core.startLogout();
+      await vi.waitFor(() => expect(location.assign).toHaveBeenCalledOnce());
+
+      expect(clearSpy).toHaveBeenCalledOnce();
+      const assignedUrl = new URL(
+        (location.assign as ReturnType<typeof vi.fn>).mock.calls[0][0],
+      );
+      expect(assignedUrl.searchParams.get('client_id')).toBe(
+        dpopConfig.clientId,
+      );
+    });
+
+    it('reports a DPoP startLogout() failure via console.error', async () => {
+      vi.spyOn(DPoPManager.prototype, 'getOrCreateKeyPair').mockResolvedValue(
+        {} as any,
+      );
+      const failure = new Error('clear() failed');
+      vi.spyOn(DPoPManager.prototype, 'clear').mockRejectedValue(failure);
+      const consoleError = vi
+        .spyOn(console, 'error')
+        .mockImplementation(() => {});
+
+      const core = new SDKCore(dpopConfig);
+      core.startLogout();
+
+      await vi.waitFor(() =>
+        expect(consoleError).toHaveBeenCalledWith(
+          'FusionAuth SDK: startLogout failed',
+          failure,
+        ),
+      );
+    });
+
+    it('startLogout() in cookie mode is unaffected by useDpop: false', () => {
+      const location = mockWindowLocation(vi);
+      const core = new SDKCore(config); // no useDpop
+
+      // Cookie mode is fully synchronous — no waiting required.
+      core.startLogout();
+
+      expect(location.assign).toHaveBeenCalledOnce();
+    });
+
+    it('getAccessToken() returns the stored access token when useDpop: true', () => {
+      vi.spyOn(DPoPManager.prototype, 'getOrCreateKeyPair').mockResolvedValue(
+        {} as any,
+      );
+      const core = new SDKCore(dpopConfig);
+
+      const dpopManager = (core as any).dpopManager as DPoPManager;
+      dpopManager.setTokens({
+        accessToken: 'mock-access-token',
+        refreshToken: undefined,
+        expiresAt: Date.now() + 60_000,
+        tokenType: 'DPoP',
+      });
+
+      expect(core.getAccessToken()).toBe('mock-access-token');
+    });
+
+    it('getAccessToken() returns null when logged out in DPoP mode', () => {
+      vi.spyOn(DPoPManager.prototype, 'getOrCreateKeyPair').mockResolvedValue(
+        {} as any,
+      );
+      const core = new SDKCore(dpopConfig);
+
+      expect(core.getAccessToken()).toBeNull();
+    });
+
+    it('getAccessToken() throws when useDpop: false', () => {
+      const core = new SDKCore(config); // no useDpop
+
+      expect(() => core.getAccessToken()).toThrow(
+        'getAccessToken() is only available in DPoP mode. In cookie mode, tokens are stored in HttpOnly cookies and are not accessible to JavaScript.',
+      );
+    });
+
     describe('handlePostRedirect() in DPoP mode', () => {
       const MOCK_PROOF = 'mock-dpop-proof-jwt';
       const MOCK_CODE = 'mock-authorization-code';

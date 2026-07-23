@@ -360,6 +360,7 @@ test.describe('DPoP smoke tests', () => {
   let accessToken: string;
   let refreshToken: string;
   let thumbprint: string;
+  let core: SDKCore;
 
   test.beforeAll(async ({ browser }) => {
     context = await browser.newContext();
@@ -404,12 +405,13 @@ test.describe('DPoP smoke tests', () => {
 
     // A real SDKCore in DPoP mode, running in the Node/Playwright test
     // process (see ensureNodeBrowserPolyfills). `dpopTokenStorage:
-    // 'localStorage'` so the exchanged tokens can be read back directly —
-    // SDKCore.getAccessToken() doesn't exist yet (ENG-4802).
+    // 'localStorage'` so the exchanged tokens can be read back directly.
+    // Assigned to the shared outer `core` so the startLogout() smoke test
+    // below can reuse this same logged-in instance.
     let notify:
       ((result: { state?: string } | { error: Error }) => void) | undefined;
 
-    const core = new SDKCore({
+    core = new SDKCore({
       serverUrl: FA_URL,
       clientId: CLIENT_ID,
       redirectUri: REDIRECT_URI,
@@ -514,6 +516,40 @@ test.describe('DPoP smoke tests', () => {
     manager.setTokens(tokens!);
 
     expect(manager.isLoggedIn).toBe(true);
+  });
+
+  test('startLogout() clears DPoP state and redirects to the logout URL', async () => {
+    test.skip(!accessToken, 'No access token from previous test');
+
+    // Sanity: still logged in from the previous grant test.
+    expect(core.isLoggedIn).toBe(true);
+    expect(core.getAccessToken()).toBe(accessToken);
+
+    const { assign, waitForUrl } = createAssignWaiter();
+    // @ts-ignore
+    globalThis.window.location = { assign };
+
+    // startLogout() is synchronous (void) — in DPoP mode it awaits
+    // DPoPManager.clear() internally before redirecting. Wait for the
+    // redirect the same way startLogin() is exercised above.
+    core.startLogout();
+    const assignedUrl = new URL(String(await waitForUrl()));
+
+    // getLogoutUrl() is unchanged by DPoP mode — still the Hosted Backend
+    // API path, not a direct FusionAuth /oauth2/* endpoint.
+    expect(assignedUrl.origin).toBe(FA_URL);
+    expect(assignedUrl.pathname).toBe('/app/logout/');
+    expect(assignedUrl.searchParams.get('client_id')).toBe(CLIENT_ID);
+    expect(assignedUrl.searchParams.get('post_logout_redirect_uri')).toBe(
+      REDIRECT_URI,
+    );
+
+    // DPoPManager.clear() ran before the redirect — local DPoP state is gone.
+    expect(core.isLoggedIn).toBe(false);
+    expect(core.getAccessToken()).toBeNull();
+
+    const tokenStore = new DPoPTokenStore(CLIENT_ID, 'localStorage');
+    expect(tokenStore.get()).toBeNull();
   });
 
   test('refresh token grant — issues new DPoP-bound tokens', async () => {
