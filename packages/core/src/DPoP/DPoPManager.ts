@@ -90,7 +90,6 @@ export class DPoPManager {
 
   /**
    * Returns the stored access token string, or `null` if none is stored.
-   * Used by `SDKCore.getAccessToken()` in DPoP mode.
    */
   getAccessToken(): string | null {
     return this.tokenStore.getAccessToken();

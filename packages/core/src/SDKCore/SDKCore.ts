@@ -112,13 +112,10 @@ export class SDKCore {
   /**
    * Initiates the logout flow.
    *
-   * In DPoP mode (`useDpop: true`), this synchronously returns after kicking
-   * off an async chain that calls `DPoPManager.clear()` — clearing the key
-   * pair, stored tokens, and in-memory nonces — before redirecting. Mirrors
-   * `startLogin()`'s fire-and-forget pattern so the public signature stays
-   * `void`.
+   * In DPoP mode, this synchronously returns after starting an
+   * asynchronously flow.
    *
-   * In cookie mode: unchanged, fully synchronous redirect.
+   * In cookie mode, the flow is synchronous.
    */
   startLogout(): void {
     if (this.dpopManager) {
@@ -132,9 +129,8 @@ export class SDKCore {
   }
 
   /**
-   * Performs the DPoP-mode logout flow. See {@link startLogout} for the
-   * full description. Split out as its own async method so that
-   * `startLogout()` itself can remain synchronous (`void`).
+   * Performs the DPoP-mode logout flow clearing the key
+   * pair, stored tokens, and in-memory nonces.
    */
   private async startDpopLogout(): Promise<void> {
     await this.dpopManager!.clear();
@@ -146,9 +142,7 @@ export class SDKCore {
   }
 
   /**
-   * Returns the current DPoP-bound access token.
-   *
-   * Only available in DPoP mode (`useDpop: true`). In cookie mode, tokens
+   * Returns the current DPoP-bound access token.  In cookie mode, tokens
    * are stored in HttpOnly cookies and are never accessible to JavaScript,
    * so this method throws instead.
    *
