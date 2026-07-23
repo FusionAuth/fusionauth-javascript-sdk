@@ -375,8 +375,6 @@ describe('SDKCore', () => {
       const location = mockWindowLocation(vi);
 
       const core = new SDKCore(dpopConfig);
-      // startLogout() is synchronous (void) — the DPoP clear() runs async
-      // internally. Wait for the redirect to happen before asserting.
       core.startLogout();
       await vi.waitFor(() => expect(location.assign).toHaveBeenCalledOnce());
 

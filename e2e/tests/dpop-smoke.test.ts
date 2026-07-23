@@ -529,9 +529,6 @@ test.describe('DPoP smoke tests', () => {
     // @ts-ignore
     globalThis.window.location = { assign };
 
-    // startLogout() is synchronous (void) — in DPoP mode it awaits
-    // DPoPManager.clear() internally before redirecting. Wait for the
-    // redirect the same way startLogin() is exercised above.
     core.startLogout();
     const assignedUrl = new URL(String(await waitForUrl()));
 
