@@ -41,7 +41,6 @@ import {
 const FA_URL = 'http://localhost:9011';
 const CLIENT_ID = 'baf3d520-40d7-4000-9b62-e6a7d0091102';
 const REDIRECT_URI = 'https://www.example.com';
-const TOKEN_ENDPOINT = `${FA_URL}/oauth2/token`;
 const USERINFO_ENDPOINT = `${FA_URL}/oauth2/userinfo`;
 const TEST_EMAIL = 'mike@fusionauth.io';
 const TEST_PASSWORD = 'password';
@@ -358,7 +357,6 @@ test.describe('DPoP smoke tests', () => {
 
   // Shared state populated by earlier tests and used by later ones.
   let accessToken: string;
-  let refreshToken: string;
   let thumbprint: string;
   let core: SDKCore;
 
@@ -512,10 +510,48 @@ test.describe('DPoP smoke tests', () => {
     // Persist tokens for subsequent tests — same key pair as `manager`, so
     // proofs `manager` signs for these tokens remain valid.
     accessToken = tokens!.accessToken;
-    refreshToken = tokens!.refreshToken ?? '';
     manager.setTokens(tokens!);
 
     expect(manager.isLoggedIn).toBe(true);
+  });
+
+  test('refreshToken() — issues new DPoP-bound tokens and reschedules expiration', async () => {
+    test.skip(!accessToken, 'No access token from previous test');
+
+    // Sanity: still logged in from the previous grant test.
+    expect(core.isLoggedIn).toBe(true);
+    const previousAccessToken = accessToken;
+
+    const response = await core.refreshToken();
+    expect(response.ok).toBe(true);
+
+    // core.refreshToken() updates DPoPManager's stored tokens directly —
+    // isLoggedIn must remain true and getAccessToken() must reflect the
+    // newly issued access token.
+    expect(core.isLoggedIn).toBe(true);
+    const newAccessToken = core.getAccessToken();
+    expect(newAccessToken).toBeDefined();
+    // New access token must be different from the original.
+    expect(newAccessToken).not.toBe(previousAccessToken);
+
+    // Decode the new access token and verify cnf.jkt still matches our
+    // key's thumbprint — proves FusionAuth bound the refreshed token to the
+    // same DPoP key pair.
+    const atPayload = decodeJwt(newAccessToken!);
+    expect(atPayload.cnf).toBeDefined();
+    expect((atPayload.cnf as { jkt: string }).jkt).toBe(thumbprint);
+
+    // DPoPTokenStore reflects the refreshed tokens with a future expiresAt.
+    const tokenStore = new DPoPTokenStore(CLIENT_ID, 'localStorage');
+    const tokens = tokenStore.get();
+    expect(tokens).not.toBeNull();
+    expect(tokens!.tokenType).toBe('DPoP');
+    expect(tokens!.accessToken).toBe(newAccessToken);
+    expect(tokens!.expiresAt).toBeGreaterThan(Date.now());
+
+    // Keep the shared accessToken in sync for the subsequent startLogout()
+    // test, which asserts core.getAccessToken() against it.
+    accessToken = newAccessToken!;
   });
 
   test('startLogout() clears DPoP state and redirects to the logout URL', async () => {
@@ -547,58 +583,6 @@ test.describe('DPoP smoke tests', () => {
 
     const tokenStore = new DPoPTokenStore(CLIENT_ID, 'localStorage');
     expect(tokenStore.get()).toBeNull();
-  });
-
-  test('refresh token grant — issues new DPoP-bound tokens', async () => {
-    test.skip(!refreshToken, 'No refresh token from previous test');
-
-    const proof = await manager.generateProof(TOKEN_ENDPOINT, 'POST');
-
-    const body = new URLSearchParams({
-      grant_type: 'refresh_token',
-      refresh_token: refreshToken,
-      client_id: CLIENT_ID,
-    });
-
-    const response = await fetch(TOKEN_ENDPOINT, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-        DPoP: proof,
-      },
-      body: body.toString(),
-    });
-
-    const refreshText = await response.text();
-    expect(response.status, `Refresh token grant failed: ${refreshText}`).toBe(
-      200,
-    );
-
-    const tokenResponse = JSON.parse(refreshText) as {
-      access_token: string;
-      refresh_token?: string;
-      token_type: string;
-      expires_in: number;
-    };
-
-    expect(tokenResponse.token_type.toLowerCase()).toBe('dpop');
-    expect(tokenResponse.access_token).toBeDefined();
-    // New access token must be different from the original.
-    expect(tokenResponse.access_token).not.toBe(accessToken);
-
-    const atPayload = decodeJwt(tokenResponse.access_token);
-    expect((atPayload.cnf as { jkt: string }).jkt).toBe(thumbprint);
-
-    accessToken = tokenResponse.access_token;
-    refreshToken = tokenResponse.refresh_token ?? refreshToken;
-
-    const expiresAt = Date.now() + tokenResponse.expires_in * 1000;
-    manager.setTokens({
-      accessToken,
-      refreshToken: refreshToken || undefined,
-      expiresAt,
-      tokenType: 'DPoP',
-    });
   });
 
   test('DPoPManager.fetch() calls /oauth2/userinfo with correct DPoP headers and gets user claims', async () => {

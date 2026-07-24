@@ -677,10 +677,10 @@ describe('SDKCore', () => {
         vi.spyOn(DPoPManager.prototype, 'generateProof').mockResolvedValue(
           MOCK_PROOF,
         );
-        // Avoid an actual (cookie-mode) network call from the real
-        // refreshToken() — DPoP mode's refreshToken() is implemented in a
-        // later ticket. We only assert *that* a refresh was
-        // scheduled and fires at the right time.
+        // Mock refreshToken() so this test can isolate auto-refresh
+        // *scheduling* from the refresh implementation itself (covered in
+        // its own describe block below). We only assert *that* a refresh
+        // was scheduled and fires at the right time.
         const refreshToken = vi
           .spyOn(SDKCore.prototype, 'refreshToken')
           .mockResolvedValue(new Response(null, { status: 200 }));
@@ -763,6 +763,208 @@ describe('SDKCore', () => {
             expect.any(Error),
           ),
         );
+      });
+    });
+
+    describe('refreshToken() in DPoP mode', () => {
+      const MOCK_PROOF = 'mock-dpop-refresh-proof-jwt';
+      const MOCK_OLD_REFRESH_TOKEN = 'mock-old-refresh-token';
+      const MOCK_NEW_ACCESS_TOKEN = 'mock-new-access-token';
+      const MOCK_NEW_REFRESH_TOKEN = 'mock-new-refresh-token';
+      const EXPIRES_IN_SECONDS = 3600;
+
+      /** Seeds the DPoPManager with an existing (pre-refresh) token set. */
+      function seedExistingTokens(core: SDKCore) {
+        const dpopManager = (core as any).dpopManager as DPoPManager;
+        dpopManager.setTokens({
+          accessToken: 'mock-old-access-token',
+          refreshToken: MOCK_OLD_REFRESH_TOKEN,
+          expiresAt: Date.now() + 60_000,
+          tokenType: 'DPoP',
+        });
+      }
+
+      function mockTokenResponse(
+        overrides: Partial<{
+          access_token: string;
+          refresh_token?: string;
+          expires_in: number;
+          token_type: string;
+        }> = {},
+      ) {
+        return vi.spyOn(window, 'fetch').mockResolvedValue(
+          new Response(
+            JSON.stringify({
+              access_token: MOCK_NEW_ACCESS_TOKEN,
+              refresh_token: MOCK_NEW_REFRESH_TOKEN,
+              expires_in: EXPIRES_IN_SECONDS,
+              token_type: 'DPoP',
+              ...overrides,
+            }),
+            { status: 200 },
+          ),
+        );
+      }
+
+      it('sends a DPoP header and refresh_token grant body to /oauth2/token', async () => {
+        vi.spyOn(DPoPManager.prototype, 'getOrCreateKeyPair').mockResolvedValue(
+          {} as any,
+        );
+        vi.spyOn(DPoPManager.prototype, 'generateProof').mockResolvedValue(
+          MOCK_PROOF,
+        );
+        const core = new SDKCore(dpopConfig);
+        seedExistingTokens(core);
+        const fetchMock = mockTokenResponse();
+
+        await core.refreshToken();
+
+        expect(fetchMock).toHaveBeenCalledOnce();
+        const call = fetchMock.mock.calls[0];
+        if (!call) throw new Error('fetch was not called');
+        const [url, init] = call;
+        expect(new URL(url.toString()).pathname).toBe('/oauth2/token');
+        expect(init?.method).toBe('POST');
+
+        const headers = init?.headers as Record<string, string>;
+        expect(headers['DPoP']).toBe(MOCK_PROOF);
+        expect(headers['Content-Type']).toBe(
+          'application/x-www-form-urlencoded',
+        );
+
+        const body = new URLSearchParams(init?.body as string);
+        expect(body.get('grant_type')).toBe('refresh_token');
+        expect(body.get('refresh_token')).toBe(MOCK_OLD_REFRESH_TOKEN);
+        expect(body.get('client_id')).toBe(dpopConfig.clientId);
+
+        // No `ath`/access-token argument — token endpoint request, not a
+        // resource server request.
+        expect(DPoPManager.prototype.generateProof).toHaveBeenCalledWith(
+          expect.stringContaining('/oauth2/token'),
+          'POST',
+        );
+      });
+
+      it('updates stored tokens on success and isLoggedIn remains true', async () => {
+        vi.spyOn(DPoPManager.prototype, 'getOrCreateKeyPair').mockResolvedValue(
+          {} as any,
+        );
+        vi.spyOn(DPoPManager.prototype, 'generateProof').mockResolvedValue(
+          MOCK_PROOF,
+        );
+        const core = new SDKCore(dpopConfig);
+        seedExistingTokens(core);
+        mockTokenResponse();
+
+        expect(core.isLoggedIn).toBe(true);
+
+        await core.refreshToken();
+
+        expect(core.isLoggedIn).toBe(true);
+        expect(core.getAccessToken()).toBe(MOCK_NEW_ACCESS_TOKEN);
+      });
+
+      it('reschedules token expiration from the new expiresAt', async () => {
+        vi.useFakeTimers();
+        vi.spyOn(DPoPManager.prototype, 'getOrCreateKeyPair').mockResolvedValue(
+          {} as any,
+        );
+        vi.spyOn(DPoPManager.prototype, 'generateProof').mockResolvedValue(
+          MOCK_PROOF,
+        );
+        const onTokenExpiration = vi.fn();
+        const core = new SDKCore({ ...dpopConfig, onTokenExpiration });
+        seedExistingTokens(core);
+        mockTokenResponse();
+
+        await core.refreshToken();
+
+        vi.advanceTimersByTime(EXPIRES_IN_SECONDS * 1000 - 1000);
+        expect(onTokenExpiration).not.toHaveBeenCalled();
+
+        vi.advanceTimersByTime(1000);
+        expect(onTokenExpiration).toHaveBeenCalledTimes(1);
+      });
+
+      it('reschedules auto-refresh from the new expiresAt when shouldAutoRefresh is true', async () => {
+        vi.useFakeTimers();
+        vi.spyOn(DPoPManager.prototype, 'getOrCreateKeyPair').mockResolvedValue(
+          {} as any,
+        );
+        vi.spyOn(DPoPManager.prototype, 'generateProof').mockResolvedValue(
+          MOCK_PROOF,
+        );
+        const core = new SDKCore({
+          ...dpopConfig,
+          shouldAutoRefresh: true,
+          autoRefreshSecondsBeforeExpiry: 60,
+        });
+        seedExistingTokens(core);
+        mockTokenResponse();
+
+        const refreshTokenSpy = vi.spyOn(SDKCore.prototype, 'refreshToken');
+
+        await core.refreshToken();
+        expect(refreshTokenSpy).toHaveBeenCalledTimes(1); // just the explicit call above
+
+        // Auto-refresh fires 60s before the 3600s expiry, i.e. at 3540s.
+        vi.advanceTimersByTime((EXPIRES_IN_SECONDS - 60) * 1000 - 1000);
+        expect(refreshTokenSpy).toHaveBeenCalledTimes(1);
+
+        vi.advanceTimersByTime(1000);
+        expect(refreshTokenSpy).toHaveBeenCalledTimes(2); // + the auto-refresh firing
+      });
+
+      it('does not reschedule auto-refresh when shouldAutoRefresh is not set', async () => {
+        vi.useFakeTimers();
+        vi.spyOn(DPoPManager.prototype, 'getOrCreateKeyPair').mockResolvedValue(
+          {} as any,
+        );
+        vi.spyOn(DPoPManager.prototype, 'generateProof').mockResolvedValue(
+          MOCK_PROOF,
+        );
+        const core = new SDKCore(dpopConfig); // shouldAutoRefresh defaults to false
+        seedExistingTokens(core);
+        mockTokenResponse();
+
+        const refreshTokenSpy = vi.spyOn(SDKCore.prototype, 'refreshToken');
+
+        await core.refreshToken();
+
+        vi.advanceTimersByTime(EXPIRES_IN_SECONDS * 1000);
+        expect(refreshTokenSpy).toHaveBeenCalledTimes(1); // only the explicit call above
+      });
+
+      it('throws a descriptive error when no refresh token is stored', async () => {
+        vi.spyOn(DPoPManager.prototype, 'getOrCreateKeyPair').mockResolvedValue(
+          {} as any,
+        );
+        const fetchMock = vi.spyOn(window, 'fetch');
+        const core = new SDKCore(dpopConfig); // no tokens stored — never logged in
+
+        await expect(core.refreshToken()).rejects.toThrow(
+          'No refresh token available. Have you called startLogin()?',
+        );
+        expect(fetchMock).not.toHaveBeenCalled();
+      });
+
+      it('throws on a non-OK response and does not update stored tokens', async () => {
+        vi.spyOn(DPoPManager.prototype, 'getOrCreateKeyPair').mockResolvedValue(
+          {} as any,
+        );
+        vi.spyOn(DPoPManager.prototype, 'generateProof').mockResolvedValue(
+          MOCK_PROOF,
+        );
+        const core = new SDKCore(dpopConfig);
+        seedExistingTokens(core);
+        vi.spyOn(window, 'fetch').mockResolvedValue(
+          new Response('invalid_grant', { status: 400 }),
+        );
+
+        await expect(core.refreshToken()).rejects.toThrow();
+
+        // The old access token must still be the one in effect.
+        expect(core.getAccessToken()).toBe('mock-old-access-token');
       });
     });
   });

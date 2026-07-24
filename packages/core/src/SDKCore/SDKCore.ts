@@ -173,6 +173,10 @@ export class SDKCore {
   }
 
   async refreshToken(): Promise<Response> {
+    if (this.dpopManager) {
+      return this.refreshDpopToken();
+    }
+
     const response = await fetch(this.urlHelper.getTokenRefreshUrl(), {
       method: 'POST',
       credentials: 'include',
@@ -193,6 +197,74 @@ export class SDKCore {
     // a successful request means that app_exp was bumped into the future.
     // reschedule the access token expiration event.
     this.scheduleTokenExpiration();
+
+    return response;
+  }
+
+  /**
+   * Performs the DPoP-mode refresh token grant. The full step-by-step
+   * description:
+   *
+   * 1. Reads the stored refresh token from `DPoPManager`.
+   * 2. Generates a DPoP proof for the token endpoint (no `ath` — this is a
+   *    token endpoint request, not a resource server request).
+   * 3. POSTs to FusionAuth's `/oauth2/token` with `grant_type=refresh_token`,
+   *    signing the request with the DPoP proof.
+   * 4. Stores the returned tokens via `DPoPManager.setTokens()`.
+   * 5. Schedules token expiration and (if `shouldAutoRefresh`) auto-refresh
+   *    from the tokens' new `expiresAt`.
+   */
+  private async refreshDpopToken(): Promise<Response> {
+    const refreshToken = this.dpopManager!.getRefreshToken();
+    if (!refreshToken) {
+      throw new Error(
+        'No refresh token available. Have you called startLogin()?',
+      );
+    }
+
+    const tokenUrl = this.urlHelper.getTokenUrl();
+    const proof = await this.dpopManager!.generateProof(
+      tokenUrl.toString(),
+      'POST',
+    );
+
+    const body = new URLSearchParams({
+      grant_type: 'refresh_token',
+      refresh_token: refreshToken,
+      client_id: this.config.clientId,
+    });
+
+    const response = await fetch(tokenUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        DPoP: proof,
+      },
+      body: body.toString(),
+    });
+
+    if (!response.ok) {
+      const errorDetails = {
+        status: response.status,
+        details:
+          (await response.text()) ||
+          'Failed to refresh fusionauth access token',
+      };
+      throw new Error(JSON.stringify(errorDetails));
+    }
+
+    const tokenResponse = await response.json();
+    this.dpopManager!.setTokens({
+      accessToken: tokenResponse.access_token,
+      refreshToken: tokenResponse.refresh_token,
+      expiresAt: Date.now() + tokenResponse.expires_in * 1000,
+      tokenType: 'DPoP',
+    });
+
+    this.scheduleTokenExpiration();
+    if (this.config.shouldAutoRefresh) {
+      this.initAutoRefresh();
+    }
 
     return response;
   }
