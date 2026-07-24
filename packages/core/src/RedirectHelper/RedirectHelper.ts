@@ -1,18 +1,6 @@
 /**
  * A class responsible for storing pre-redirect values in localStorage and
  * cleaning them up afterward.
- *
- * Two storage formats are used under the same `fa-sdk-redirect-value` key,
- * discriminated by content (never by an explicit flag):
- *
- * - Hosted backend mode (no `codeVerifier`): a plain string
- *   `${randomNonce}:${state ?? ''}` — unchanged since before DPoP support
- *   was added, so no legacy-format handling is needed for this mode. Every
- *   published SDK version has always written exactly this format.
- * - DPoP mode (`codeVerifier` provided): a JSON object
- *   `{ codeVerifier, state }`. A hosted-backend-mode string never starts
- *   with `{` (it always starts with hex nonce characters), so the two
- *   formats can never be confused with one another.
  */
 export class RedirectHelper {
   private readonly REDIRECT_VALUE = 'fa-sdk-redirect-value';
@@ -39,6 +27,10 @@ export class RedirectHelper {
    * before a redirect is initiated. When `codeVerifier` is provided (DPoP
    * mode), it is persisted alongside `state` as a JSON object instead of the
    * plain colon-delimited string used by hosted backend mode.
+   *
+   * Hosted backend mode format: a plain string `${randomNonce}:${state ?? ''}`
+   *
+   * DPoP mode format: a JSON object `{ codeVerifier, state }`
    *
    * @param state         Optional OAuth2 state string echoed back post-login.
    * @param codeVerifier  Optional PKCE `code_verifier` (DPoP mode only).
@@ -74,20 +66,14 @@ export class RedirectHelper {
   }
 
   /**
-   * Parses a raw stored value from either format into its component parts.
-   *
-   * DPoP mode values are JSON objects, always starting with `{`. Hosted
-   * backend mode values are the plain `randomNonce:state` string, which
-   * never starts with `{`. This check is a cheap, deterministic format sniff
-   * rather than relying on a caught `JSON.parse` failure — hosted backend
-   * mode calls this on every single redirect, so treating that as the
-   * "exceptional" path isn't appropriate.
+   * Parses a raw stored value for either mode.
    */
   private parseStoredValue(raw: string): {
     codeVerifier?: string;
     state?: string;
   } {
     if (raw.startsWith('{')) {
+      // DPoP mode
       const parsed = JSON.parse(raw) as {
         codeVerifier?: string;
         state?: string;
