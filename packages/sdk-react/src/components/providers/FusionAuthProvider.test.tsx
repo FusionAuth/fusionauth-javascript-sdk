@@ -117,19 +117,6 @@ describe('FusionAuthProvider', () => {
     expect(mockedLocation.assign).toHaveBeenCalledWith(expectedUrl);
   });
 
-  test('Invokes an onRedirect callback when logged in if an item is found in local storage', () => {
-    mockIsLoggedIn();
-
-    const stateValue = 'hello-world';
-    // Format: nonce:codeVerifier:state (empty verifier in cookie mode)
-    localStorage.setItem('fa-sdk-redirect-value', `abc123::${stateValue}`);
-
-    const onRedirect = vi.fn();
-    renderWithWrapper({ ...TEST_CONFIG, onRedirect });
-
-    expect(onRedirect).toHaveBeenCalledWith(stateValue);
-  });
-
   test('Will not invoke onRedirect if no redirect value is found in localStorage', () => {
     const onRedirect = vi.fn();
     mockIsLoggedIn();

@@ -51,23 +51,10 @@ export class SDKCore {
   /**
    * Initiates the login flow.
    *
-   * In DPoP mode (`useDpop: true`), this synchronously returns after kicking
-   * off an async chain that:
-   * 1. Loads or generates the DPoP key pair.
-   * 2. Computes `dpop_jkt` (JWK SHA-256 thumbprint of the public key).
-   * 3. Generates a PKCE `code_verifier` and derives `code_challenge`.
-   * 4. Persists `code_verifier` via `RedirectHelper` for later token exchange.
-   * 5. Redirects to FusionAuth `/oauth2/authorize` directly with `dpop_jkt`
-   *    and `code_challenge` parameters.
-   *
-   * `startLogin()` itself is `void` (not `async`) so its signature matches
-   * the public `SDKContext`/framework wrapper types exactly. If the async
-   * DPoP chain fails, the error is reported via `SDKConfig.onLoginFailure`
-   * (or `console.error` if not configured) rather than becoming an unhandled
-   * promise rejection.
-   *
-   * In cookie mode: behaves identically to the previous implementation —
-   * delegates to the Hosted Backend API, fully synchronously.
+   * In DPoP mode, this synchronously returns after starting an async chain
+   * that handles the DPoP login flow.
+  
+   * In hosted backend mode the processing is synchronous.
    *
    * @param state  Optional OAuth2 state value echoed back post-login.
    */
@@ -83,16 +70,12 @@ export class SDKCore {
       return;
     }
 
-    // Cookie mode — unchanged behavior.
     this.redirectHelper.handlePreRedirect(state);
     window.location.assign(this.urlHelper.getLoginUrl(state));
   }
 
   /**
-   * Performs the DPoP-mode login flow. See {@link startLogin} for the full
-   * step-by-step description. Split out as its own async method so that
-   * `startLogin()` itself can remain synchronous (`void`) while still
-   * performing the necessary async key-pair/PKCE work before redirecting.
+   * Performs the DPoP-mode login flow.
    */
   private async startDpopLogin(state?: string): Promise<void> {
     await this.dpopManager!.getOrCreateKeyPair();
@@ -209,7 +192,7 @@ export class SDKCore {
    *
    * - DPoP mode: delegates to `DPoPManager.isLoggedIn` which checks whether
    *   the stored tokens exist and have not expired.
-   * - Cookie mode: reads the `app.at_exp` cookie (existing behavior).
+   * - hosted backend mode: reads the `app.at_exp` cookie (existing behavior).
    */
   get isLoggedIn() {
     if (this.dpopManager) {
