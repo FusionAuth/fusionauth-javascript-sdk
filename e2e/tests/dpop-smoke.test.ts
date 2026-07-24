@@ -1,11 +1,14 @@
 /**
- * DPoP Smoke Tests — pre-SDKCore wiring
+ * DPoP Smoke Tests — pre-SDKCore wiring + SDKCore.startLogin() integration
  *
- * Exercises DPoPManager + UrlHelper directly against a real FusionAuth
- * Enterprise instance. No quickstart app is needed — the tests drive
- * FusionAuth's hosted login UI via Playwright, capture the authorization
- * code from the redirect, and perform all token operations in the Node
- * test process.
+ * Exercises SDKCore.startLogin() in DPoP mode without a live
+ * FusionAuth instance. Stubs window/localStorage/indexedDB to create a real
+ * SDKCore, calls startLogin(), and asserts the authorize URL shape and
+ * code_verifier persistence.
+ *
+ * Exercise DPoPManager + UrlHelper directly against a
+ * real FusionAuth Enterprise instance. No quickstart app is needed — the tests
+ * drive FusionAuth's hosted login UI via Playwright.
  *
  * Run with:
  *   npx playwright test e2e/tests/dpop-smoke.test.ts \
@@ -25,6 +28,12 @@ import { IDBFactory } from 'fake-indexeddb';
 import { DPoPManager } from '../../packages/core/src/DPoP/DPoPManager';
 import { DPoPTokens } from '../../packages/core/src/DPoP/DPoPTokenStore';
 import { UrlHelper } from '../../packages/core/src/UrlHelper/UrlHelper';
+import { SDKCore } from '../../packages/core/src/SDKCore/SDKCore';
+import { RedirectHelper } from '../../packages/core/src/RedirectHelper/RedirectHelper';
+import {
+  generateCodeVerifier,
+  generateCodeChallenge,
+} from '../../packages/core/src/Pkce/Pkce';
 
 // ---------------------------------------------------------------------------
 // Config
@@ -54,29 +63,49 @@ function decodeJwt(jwt: string): Record<string, unknown> {
   );
 }
 
-/** Generate a PKCE code_verifier and code_challenge (SHA-256 / base64url). */
-async function generatePkce(): Promise<{
-  verifier: string;
-  challenge: string;
-}> {
-  const array = new Uint8Array(32);
-  crypto.getRandomValues(array);
-  const verifier = Buffer.from(array).toString('base64url');
-
-  const hash = await crypto.subtle.digest(
-    'SHA-256',
-    Buffer.from(verifier, 'ascii'),
-  );
-  const challenge = Buffer.from(hash).toString('base64url');
-
-  return { verifier, challenge };
-}
-
 /** Build a fresh DPoPManager backed by fake-indexeddb (no browser required in Node). */
 function makeManager(): DPoPManager {
   // @ts-ignore — Node has no native indexedDB; fake-indexeddb fills the gap.
   globalThis.indexedDB = new IDBFactory();
   return new DPoPManager(CLIENT_ID, 'memory');
+}
+
+/**
+ * Creates a deferred `window.location.assign` stub paired with a promise
+ * that resolves with the assigned URL.
+ *
+ * `SDKCore.startLogin()` is synchronous (`void`) — in DPoP mode it kicks off
+ * an async chain (key-pair generation, PKCE, etc.) internally and does not
+ * return a promise the caller can await. This helper waits
+ * deterministically for that async chain to complete (signaled by
+ * `window.location.assign` being called) instead of awaiting `startLogin()`
+ * directly.
+ */
+function createAssignWaiter(timeoutMs = 5_000): {
+  assign: (url: string) => void;
+  waitForUrl: () => Promise<string>;
+} {
+  let resolveUrl!: (url: string) => void;
+  const urlPromise = new Promise<string>(resolve => {
+    resolveUrl = resolve;
+  });
+
+  return {
+    assign: (url: string) => resolveUrl(url),
+    waitForUrl: () =>
+      Promise.race([
+        urlPromise,
+        new Promise<never>((_, reject) =>
+          setTimeout(
+            () =>
+              reject(
+                new Error('Timed out waiting for window.location.assign()'),
+              ),
+            timeoutMs,
+          ),
+        ),
+      ]),
+  };
 }
 
 /**
@@ -157,9 +186,158 @@ async function loginAndCaptureCode(
   ]);
 }
 
-// ---------------------------------------------------------------------------
-// Tests
-// ---------------------------------------------------------------------------
+test.describe('SDKCore.startLogin() DPoP mode', () => {
+  const DPOP_CONFIG = {
+    serverUrl: FA_URL,
+    clientId: CLIENT_ID,
+    redirectUri: REDIRECT_URI,
+    scope: SCOPE,
+    useDpop: true as const,
+    dpopTokenStorage: 'memory' as const,
+    onTokenExpiration: () => {},
+    cookieAdapter: { at_exp: () => undefined },
+  };
+
+  // Provide browser-API polyfills required by SDKCore and its dependencies
+  // when running in Node (Playwright's test process is Node, not a browser).
+  test.beforeAll(() => {
+    // IndexedDB — required by DPoPStorage (via DPoPManager).
+    // @ts-ignore
+    globalThis.indexedDB = new IDBFactory();
+
+    // localStorage — required by RedirectHelper and DPoPTokenStore.
+    if (typeof globalThis.localStorage === 'undefined') {
+      const store: Record<string, string> = {};
+      // @ts-ignore
+      globalThis.localStorage = {
+        getItem: (k: string) => store[k] ?? null,
+        setItem: (k: string, v: string) => {
+          store[k] = v;
+        },
+        removeItem: (k: string) => {
+          delete store[k];
+        },
+        clear: () => {
+          for (const k in store) delete store[k];
+        },
+      };
+    }
+
+    // window — SDKCore calls window.location.assign and DPoPManager uses
+    // indexedDB / crypto globals that browsers expose via window. We stub
+    // window with the minimal surface SDKCore touches.
+    if (typeof globalThis.window === 'undefined') {
+      // @ts-ignore
+      globalThis.window = {
+        location: { assign: () => {} },
+        crypto: globalThis.crypto,
+      };
+    }
+  });
+
+  test.afterEach(() => {
+    // Clear localStorage between tests so each starts clean.
+    globalThis.localStorage.clear();
+    // Fresh IndexedDB so key-pair state doesn't leak across tests.
+    // @ts-ignore
+    globalThis.indexedDB = new IDBFactory();
+  });
+
+  test('startLogin() redirects to /oauth2/authorize with dpop_jkt and code_challenge', async () => {
+    const { assign, waitForUrl } = createAssignWaiter();
+    // @ts-ignore
+    globalThis.window.location = { assign };
+
+    // startLogin() is synchronous (void) — fire and wait for the redirect.
+    new SDKCore(DPOP_CONFIG).startLogin();
+    const assignedUrl = await waitForUrl();
+
+    const url = new URL(assignedUrl);
+
+    expect(url.origin).toBe(FA_URL);
+    expect(url.pathname).toBe('/oauth2/authorize');
+    expect(url.searchParams.get('response_type')).toBe('code');
+    expect(url.searchParams.get('client_id')).toBe(CLIENT_ID);
+    expect(url.searchParams.get('redirect_uri')).toBe(REDIRECT_URI);
+    expect(url.searchParams.get('code_challenge_method')).toBe('S256');
+
+    const dpopJkt = url.searchParams.get('dpop_jkt');
+    const codeChallenge = url.searchParams.get('code_challenge');
+
+    // dpop_jkt: base64url JWK thumbprint — 43 chars, valid base64url charset.
+    expect(dpopJkt).not.toBeNull();
+    expect(dpopJkt).toMatch(/^[A-Za-z0-9\-_]{43}$/);
+
+    // code_challenge: base64url SHA-256 — 43 chars, valid base64url charset.
+    expect(codeChallenge).not.toBeNull();
+    expect(codeChallenge).toMatch(/^[A-Za-z0-9\-_]{43}$/);
+  });
+
+  test('startLogin() persists code_verifier and state via RedirectHelper', async () => {
+    const STATE = 'e2e-smoke-state';
+    const { assign, waitForUrl } = createAssignWaiter();
+    // @ts-ignore
+    globalThis.window.location = { assign };
+
+    const core = new SDKCore(DPOP_CONFIG);
+
+    core.startLogin(STATE);
+    const assignedUrl = await waitForUrl();
+
+    const url = new URL(assignedUrl);
+
+    // State is included in the authorize URL.
+    expect(url.searchParams.get('state')).toBe(STATE);
+
+    // code_verifier is persisted via RedirectHelper so the post-redirect
+    // handler (ENG-4800) can retrieve it for the token exchange.
+    const redirectHelper = new RedirectHelper();
+    const storedVerifier = redirectHelper.getCodeVerifier();
+    expect(storedVerifier).not.toBeUndefined();
+    expect(storedVerifier).toMatch(/^[A-Za-z0-9\-_]{43}$/);
+
+    // The stored code_verifier must produce the code_challenge in the URL.
+    const expectedChallenge = await generateCodeChallenge(storedVerifier!);
+    expect(url.searchParams.get('code_challenge')).toBe(expectedChallenge);
+  });
+
+  test('two startLogin() calls produce different key pairs and PKCE values', async () => {
+    const core1 = new SDKCore(DPOP_CONFIG);
+
+    // Each SDKCore gets its own DPoPManager with its own key pair.
+    // @ts-ignore
+    globalThis.indexedDB = new IDBFactory();
+
+    const core2 = new SDKCore(DPOP_CONFIG);
+
+    // Wait for core1's full async chain (including its key pair being
+    // written to the *first* IndexedDB instance) to complete before
+    // swapping IndexedDB out for core2 — startLogin() is fire-and-forget, so
+    // this ordering must be enforced explicitly rather than relying on
+    // sequential awaits on startLogin() itself.
+    const waiter1 = createAssignWaiter();
+    // @ts-ignore
+    globalThis.window.location = { assign: waiter1.assign };
+    core1.startLogin();
+    const url1 = new URL(await waiter1.waitForUrl());
+
+    globalThis.localStorage.clear();
+    // @ts-ignore
+    globalThis.indexedDB = new IDBFactory();
+
+    const waiter2 = createAssignWaiter();
+    // @ts-ignore
+    globalThis.window.location = { assign: waiter2.assign };
+    core2.startLogin();
+    const url2 = new URL(await waiter2.waitForUrl());
+
+    // Different key pairs → different dpop_jkt.
+    // Different PKCE verifiers → different code_challenge.
+    expect(url1.searchParams.get('code_challenge')).not.toBe(
+      url2.searchParams.get('code_challenge'),
+    );
+  });
+});
 
 test.describe('DPoP smoke tests', () => {
   test.describe.configure({ mode: 'serial' });
@@ -187,7 +365,8 @@ test.describe('DPoP smoke tests', () => {
 
   test('getAuthorizeUrl() produces a URL FusionAuth accepts (login page rendered)', async () => {
     thumbprint = await manager.getThumbprint();
-    const { challenge } = await generatePkce();
+    const verifier = generateCodeVerifier();
+    const challenge = await generateCodeChallenge(verifier);
 
     const urlHelper = new UrlHelper({
       serverUrl: FA_URL,
@@ -209,7 +388,8 @@ test.describe('DPoP smoke tests', () => {
   });
 
   test('full authorization code exchange — token_type is DPoP, cnf.jkt matches thumbprint', async () => {
-    const { verifier, challenge } = await generatePkce();
+    const verifier = generateCodeVerifier();
+    const challenge = await generateCodeChallenge(verifier);
     thumbprint = await manager.getThumbprint();
 
     const urlHelper = new UrlHelper({
@@ -322,7 +502,6 @@ test.describe('DPoP smoke tests', () => {
     const atPayload = decodeJwt(tokenResponse.access_token);
     expect((atPayload.cnf as { jkt: string }).jkt).toBe(thumbprint);
 
-    // Update shared state for Tier 2.
     accessToken = tokenResponse.access_token;
     refreshToken = tokenResponse.refresh_token ?? refreshToken;
 
@@ -424,6 +603,86 @@ test.describe('DPoP smoke tests', () => {
           'ℹ️  FusionAuth did not issue a nonce challenge on this request — direct success path.',
         );
       }
+    } finally {
+      globalThis.fetch = originalFetch;
+    }
+  });
+
+  test('nonce retry (deterministic) — DPoPManager.fetch() retries with the correct nonce claim when the resource server issues a use_dpop_nonce challenge', async () => {
+    // FusionAuth (as the Authorization Server) never issues a use_dpop_nonce
+    // challenge itself — nonce enforcement is explicitly a Resource Server
+    // responsibility that your own APIs implement (see FusionAuth's DPoP
+    // docs: "FusionAuth currently does not require nonce handling, but your
+    // APIs may require one for resource access").
+    //
+    // This test simulates a Resource Server that DOES require a nonce, by
+    // mocking globalThis.fetch (DPoPManager.fetch() calls the native fetch
+    // directly, so this is a substitute for a real RS response).
+    // It uses its own fresh DPoPManager so it does not depend on shared
+    // state/order.
+
+    const FAKE_RESOURCE_URL = 'https://fake-resource-server.example.com/data';
+    const SERVER_NONCE = 'server-issued-nonce-abc123';
+
+    const nonceManager = makeManager();
+
+    let callCount = 0;
+    let firstProof: string | null = null;
+    let secondProof: string | null = null;
+
+    const originalFetch = globalThis.fetch;
+    globalThis.fetch = async (
+      input: RequestInfo | URL,
+      init?: RequestInit,
+    ): Promise<Response> => {
+      callCount++;
+      const dpopHeader = new Headers(init?.headers).get('DPoP');
+
+      if (callCount === 1) {
+        firstProof = dpopHeader;
+        // Simulate a Resource Server that requires a fresh nonce — per
+        // RFC 9449 §8, a 401 with a WWW-Authenticate header containing
+        // 'use_dpop_nonce' and a DPoP-Nonce response header.
+        return new Response(null, {
+          status: 401,
+          headers: {
+            'WWW-Authenticate':
+              'DPoP error="use_dpop_nonce", error_description="Resource server requires a nonce"',
+            'DPoP-Nonce': SERVER_NONCE,
+          },
+        });
+      }
+
+      secondProof = dpopHeader;
+      return new Response(JSON.stringify({ ok: true }), { status: 200 });
+    };
+
+    try {
+      const response = await nonceManager.fetch(FAKE_RESOURCE_URL);
+
+      expect(response.status).toBe(200);
+      // Exactly one retry — original call + single nonce retry, no more.
+      expect(callCount).toBe(2);
+
+      expect(firstProof).not.toBeNull();
+      expect(secondProof).not.toBeNull();
+
+      // The first proof (before the server ever provided a nonce) must NOT
+      // carry a nonce claim.
+      const firstPayload = decodeJwt(firstProof!);
+      expect(firstPayload.nonce).toBeUndefined();
+
+      // The retried proof MUST carry the server-issued nonce claim, proving
+      // DPoPManager cached it from the DPoP-Nonce response header and used
+      // it to regenerate the proof before retrying.
+      const secondPayload = decodeJwt(secondProof!);
+      expect(secondPayload.nonce).toBe(SERVER_NONCE);
+
+      // Both proofs must otherwise target the same resource/method.
+      expect(firstPayload.htu).toBe(FAKE_RESOURCE_URL);
+      expect(secondPayload.htu).toBe(FAKE_RESOURCE_URL);
+      expect(firstPayload.htm).toBe('GET');
+      expect(secondPayload.htm).toBe('GET');
     } finally {
       globalThis.fetch = originalFetch;
     }

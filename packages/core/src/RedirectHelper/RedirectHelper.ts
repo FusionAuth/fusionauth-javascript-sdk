@@ -1,6 +1,10 @@
-/** A class responsible for storing a redirect value in localStorage and cleanup afterward. */
+/**
+ * A class responsible for storing pre-redirect values in localStorage and
+ * cleaning them up afterward.
+ */
 export class RedirectHelper {
   private readonly REDIRECT_VALUE = 'fa-sdk-redirect-value';
+
   private get storage(): Storage {
     try {
       return localStorage;
@@ -9,38 +13,81 @@ export class RedirectHelper {
       return {
         /* eslint-disable */
         setItem(_key: string, _value: string) {},
-        getItem(_key: string) {},
+        getItem(_key: string) {
+          return null;
+        },
         removeItem(_key: string) {},
         /* eslint-enable */
       } as Storage;
     }
   }
 
-  handlePreRedirect(state?: string) {
-    const valueForStorage = `${this.generateRandomString()}:${state ?? ''}`;
+  /**
+   * Persists a redirect marker and an optional `state` value to localStorage
+   * before a redirect is initiated. When `codeVerifier` is provided (DPoP
+   * mode), it is persisted alongside `state` as a JSON object instead of the
+   * plain colon-delimited string used by hosted backend mode.
+   *
+   * Hosted backend mode format: a plain string `${randomNonce}:${state ?? ''}`
+   *
+   * DPoP mode format: a JSON object `{ codeVerifier, state }`
+   *
+   * @param state         Optional OAuth2 state string echoed back post-login.
+   * @param codeVerifier  Optional PKCE `code_verifier` (DPoP mode only).
+   */
+  handlePreRedirect(state?: string, codeVerifier?: string) {
+    const isDpopMode = codeVerifier !== undefined;
+    const valueForStorage = isDpopMode
+      ? JSON.stringify({ codeVerifier, state })
+      : `${this.generateRandomString()}:${state ?? ''}`;
     this.storage.setItem(this.REDIRECT_VALUE, valueForStorage);
   }
 
   handlePostRedirect(callback?: (state?: string) => void) {
-    const didRedirect = Boolean(this.storage.getItem(this.REDIRECT_VALUE));
-    if (!didRedirect) {
+    const raw = this.storage.getItem(this.REDIRECT_VALUE);
+    if (!raw) {
       return;
     }
 
-    const state = this.state;
-    callback?.(state);
+    callback?.(this.parseStoredValue(raw).state);
     this.storage.removeItem(this.REDIRECT_VALUE);
   }
 
-  private get state() {
-    const redirectValue = this.storage.getItem(this.REDIRECT_VALUE);
+  /**
+   * Returns the PKCE `code_verifier` that was persisted by
+   * {@link handlePreRedirect}, or `undefined` if none was stored (hosted
+   * backend mode) or if no redirect has been initiated.
+   */
+  getCodeVerifier(): string | undefined {
+    const raw = this.storage.getItem(this.REDIRECT_VALUE);
+    if (!raw) return undefined;
 
-    if (!redirectValue) {
-      return;
+    return this.parseStoredValue(raw).codeVerifier;
+  }
+
+  /**
+   * Parses a raw stored value for either mode.
+   */
+  private parseStoredValue(raw: string): {
+    codeVerifier?: string;
+    state?: string;
+  } {
+    if (raw.startsWith('{')) {
+      // DPoP mode
+      const parsed = JSON.parse(raw) as {
+        codeVerifier?: string;
+        state?: string;
+      };
+      return {
+        codeVerifier: parsed.codeVerifier || undefined,
+        state: parsed.state ?? undefined,
+      };
     }
 
-    const [, ...stateValue] = redirectValue.split(':');
-    return stateValue.join(':') || undefined;
+    // Hosted backend mode format: randomNonce:state (state may itself
+    // contain colons; rejoin the remainder to preserve them).
+    const [, ...stateValue] = raw.split(':');
+    return { state: stateValue.join(':') || undefined };
   }
 
   private generateRandomString() {

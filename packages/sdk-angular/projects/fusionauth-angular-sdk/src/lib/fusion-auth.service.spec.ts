@@ -132,6 +132,7 @@ describe('FusionAuthService', () => {
     mockIsLoggedIn();
 
     const stateValue = '/welcome-page';
+    // Format: nonce:state (hosted backend mode)
     localStorage.setItem('fa-sdk-redirect-value', `abc123:${stateValue}`);
 
     const onRedirect = vi.fn();

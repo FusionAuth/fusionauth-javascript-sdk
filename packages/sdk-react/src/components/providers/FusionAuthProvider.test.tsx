@@ -121,12 +121,13 @@ describe('FusionAuthProvider', () => {
     mockIsLoggedIn();
 
     const stateValue = 'hello-world';
+    // Format: nonce:state (hosted backend mode)
     localStorage.setItem('fa-sdk-redirect-value', `abc123:${stateValue}`);
 
     const onRedirect = vi.fn();
     renderWithWrapper({ ...TEST_CONFIG, onRedirect });
 
-    expect(onRedirect).toHaveBeenCalled();
+    expect(onRedirect).toHaveBeenCalledWith(stateValue);
   });
 
   test('Will not invoke onRedirect if no redirect value is found in localStorage', () => {

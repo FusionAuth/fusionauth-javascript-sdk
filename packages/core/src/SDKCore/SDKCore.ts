@@ -3,6 +3,8 @@ import { SDKConfig } from '../SDKConfig';
 import { UserInfo } from '../SDKContext';
 import { RedirectHelper } from '../RedirectHelper';
 import { getAccessTokenExpirationMoment } from '../CookieHelpers';
+import { DPoPManager } from '../DPoP';
+import * as Pkce from '../Pkce';
 
 /** A class containing framework-agnostic SDK methods */
 export class SDKCore {
@@ -12,6 +14,7 @@ export class SDKCore {
   private tokenExpirationTimeout?: NodeJS.Timeout;
   private refreshTokenTimeout?: NodeJS.Timeout;
   private isDisposed = false;
+  private dpopManager?: DPoPManager;
 
   constructor(config: SDKConfig) {
     this.config = config;
@@ -28,6 +31,14 @@ export class SDKCore {
       tokenRefreshPath: config.tokenRefreshPath,
       postLogoutRedirectUri: config.postLogoutRedirectUri,
     });
+
+    if (config.useDpop) {
+      this.dpopManager = new DPoPManager(
+        config.clientId,
+        config.dpopTokenStorage,
+      );
+    }
+
     this.scheduleTokenExpiration();
   }
 
@@ -37,9 +48,44 @@ export class SDKCore {
     this.isDisposed = true;
   }
 
-  startLogin(state?: string) {
+  /**
+   * Initiates the login flow.
+   *
+   * In DPoP mode, this synchronously returns after starting an async chain
+   * that handles the DPoP login flow.
+  
+   * In hosted backend mode the processing is synchronous.
+   *
+   * @param state  Optional OAuth2 state value echoed back post-login.
+   */
+  startLogin(state?: string): void {
+    if (this.dpopManager) {
+      this.startDpopLogin(state).catch(error => {
+        if (this.config.onLoginFailure) {
+          this.config.onLoginFailure(error as Error);
+        } else {
+          console.error('FusionAuth SDK: startLogin failed', error);
+        }
+      });
+      return;
+    }
+
     this.redirectHelper.handlePreRedirect(state);
     window.location.assign(this.urlHelper.getLoginUrl(state));
+  }
+
+  /**
+   * Performs the DPoP-mode login flow.
+   */
+  private async startDpopLogin(state?: string): Promise<void> {
+    await this.dpopManager!.getOrCreateKeyPair();
+    const dpopJkt = await this.dpopManager!.getThumbprint();
+    const codeVerifier = Pkce.generateCodeVerifier();
+    const codeChallenge = await Pkce.generateCodeChallenge(codeVerifier);
+    this.redirectHelper.handlePreRedirect(state, codeVerifier);
+    window.location.assign(
+      this.urlHelper.getAuthorizeUrl(dpopJkt, codeChallenge, state),
+    );
   }
 
   startRegister(state?: string) {
@@ -141,7 +187,17 @@ export class SDKCore {
     }
   }
 
+  /**
+   * Whether the user is currently logged in.
+   *
+   * - DPoP mode: delegates to `DPoPManager.isLoggedIn` which checks whether
+   *   the stored tokens exist and have not expired.
+   * - hosted backend mode: reads the `app.at_exp` cookie (existing behavior).
+   */
   get isLoggedIn() {
+    if (this.dpopManager) {
+      return this.dpopManager.isLoggedIn;
+    }
     return this.at_exp > new Date().getTime();
   }
 
