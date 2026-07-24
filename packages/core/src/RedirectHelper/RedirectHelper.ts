@@ -3,18 +3,11 @@
  * cleaning them up afterward.
  *
  * Two storage formats are used under the same `fa-sdk-redirect-value` key,
- * discriminated by content (never by an explicit flag):
+ * discriminated by content:
  *
- * - Hosted backend mode (no `codeVerifier`): a plain string
- *   `${randomNonce}:${state ?? ''}` — unchanged since before DPoP support
- *   was added, so no legacy-format handling is needed for this mode. Every
- *   published SDK version has always written exactly this format.
- * - DPoP mode (`codeVerifier` provided): a JSON object
- *   `{ codeVerifier, state }`. `JSON.parse` deterministically throws on the
- *   hosted-backend-mode plain string (it never starts with `{`, and a bare
- *   `nonce:state` string is never valid JSON on its own), so the two formats
- *   can never be confused with one another — there is no ambiguous case to
- *   handle, unlike a purely delimiter-based scheme.
+ * - Hosted backend mode: a plain string `${randomNonce}:${state ?? ''}`
+ *
+ * - DPoP mode: a JSON object `{ codeVerifier, state }`
  */
 export class RedirectHelper {
   private readonly REDIRECT_VALUE = 'fa-sdk-redirect-value';
@@ -83,7 +76,7 @@ export class RedirectHelper {
 
   /**
    * Reconstructs the `state` value from a raw stored value, regardless of
-   * which format (DPoP JSON or hosted-backend plain string) produced it.
+   * which format (DPoP JSON or hosted-backend plain string).
    */
   private parseState(raw: string): string | undefined {
     try {
