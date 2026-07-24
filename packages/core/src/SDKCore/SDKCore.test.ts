@@ -677,10 +677,6 @@ describe('SDKCore', () => {
         vi.spyOn(DPoPManager.prototype, 'generateProof').mockResolvedValue(
           MOCK_PROOF,
         );
-        // Mock refreshToken() so this test can isolate auto-refresh
-        // *scheduling* from the refresh implementation itself (covered in
-        // its own describe block below). We only assert *that* a refresh
-        // was scheduled and fires at the right time.
         const refreshToken = vi
           .spyOn(SDKCore.prototype, 'refreshToken')
           .mockResolvedValue(new Response(null, { status: 200 }));

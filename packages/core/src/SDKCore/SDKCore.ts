@@ -202,17 +202,7 @@ export class SDKCore {
   }
 
   /**
-   * Performs the DPoP-mode refresh token grant. The full step-by-step
-   * description:
-   *
-   * 1. Reads the stored refresh token from `DPoPManager`.
-   * 2. Generates a DPoP proof for the token endpoint (no `ath` — this is a
-   *    token endpoint request, not a resource server request).
-   * 3. POSTs to FusionAuth's `/oauth2/token` with `grant_type=refresh_token`,
-   *    signing the request with the DPoP proof.
-   * 4. Stores the returned tokens via `DPoPManager.setTokens()`.
-   * 5. Schedules token expiration and (if `shouldAutoRefresh`) auto-refresh
-   *    from the tokens' new `expiresAt`.
+   * Performs the DPoP mode refresh token grant.
    */
   private async refreshDpopToken(): Promise<Response> {
     const refreshToken = this.dpopManager!.getRefreshToken();
