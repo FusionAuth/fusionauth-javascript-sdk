@@ -7,10 +7,6 @@ describe('RedirectHelper', () => {
     vi.restoreAllMocks();
   });
 
-  // ---------------------------------------------------------------------------
-  // Hosted backend mode (non-DPoP)
-  // ---------------------------------------------------------------------------
-
   describe('handlePreRedirect / handlePostRedirect (hosted backend mode)', () => {
     it('stores a redirect marker in localStorage', () => {
       const helper = new RedirectHelper();
@@ -78,10 +74,6 @@ describe('RedirectHelper', () => {
     });
   });
 
-  // ---------------------------------------------------------------------------
-  // DPoP mode — code_verifier persistence
-  // ---------------------------------------------------------------------------
-
   describe('handlePreRedirect with codeVerifier (DPoP mode)', () => {
     it('persists the code_verifier and returns it via getCodeVerifier()', () => {
       const helper = new RedirectHelper();
@@ -140,12 +132,6 @@ describe('RedirectHelper', () => {
       expect(helper.getCodeVerifier()).toBeUndefined();
     });
   });
-
-  // ---------------------------------------------------------------------------
-  // Storage format — discrimination between hosted backend mode (plain
-  // string) and DPoP mode (JSON), and behavior when a helper instance is
-  // used for one mode after having previously been used for the other.
-  // ---------------------------------------------------------------------------
 
   describe('storage format', () => {
     it('hosted backend mode stores a plain, non-JSON string', () => {
