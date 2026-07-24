@@ -452,6 +452,74 @@ describe('SDKCore', () => {
       );
     });
 
+    it('dpopFetch() delegates to DPoPManager.fetch() when useDpop: true', async () => {
+      vi.spyOn(DPoPManager.prototype, 'getOrCreateKeyPair').mockResolvedValue(
+        {} as any,
+      );
+      const mockResponse = new Response(null, { status: 200 });
+      const fetchSpy = vi
+        .spyOn(DPoPManager.prototype, 'fetch')
+        .mockResolvedValue(mockResponse);
+
+      const core = new SDKCore(dpopConfig);
+      const init = { method: 'GET' };
+      const response = await core.dpopFetch(
+        'https://api.example.com/data',
+        init,
+      );
+
+      expect(fetchSpy).toHaveBeenCalledWith(
+        'https://api.example.com/data',
+        init,
+      );
+      expect(response).toBe(mockResponse);
+    });
+
+    it('dpopFetch() throws when useDpop: false', async () => {
+      const core = new SDKCore(config); // no useDpop
+
+      await expect(
+        core.dpopFetch('https://api.example.com/data'),
+      ).rejects.toThrow(
+        'dpopFetch() is only available in DPoP mode. In cookie mode, use fetch() with credentials: "include" instead.',
+      );
+    });
+
+    it('generateProof() delegates to DPoPManager.generateProof() when useDpop: true', async () => {
+      vi.spyOn(DPoPManager.prototype, 'getOrCreateKeyPair').mockResolvedValue(
+        {} as any,
+      );
+      const generateProofSpy = vi
+        .spyOn(DPoPManager.prototype, 'generateProof')
+        .mockResolvedValue('mock-dpop-proof-jwt');
+
+      const core = new SDKCore(dpopConfig);
+      const proof = await core.generateProof(
+        'https://api.example.com/data',
+        'POST',
+        'mock-access-token',
+        'mock-nonce',
+      );
+
+      expect(generateProofSpy).toHaveBeenCalledWith(
+        'https://api.example.com/data',
+        'POST',
+        'mock-access-token',
+        'mock-nonce',
+      );
+      expect(proof).toBe('mock-dpop-proof-jwt');
+    });
+
+    it('generateProof() throws when useDpop: false', async () => {
+      const core = new SDKCore(config); // no useDpop
+
+      await expect(
+        core.generateProof('https://api.example.com/data', 'POST'),
+      ).rejects.toThrow(
+        'generateProof() is only available in DPoP mode. In cookie mode, tokens are stored in HttpOnly cookies and DPoP proofs are not applicable.',
+      );
+    });
+
     describe('handlePostRedirect() in DPoP mode', () => {
       const MOCK_PROOF = 'mock-dpop-proof-jwt';
       const MOCK_CODE = 'mock-authorization-code';
@@ -574,6 +642,40 @@ describe('SDKCore', () => {
         );
 
         expect(core.isLoggedIn).toBe(true);
+      });
+
+      it('returns a promise that resolves once the token exchange settles, reflecting the isLoggedIn transition', async () => {
+        mockDpopLoginDependencies();
+        vi.spyOn(DPoPManager.prototype, 'generateProof').mockResolvedValue(
+          MOCK_PROOF,
+        );
+
+        const core = new SDKCore(dpopConfig);
+        await primePendingRedirect(core);
+        mockTokenResponse();
+
+        expect(core.isLoggedIn).toBe(false);
+
+        await core.handlePostRedirect();
+
+        expect(core.isLoggedIn).toBe(true);
+      });
+
+      it('returns a resolved (never rejected) promise even when the exchange fails', async () => {
+        mockDpopLoginDependencies();
+        vi.spyOn(DPoPManager.prototype, 'generateProof').mockResolvedValue(
+          MOCK_PROOF,
+        );
+        vi.spyOn(console, 'error').mockImplementation(() => {});
+
+        const core = new SDKCore(dpopConfig);
+        await primePendingRedirect(core);
+        vi.spyOn(window, 'fetch').mockResolvedValue(
+          new Response('boom', { status: 500 }),
+        );
+
+        await expect(core.handlePostRedirect()).resolves.toBeUndefined();
+        expect(core.isLoggedIn).toBe(false);
       });
 
       it('invokes the callback with the state persisted by startLogin() and cleans up the redirect marker', async () => {

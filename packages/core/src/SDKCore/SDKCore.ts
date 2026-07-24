@@ -157,6 +157,49 @@ export class SDKCore {
     return this.dpopManager.getAccessToken();
   }
 
+  /**
+   * DPoP-aware `fetch()` wrapper. Automatically attaches `Authorization: DPoP
+   * <token>` and `DPoP: <proof>` headers to the outgoing request, and
+   * transparently retries once if the server responds with a
+   * `use_dpop_nonce` challenge. See {@link DPoPManager.fetch} for the full
+   * behavior.
+   *
+   * @throws {Error} if called in cookie mode (`useDpop: false`).
+   */
+  async dpopFetch(
+    input: RequestInfo | URL,
+    init?: RequestInit,
+  ): Promise<Response> {
+    if (!this.dpopManager) {
+      throw new Error(
+        'dpopFetch() is only available in DPoP mode. In cookie mode, use fetch() with credentials: "include" instead.',
+      );
+    }
+    return this.dpopManager.fetch(input, init);
+  }
+
+  /**
+   * Generates a signed DPoP proof JWT for the given request, for advanced
+   * use cases (e.g. axios or other HTTP libraries that can't use
+   * {@link dpopFetch}). See {@link DPoPManager.generateProof} for the full
+   * behavior.
+   *
+   * @throws {Error} if called in cookie mode (`useDpop: false`).
+   */
+  async generateProof(
+    htu: string,
+    htm: string,
+    accessToken?: string,
+    nonce?: string,
+  ): Promise<string> {
+    if (!this.dpopManager) {
+      throw new Error(
+        'generateProof() is only available in DPoP mode. In cookie mode, tokens are stored in HttpOnly cookies and DPoP proofs are not applicable.',
+      );
+    }
+    return this.dpopManager.generateProof(htu, htm, accessToken, nonce);
+  }
+
   async fetchUserInfo<T = UserInfo>() {
     const userInfoResponse = await fetch(this.urlHelper.getMeUrl(), {
       credentials: 'include',
@@ -302,25 +345,33 @@ export class SDKCore {
   /**
    * Handles the return trip from a login/register redirect.
    *
-   * In DPoP mode (`useDpop: true`), this synchronously returns after
-   * kicking off an async chain, otherwise continue using the Hosted
-   * Backend API.
+   * In DPoP mode (`useDpop: true`), this kicks off an async chain to
+   * exchange the authorization code for tokens, otherwise it continues
+   * using the Hosted Backend API (fully synchronous).
+   *
+   * The returned promise always resolves (never rejects) — DPoP failures are
+   * reported via `SDKConfig.onLoginFailure` (or `console.error`), exactly as
+   * before. Callers may await it purely to know when the post-redirect work
+   * (and, in DPoP mode, the resulting `isLoggedIn` transition) has settled;
+   * awaiting is optional and not required for existing fire-and-forget
+   * callers.
    */
-  handlePostRedirect(callback?: (state?: string) => void): void {
+  handlePostRedirect(callback?: (state?: string) => void): Promise<void> {
     if (this.dpopManager) {
-      this.handleDpopPostRedirect(callback).catch(error => {
+      return this.handleDpopPostRedirect(callback).catch(error => {
         if (this.config.onLoginFailure) {
           this.config.onLoginFailure(error as Error);
         } else {
           console.error('FusionAuth SDK: handlePostRedirect failed', error);
         }
       });
-      return;
     }
 
     if (this.isLoggedIn) {
       this.redirectHelper.handlePostRedirect(callback);
     }
+
+    return Promise.resolve();
   }
 
   /**

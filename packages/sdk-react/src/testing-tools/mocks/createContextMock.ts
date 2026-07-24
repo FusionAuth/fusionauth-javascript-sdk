@@ -19,4 +19,7 @@ export const createContextMock = (
     function () {
       return Promise.resolve({});
     },
+  dpopFetch: context.dpopFetch,
+  generateProof: context.generateProof,
+  getAccessToken: context.getAccessToken,
 });
