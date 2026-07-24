@@ -1,13 +1,6 @@
 /**
  * A class responsible for storing pre-redirect values in localStorage and
  * cleaning them up afterward.
- *
- * Two storage formats are used under the same `fa-sdk-redirect-value` key,
- * discriminated by content:
- *
- * - Hosted backend mode: a plain string `${randomNonce}:${state ?? ''}`
- *
- * - DPoP mode: a JSON object `{ codeVerifier, state }`
  */
 export class RedirectHelper {
   private readonly REDIRECT_VALUE = 'fa-sdk-redirect-value';
@@ -34,6 +27,10 @@ export class RedirectHelper {
    * before a redirect is initiated. When `codeVerifier` is provided (DPoP
    * mode), it is persisted alongside `state` as a JSON object instead of the
    * plain colon-delimited string used by hosted backend mode.
+   *
+   * Hosted backend mode format: a plain string `${randomNonce}:${state ?? ''}`
+   *
+   * DPoP mode format: a JSON object `{ codeVerifier, state }`
    *
    * @param state         Optional OAuth2 state string echoed back post-login.
    * @param codeVerifier  Optional PKCE `code_verifier` (DPoP mode only).
