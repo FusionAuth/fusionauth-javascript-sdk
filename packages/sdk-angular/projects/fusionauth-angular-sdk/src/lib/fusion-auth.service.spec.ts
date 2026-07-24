@@ -127,4 +127,17 @@ describe('FusionAuthService', () => {
     expect(service.isLoggedIn()).toBe(false);
     expect(initAutoRefreshSpy).not.toHaveBeenCalled();
   });
+
+  it("Invokes an 'onRedirect' callback", () => {
+    mockIsLoggedIn();
+
+    const stateValue = '/welcome-page';
+    // Format: nonce:state (hosted backend mode)
+    localStorage.setItem('fa-sdk-redirect-value', `abc123:${stateValue}`);
+
+    const onRedirect = vi.fn();
+    configureTestingModule({ ...config, onRedirect });
+
+    expect(onRedirect).toHaveBeenCalledWith('/welcome-page');
+  });
 });

@@ -60,6 +60,21 @@ describe('createFusionAuth', () => {
     expect(fusionAuth.error.value).toBeInstanceOf(Error);
   });
 
+  it('Invokes a redirect callback', () => {
+    mockIsLoggedIn();
+    const onRedirect = vi.fn();
+    const expectedStateValue = 'redirect-callback-test';
+    // Format: nonce:state (hosted backend mode)
+    localStorage.setItem(
+      'fa-sdk-redirect-value',
+      `rAnd0mStR1ng:${expectedStateValue}`,
+    );
+
+    createFusionAuth({ ...config, onRedirect });
+
+    expect(onRedirect).toHaveBeenCalledWith(expectedStateValue);
+  });
+
   it('Invokes `onAutoRefreshFailure` with a helpful error when autorefresh fails', async () => {
     vi.useFakeTimers();
     mockIsLoggedIn();
