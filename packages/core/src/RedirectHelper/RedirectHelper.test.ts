@@ -7,11 +7,7 @@ describe('RedirectHelper', () => {
     vi.restoreAllMocks();
   });
 
-  // ---------------------------------------------------------------------------
-  // Cookie-mode (non-DPoP) — backward-compatibility
-  // ---------------------------------------------------------------------------
-
-  describe('handlePreRedirect / handlePostRedirect (cookie mode)', () => {
+  describe('handlePreRedirect / handlePostRedirect ::(hosted backend mode)', () => {
     it('stores a redirect marker in localStorage', () => {
       const helper = new RedirectHelper();
       expect(localStorage.getItem('fa-sdk-redirect-value')).toBeNull();
@@ -78,10 +74,6 @@ describe('RedirectHelper', () => {
     });
   });
 
-  // ---------------------------------------------------------------------------
-  // DPoP mode — code_verifier persistence
-  // ---------------------------------------------------------------------------
-
   describe('handlePreRedirect with codeVerifier (DPoP mode)', () => {
     it('persists the code_verifier and returns it via getCodeVerifier()', () => {
       const helper = new RedirectHelper();
@@ -123,7 +115,7 @@ describe('RedirectHelper', () => {
       expect(helper.getCodeVerifier()).toBeUndefined();
     });
 
-    it('returns undefined from getCodeVerifier() when no verifier was stored (cookie mode)', () => {
+    it('returns undefined from getCodeVerifier() when no verifier was stored (hosted backend mode)', () => {
       const helper = new RedirectHelper();
       helper.handlePreRedirect('some-state');
       expect(helper.getCodeVerifier()).toBeUndefined();
@@ -141,60 +133,60 @@ describe('RedirectHelper', () => {
     });
   });
 
-  // ---------------------------------------------------------------------------
-  // Legacy 2-segment format (nonce:state) backward-compatibility
-  //
-  // Pre-DPoP SDK versions wrote `${nonce}:${state}` (2 segments) instead of
-  // the current `${nonce}:${codeVerifier}:${state}` (3 segments). A value in
-  // this legacy format can still be sitting in localStorage if a user
-  // initiates a login redirect on an older SDK version and the app is
-  // upgraded to a newer version before they land back (e.g. a deploy that
-  // happens while they're on FusionAuth's hosted login page). These tests
-  // seed localStorage directly with the legacy format to simulate that.
-  // ---------------------------------------------------------------------------
+  describe('storage format', () => {
+    it('hosted backend mode stores a plain, non-JSON string', () => {
+      const helper = new RedirectHelper();
+      helper.handlePreRedirect('some-state');
 
-  describe('legacy 2-segment format backward-compatibility', () => {
-    it('handlePostRedirect() invokes the callback with the legacy state value', () => {
+      const raw = localStorage.getItem('fa-sdk-redirect-value')!;
+      expect(() => JSON.parse(raw)).toThrow();
+      expect(raw).toMatch(/^[0-9a-f]+:some-state$/);
+    });
+
+    it('DPoP mode stores a JSON object with codeVerifier and state', () => {
+      const helper = new RedirectHelper();
+      helper.handlePreRedirect('some-state', 'some-verifier');
+
+      const raw = localStorage.getItem('fa-sdk-redirect-value')!;
+      const parsed = JSON.parse(raw);
+      expect(parsed).toEqual({
+        codeVerifier: 'some-verifier',
+        state: 'some-state',
+      });
+    });
+
+    it('a hosted backend mode call after a DPoP mode call is not confused with the old JSON value', () => {
       const helper = new RedirectHelper();
       const callback = vi.fn();
 
-      localStorage.setItem(
-        'fa-sdk-redirect-value',
-        'legacy-nonce:legacy-state',
-      );
-      helper.handlePostRedirect(callback);
+      helper.handlePreRedirect('dpop-state', 'dpop-verifier');
+      helper.handlePreRedirect('hosted-backend-state'); // overwrites with the plain format
 
-      expect(callback).toHaveBeenCalledWith('legacy-state');
+      expect(helper.getCodeVerifier()).toBeUndefined();
+      helper.handlePostRedirect(callback);
+      expect(callback).toHaveBeenCalledWith('hosted-backend-state');
     });
 
-    it('handlePostRedirect() invokes the callback with undefined for an empty legacy state', () => {
+    it('a DPoP mode call after a hosted backend mode call is not confused with the old plain value', () => {
       const helper = new RedirectHelper();
       const callback = vi.fn();
 
-      localStorage.setItem('fa-sdk-redirect-value', 'legacy-nonce:');
+      helper.handlePreRedirect('hosted-backend-state');
+      helper.handlePreRedirect('dpop-state', 'dpop-verifier'); // overwrites with the JSON format
+
+      expect(helper.getCodeVerifier()).toBe('dpop-verifier');
       helper.handlePostRedirect(callback);
-
-      expect(callback).toHaveBeenCalledWith(undefined);
+      expect(callback).toHaveBeenCalledWith('dpop-state');
     });
 
-    it('removes the legacy redirect marker from localStorage after post-redirect', () => {
-      localStorage.setItem(
-        'fa-sdk-redirect-value',
-        'legacy-nonce:legacy-state',
-      );
+    it('treats an empty-string codeVerifier as DPoP mode (JSON format), but getCodeVerifier() returns undefined for it', () => {
+      const helper = new RedirectHelper();
 
-      new RedirectHelper().handlePostRedirect();
+      helper.handlePreRedirect('some-state', '');
 
-      expect(localStorage.getItem('fa-sdk-redirect-value')).toBeNull();
-    });
-
-    it('getCodeVerifier() returns undefined for a legacy value (never carried a verifier)', () => {
-      localStorage.setItem(
-        'fa-sdk-redirect-value',
-        'legacy-nonce:legacy-state',
-      );
-
-      expect(new RedirectHelper().getCodeVerifier()).toBeUndefined();
+      const raw = localStorage.getItem('fa-sdk-redirect-value')!;
+      expect(() => JSON.parse(raw)).not.toThrow();
+      expect(helper.getCodeVerifier()).toBeUndefined();
     });
   });
 });

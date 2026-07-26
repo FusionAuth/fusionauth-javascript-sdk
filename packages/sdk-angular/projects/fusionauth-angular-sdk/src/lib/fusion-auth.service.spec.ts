@@ -132,8 +132,8 @@ describe('FusionAuthService', () => {
     mockIsLoggedIn();
 
     const stateValue = '/welcome-page';
-    // Format: nonce:codeVerifier:state (empty verifier in cookie mode)
-    localStorage.setItem('fa-sdk-redirect-value', `abc123::${stateValue}`);
+    // Format: nonce:state (hosted backend mode)
+    localStorage.setItem('fa-sdk-redirect-value', `abc123:${stateValue}`);
 
     const onRedirect = vi.fn();
     configureTestingModule({ ...config, onRedirect });

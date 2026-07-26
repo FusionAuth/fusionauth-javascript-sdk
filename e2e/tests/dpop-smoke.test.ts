@@ -1,13 +1,14 @@
 /**
- * DPoP Smoke Tests — pre-SDKCore wiring + SDKCore integration
+ * DPoP Smoke Tests — pre-SDKCore wiring + SDKCore.startLogin() integration
  *
- * Exercises SDKCore.startLogin() in DPoP mode with a live
+ * Exercises SDKCore.startLogin() in DPoP mode without a live
  * FusionAuth instance. Stubs window/localStorage/indexedDB to create a real
  * SDKCore, calls startLogin(), and asserts the authorize URL shape and
  * code_verifier persistence.
  *
  * Exercise DPoPManager + UrlHelper directly against a
- * real FusionAuth instance.
+ * real FusionAuth Enterprise instance. No quickstart app is needed — the tests
+ * drive FusionAuth's hosted login UI via Playwright.
  *
  * Run with:
  *   npx playwright test e2e/tests/dpop-smoke.test.ts \
