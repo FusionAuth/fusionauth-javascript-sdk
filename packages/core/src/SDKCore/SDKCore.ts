@@ -75,7 +75,7 @@ export class SDKCore {
   }
 
   /**
-   * Performs the DPoP-mode login flow.
+   * Performs the DPoP mode login flow.
    */
   private async startDpopLogin(state?: string): Promise<void> {
     await this.dpopManager!.getOrCreateKeyPair();
@@ -174,8 +174,7 @@ export class SDKCore {
   /**
    * Cancels a pending automatic token refresh without disposing the core.
    * Unlike {@link dispose}, the core remains usable and auto refresh can be
-   * restarted via {@link initAutoRefresh}. This makes it safe to stop/start
-   * across React StrictMode's mount → unmount → remount cycle.
+   * restarted via {@link initAutoRefresh}.
    */
   stopAutoRefresh(): void {
     clearTimeout(this.refreshTokenTimeout);
@@ -300,7 +299,7 @@ export class SDKCore {
    *
    * - DPoP mode: delegates to `DPoPManager.isLoggedIn` which checks whether
    *   the stored tokens exist and have not expired.
-   * - hosted backend mode: reads the `app.at_exp` cookie (existing behavior).
+   * - Hosted backend mode: reads the `app.at_exp` cookie (existing behavior).
    */
   get isLoggedIn() {
     if (this.dpopManager) {
@@ -313,7 +312,7 @@ export class SDKCore {
    * The moment of access token expiration in milliseconds since epoch.
    *
    * - DPoP mode: delegates to `DPoPManager.getExpiresAt()`.
-   * - Cookie mode: reads the `app.at_exp` cookie (existing behavior).
+   * - Hosted backend mode: reads the `app.at_exp` cookie (existing behavior).
    */
   private get at_exp(): number | -1 {
     if (this.dpopManager) {
@@ -328,7 +327,8 @@ export class SDKCore {
   /**
    * Schedules `onTokenExpiration` at moment of access token expiration.
    * SDKCore is not necessarily reactive like React, Angular, and Vue.
-   * so `onTokenExpiration` is for reactive frameworks to hook in and perform actions as on token expiration.
+   * so `onTokenExpiration` is for reactive frameworks to hook in and
+   * perform actions as on token expiration.
    */
   private scheduleTokenExpiration(): void {
     clearTimeout(this.tokenExpirationTimeout);
