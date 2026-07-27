@@ -97,7 +97,7 @@ export class UrlHelper {
   /**
    * Builds the direct `/oauth2/token` URL used in DPoP mode for the
    * authorization code exchange and refresh token grant. Targets FusionAuth
-   * directly (not the Hosted Backend API). Request parameters are sent in
+   * directly (not Hosted Backend Mode). Request parameters are sent in
    * the POST body (form-urlencoded), not the query string, so no params are
    * appended here.
    */

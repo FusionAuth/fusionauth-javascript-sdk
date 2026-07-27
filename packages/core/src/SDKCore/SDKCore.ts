@@ -185,8 +185,8 @@ export class SDKCore {
    * Handles the return trip from a login/register redirect.
    *
    * In DPoP mode (`useDpop: true`), this synchronously returns after
-   * kicking off an async chain, otherwise continue using the Hosted
-   * Backend API.
+   * kicking off an async chain, otherwise continue using Hosted
+   * Backend Mode.
    */
   handlePostRedirect(callback?: (state?: string) => void): void {
     if (this.dpopManager) {
@@ -206,18 +206,17 @@ export class SDKCore {
   }
 
   /**
-   * Performs the DPoP-mode authorization code exchange. The full
-   * step-by-step description:
+   * Performs the DPoP-mode authorization code exchange.
    *
-   * 1. Detects the `code` query parameter on the current URL.
-   * 2. Retrieves the persisted PKCE `code_verifier`.
-   * 3. Exchanges the code for tokens at FusionAuth's `/oauth2/token`,
-   *    signing the request with a DPoP proof.
-   * 4. Stores the returned tokens via `DPoPManager.setTokens()`.
-   * 5. Schedules token expiration and (if `shouldAutoRefresh`) auto-refresh
-   *    from the tokens' `expiresAt`.
-   * 6. Invokes `callback` with the `state` value and cleans up the
-   *    redirect marker, via `RedirectHelper.handlePostRedirect()`.
+   * -Detects the `code` query parameter on the current URL.
+   * -Retrieves the persisted PKCE `code_verifier`.
+   * -Exchanges the code for tokens at `/oauth2/token`
+   *  signing the request with a DPoP proof.
+   * -Stores the returned tokens.
+   * -Schedules token expiration and (if `shouldAutoRefresh`) auto-refresh
+   *  from the tokens' `expiresAt`.
+   * -Invokes `callback` with the `state` value and cleans up the
+   *  redirect marker, via `RedirectHelper.handlePostRedirect()`.
    */
   private async handleDpopPostRedirect(
     callback?: (state?: string) => void,
