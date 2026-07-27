@@ -7,7 +7,7 @@ describe('RedirectHelper', () => {
     vi.restoreAllMocks();
   });
 
-  describe('handlePreRedirect / handlePostRedirect ::(hosted backend mode)', () => {
+  describe('handlePreRedirect / handlePostRedirect (hosted backend mode)', () => {
     it('stores a redirect marker in localStorage', () => {
       const helper = new RedirectHelper();
       expect(localStorage.getItem('fa-sdk-redirect-value')).toBeNull();

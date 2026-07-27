@@ -367,6 +367,7 @@ test.describe('DPoP smoke tests', () => {
     page = await context.newPage();
     manager = makeManager();
     ensureNodeBrowserPolyfills();
+    thumbprint = await manager.getThumbprint();
   });
 
   test.afterAll(async () => {
@@ -375,7 +376,6 @@ test.describe('DPoP smoke tests', () => {
   });
 
   test('getAuthorizeUrl() produces a URL FusionAuth accepts (login page rendered)', async () => {
-    thumbprint = await manager.getThumbprint();
     const verifier = generateCodeVerifier();
     const challenge = await generateCodeChallenge(verifier);
 
@@ -403,10 +403,6 @@ test.describe('DPoP smoke tests', () => {
 
     ensureNodeBrowserPolyfills();
 
-    // A real SDKCore in DPoP mode, running in the Node/Playwright test
-    // process (see ensureNodeBrowserPolyfills). `dpopTokenStorage:
-    // 'localStorage'` so the exchanged tokens can be read back directly —
-    // SDKCore.getAccessToken() doesn't exist yet (ENG-4802).
     let notify:
       ((result: { state?: string } | { error: Error }) => void) | undefined;
 
