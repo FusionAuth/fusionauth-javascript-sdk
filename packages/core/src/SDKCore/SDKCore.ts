@@ -97,7 +97,7 @@ export class SDKCore {
    * Initiates the logout flow.
    *
    * In DPoP mode, this synchronously returns after starting an
-   * asynchronously flow.
+   * asynchronous flow.
    *
    * In cookie mode, the flow is synchronous.
    */
@@ -113,12 +113,15 @@ export class SDKCore {
   }
 
   /**
-   * Performs the DPoP-mode logout flow clearing the key
-   * pair, stored tokens, and in-memory nonces.
+   * Performs the DPoP-mode logout flow, clearing the key pair, stored
+   * tokens, and in-memory nonces.
    */
   private async startDpopLogout(): Promise<void> {
-    await this.dpopManager!.clear();
-    window.location.assign(this.urlHelper.getLogoutUrl());
+    try {
+      await this.dpopManager!.clear();
+    } finally {
+      window.location.assign(this.urlHelper.getLogoutUrl());
+    }
   }
 
   manageAccount() {
