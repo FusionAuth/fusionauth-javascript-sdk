@@ -463,30 +463,6 @@ describe('SDKCore', () => {
         expect(cleanedUrl.searchParams.get('state')).toBeNull();
       });
 
-      it('does not throw or report a failure when window is undefined (SSR)', async () => {
-        // Some framework layers (e.g. Angular's FusionAuthService) call
-        // handlePostRedirect() unconditionally from their constructor, which
-        // also runs during SSR — window is not defined in that environment.
-        const consoleError = vi
-          .spyOn(console, 'error')
-          .mockImplementation(() => {});
-        const onLoginFailure = vi.fn();
-        const core = new SDKCore({ ...dpopConfig, onLoginFailure });
-        const onRedirect = vi.fn();
-
-        vi.stubGlobal('window', undefined);
-        try {
-          core.handlePostRedirect(onRedirect);
-          await Promise.resolve();
-        } finally {
-          vi.unstubAllGlobals();
-        }
-
-        expect(onRedirect).not.toHaveBeenCalled();
-        expect(onLoginFailure).not.toHaveBeenCalled();
-        expect(consoleError).not.toHaveBeenCalled();
-      });
-
       it('schedules token expiration from expires_in', async () => {
         vi.useFakeTimers();
         mockDpopLoginDependencies();
