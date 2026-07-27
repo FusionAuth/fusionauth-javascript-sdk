@@ -1,13 +1,11 @@
 /**
- * DPoP Smoke Tests — pre-SDKCore wiring + SDKCore integration
+ * DPoP Smoke Tests — pre-SDKCore wiring + SDKCore.startLogin() integration
  *
- * Exercises SDKCore.startLogin() in DPoP mode with a live
- * FusionAuth instance. Stubs window/localStorage/indexedDB to create a real
- * SDKCore, calls startLogin(), and asserts the authorize URL shape and
- * code_verifier persistence.
+ * Stubs window/localStorage/indexedDB to create a real SDKCore.
  *
  * Exercise DPoPManager + UrlHelper directly against a
- * real FusionAuth instance.
+ * real FusionAuth Enterprise instance. No quickstart app is needed — the tests
+ * drive FusionAuth's hosted login UI via Playwright.
  *
  * Run with:
  *   npx playwright test e2e/tests/dpop-smoke.test.ts \
@@ -72,10 +70,7 @@ function makeManager(): DPoPManager {
 /**
  * Idempotently polyfills `window` and `localStorage` in the Node/Playwright
  * test process so that a real `SDKCore` (and its dependencies —
- * `RedirectHelper`, `DPoPTokenStore`) can run outside a browser:
- *  - `window.location.assign` — used by `SDKCore.startLogin()`.
- *  - `window.crypto` — used by `RedirectHelper.generateRandomString()`.
- *  - `localStorage` — used by `RedirectHelper` and `DPoPTokenStore`.
+ * `RedirectHelper`, `DPoPTokenStore`) can run outside a browser.
  */
 function ensureNodeBrowserPolyfills(): void {
   if (typeof globalThis.localStorage === 'undefined') {
@@ -321,9 +316,7 @@ test.describe('SDKCore.startLogin() DPoP mode', () => {
 
     // Wait for core1's full async chain (including its key pair being
     // written to the *first* IndexedDB instance) to complete before
-    // swapping IndexedDB out for core2 — startLogin() is fire-and-forget, so
-    // this ordering must be enforced explicitly rather than relying on
-    // sequential awaits on startLogin() itself.
+    // swapping IndexedDB out for core2.
     const waiter1 = createAssignWaiter();
     // @ts-ignore
     globalThis.window.location = { assign: waiter1.assign };
@@ -367,6 +360,7 @@ test.describe('DPoP smoke tests', () => {
     page = await context.newPage();
     manager = makeManager();
     ensureNodeBrowserPolyfills();
+    thumbprint = await manager.getThumbprint();
   });
 
   test.afterAll(async () => {
@@ -375,7 +369,6 @@ test.describe('DPoP smoke tests', () => {
   });
 
   test('getAuthorizeUrl() produces a URL FusionAuth accepts (login page rendered)', async () => {
-    thumbprint = await manager.getThumbprint();
     const verifier = generateCodeVerifier();
     const challenge = await generateCodeChallenge(verifier);
 
@@ -403,11 +396,6 @@ test.describe('DPoP smoke tests', () => {
 
     ensureNodeBrowserPolyfills();
 
-    // A real SDKCore in DPoP mode, running in the Node/Playwright test
-    // process (see ensureNodeBrowserPolyfills). `dpopTokenStorage:
-    // 'localStorage'` so the exchanged tokens can be read back directly.
-    // Assigned to the shared outer `core` so the startLogout() smoke test
-    // below can reuse this same logged-in instance.
     let notify:
       ((result: { state?: string } | { error: Error }) => void) | undefined;
 
@@ -419,10 +407,6 @@ test.describe('DPoP smoke tests', () => {
       useDpop: true,
       dpopTokenStorage: 'localStorage',
       onTokenExpiration: () => {},
-      // handlePostRedirect() reports exchange failures here instead of
-      // throwing — wire it into the same single-shot `notify` used by the
-      // handlePostRedirect() callback below so either outcome resolves the
-      // same promise.
       onLoginFailure: error => notify?.({ error }),
     });
 
@@ -698,15 +682,11 @@ test.describe('DPoP smoke tests', () => {
   test('nonce retry (deterministic) — DPoPManager.fetch() retries with the correct nonce claim when the resource server issues a use_dpop_nonce challenge', async () => {
     // FusionAuth (as the Authorization Server) never issues a use_dpop_nonce
     // challenge itself — nonce enforcement is explicitly a Resource Server
-    // responsibility that your own APIs implement (see FusionAuth's DPoP
-    // docs: "FusionAuth currently does not require nonce handling, but your
-    // APIs may require one for resource access").
+    // responsibility that your own APIs implement.
     //
     // This test simulates a Resource Server that DOES require a nonce, by
     // mocking globalThis.fetch (DPoPManager.fetch() calls the native fetch
     // directly, so this is a substitute for a real RS response).
-    // It uses its own fresh DPoPManager so it does not depend on shared
-    // state/order.
 
     const FAKE_RESOURCE_URL = 'https://fake-resource-server.example.com/data';
     const SERVER_NONCE = 'server-issued-nonce-abc123';

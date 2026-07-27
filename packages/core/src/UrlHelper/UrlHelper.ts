@@ -75,7 +75,7 @@ export class UrlHelper {
 
   /**
    * Builds the direct `/oauth2/authorize` URL used in DPoP mode.
-   * Targets FusionAuth directly (not the Hosted Backend API).
+   * Targets FusionAuth directly (not the hosted backend mode).
    *
    * @param dpopJkt  The DPoP public key JWK thumbprint for the `dpop_jkt` parameter.
    * @param codeChallenge  The PKCE code challenge value.
@@ -97,7 +97,7 @@ export class UrlHelper {
   /**
    * Builds the direct `/oauth2/token` URL used in DPoP mode for the
    * authorization code exchange and refresh token grant. Targets FusionAuth
-   * directly (not the Hosted Backend API). Request parameters are sent in
+   * directly (not Hosted Backend Mode). Request parameters are sent in
    * the POST body (form-urlencoded), not the query string, so no params are
    * appended here.
    */
