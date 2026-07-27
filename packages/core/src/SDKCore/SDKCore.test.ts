@@ -320,7 +320,7 @@ describe('SDKCore', () => {
       const core = new SDKCore(config); // no useDpop
 
       expect(() => core.getAccessToken()).toThrow(
-        'getAccessToken() is only available in DPoP mode. In cookie mode, tokens are stored in HttpOnly cookies and are not accessible to JavaScript.',
+        'getAccessToken() is only available in DPoP mode. In hosted backend mode, tokens are stored in HttpOnly cookies and are not accessible to JavaScript.',
       );
     });
 

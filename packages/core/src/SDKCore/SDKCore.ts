@@ -99,7 +99,7 @@ export class SDKCore {
    * In DPoP mode, this synchronously returns after starting an
    * asynchronous flow.
    *
-   * In cookie mode, the flow is synchronous.
+   * In hosted backend mode, the flow is synchronous.
    */
   startLogout(): void {
     if (this.dpopManager) {
@@ -113,7 +113,7 @@ export class SDKCore {
   }
 
   /**
-   * Performs the DPoP-mode logout flow, clearing the key pair, stored
+   * Performs the DPoP mode logout flow, clearing the key pair, stored
    * tokens, and in-memory nonces.
    */
   private async startDpopLogout(): Promise<void> {
@@ -129,16 +129,16 @@ export class SDKCore {
   }
 
   /**
-   * Returns the current DPoP-bound access token.  In cookie mode, tokens
+   * Returns the current DPoP mode access token.  In hosted backend mode, tokens
    * are stored in HttpOnly cookies and are never accessible to JavaScript,
    * so this method throws instead.
    *
-   * @throws {Error} if called in cookie mode (`useDpop: false`).
+   * @throws {Error} if called in hosted backend mode
    */
   getAccessToken(): string | null {
     if (!this.dpopManager) {
       throw new Error(
-        'getAccessToken() is only available in DPoP mode. In cookie mode, tokens are stored in HttpOnly cookies and are not accessible to JavaScript.',
+        'getAccessToken() is only available in DPoP mode. In hosted backend mode, tokens are stored in HttpOnly cookies and are not accessible to JavaScript.',
       );
     }
     return this.dpopManager.getAccessToken();
@@ -248,7 +248,7 @@ export class SDKCore {
   }
 
   /**
-   * Performs the DPoP-mode authorization code exchange.
+   * Performs the DPoP mode authorization code exchange.
    *
    * -Detects the `code` query parameter on the current URL.
    * -Retrieves the persisted PKCE `code_verifier`.
