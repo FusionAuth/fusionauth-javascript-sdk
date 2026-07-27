@@ -505,7 +505,6 @@ test.describe('DPoP smoke tests', () => {
   test('startLogout() clears DPoP state and redirects to the logout URL', async () => {
     test.skip(!accessToken, 'No access token from previous test');
 
-    // Sanity: still logged in from the previous grant test.
     expect(core.isLoggedIn).toBe(true);
     expect(core.getAccessToken()).toBe(accessToken);
 
@@ -516,8 +515,6 @@ test.describe('DPoP smoke tests', () => {
     core.startLogout();
     const assignedUrl = new URL(String(await waitForUrl()));
 
-    // getLogoutUrl() is unchanged by DPoP mode — still the Hosted Backend
-    // API path, not a direct FusionAuth /oauth2/* endpoint.
     expect(assignedUrl.origin).toBe(FA_URL);
     expect(assignedUrl.pathname).toBe('/app/logout/');
     expect(assignedUrl.searchParams.get('client_id')).toBe(CLIENT_ID);
@@ -525,7 +522,6 @@ test.describe('DPoP smoke tests', () => {
       REDIRECT_URI,
     );
 
-    // DPoPManager.clear() ran before the redirect — local DPoP state is gone.
     expect(core.isLoggedIn).toBe(false);
     expect(core.getAccessToken()).toBeNull();
 
