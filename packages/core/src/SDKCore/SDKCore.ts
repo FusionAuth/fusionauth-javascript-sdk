@@ -269,13 +269,12 @@ export class SDKCore {
   }
 
   /**
-   * Removes `code` and `state` from the current URL for security.
+   * Removes `code` from the current URL.
    */
   private clearRedirectQueryParams(): void {
     const { origin, pathname, search, hash } = window.location;
     const url = new URL(`${origin}${pathname}${search}${hash}`);
     url.searchParams.delete('code');
-    url.searchParams.delete('state');
     window.history.replaceState(null, '', url.toString());
   }
 
