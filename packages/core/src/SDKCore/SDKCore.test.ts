@@ -289,5 +289,294 @@ describe('SDKCore', () => {
         ),
       );
     });
+
+    describe('handlePostRedirect() in DPoP mode', () => {
+      const MOCK_PROOF = 'mock-dpop-proof-jwt';
+      const MOCK_CODE = 'mock-authorization-code';
+      const MOCK_ACCESS_TOKEN = 'mock-access-token';
+      const MOCK_REFRESH_TOKEN = 'mock-refresh-token';
+      const EXPIRES_IN_SECONDS = 3600;
+
+      /** Mocks the DPoP key-pair/PKCE steps so `startLogin()` runs without WebCrypto. */
+      function mockDpopLoginDependencies() {
+        vi.spyOn(DPoPManager.prototype, 'getOrCreateKeyPair').mockResolvedValue(
+          {} as any,
+        );
+        vi.spyOn(DPoPManager.prototype, 'getThumbprint').mockResolvedValue(
+          MOCK_JKT,
+        );
+        vi.spyOn(Pkce, 'generateCodeVerifier').mockReturnValue(MOCK_VERIFIER);
+        vi.spyOn(Pkce, 'generateCodeChallenge').mockResolvedValue(
+          MOCK_CHALLENGE,
+        );
+      }
+
+      function mockTokenResponse(
+        overrides: Partial<{
+          access_token: string;
+          refresh_token?: string;
+          expires_in: number;
+          token_type: string;
+        }> = {},
+      ) {
+        return vi.spyOn(window, 'fetch').mockResolvedValue(
+          new Response(
+            JSON.stringify({
+              access_token: MOCK_ACCESS_TOKEN,
+              refresh_token: MOCK_REFRESH_TOKEN,
+              expires_in: EXPIRES_IN_SECONDS,
+              token_type: 'DPoP',
+              ...overrides,
+            }),
+            { status: 200 },
+          ),
+        );
+      }
+
+      /**
+       * Runs `startLogin()` (with DPoP dependencies mocked) to legitimately
+       * persist a `code_verifier` via `RedirectHelper`, then simulates landing
+       * back on the redirect URI with `?code=...` in the query string.
+       */
+      async function primePendingRedirect(core: SDKCore) {
+        const location = mockWindowLocation(vi);
+        core.startLogin();
+        await vi.waitFor(() => expect(location.assign).toHaveBeenCalledOnce());
+        location.search = `?code=${MOCK_CODE}`;
+        return location;
+      }
+
+      it('does nothing when there is no code query param', async () => {
+        mockWindowLocation(vi); // default search — no code
+        const fetchMock = vi.spyOn(window, 'fetch');
+        const core = new SDKCore(dpopConfig);
+        const onRedirect = vi.fn();
+
+        core.handlePostRedirect(onRedirect);
+        await Promise.resolve();
+
+        expect(fetchMock).not.toHaveBeenCalled();
+        expect(onRedirect).not.toHaveBeenCalled();
+      });
+
+      it('does nothing when code is present but no code_verifier was persisted', async () => {
+        mockWindowLocation(vi, `?code=${MOCK_CODE}`);
+        const fetchMock = vi.spyOn(window, 'fetch');
+        const core = new SDKCore(dpopConfig);
+        const onRedirect = vi.fn();
+
+        core.handlePostRedirect(onRedirect);
+        await Promise.resolve();
+
+        expect(fetchMock).not.toHaveBeenCalled();
+        expect(onRedirect).not.toHaveBeenCalled();
+      });
+
+      it('exchanges the code with a DPoP header and stores tokens', async () => {
+        mockDpopLoginDependencies();
+        vi.spyOn(DPoPManager.prototype, 'generateProof').mockResolvedValue(
+          MOCK_PROOF,
+        );
+
+        const core = new SDKCore(dpopConfig);
+        await primePendingRedirect(core);
+        const fetchMock = mockTokenResponse();
+
+        const onRedirect = vi.fn();
+        core.handlePostRedirect(onRedirect);
+        await vi.waitFor(() => expect(onRedirect).toHaveBeenCalledOnce());
+
+        expect(fetchMock).toHaveBeenCalledOnce();
+        const call = fetchMock.mock.calls[0];
+        if (!call) throw new Error('fetch was not called');
+        const [url, init] = call;
+        expect(new URL(url.toString()).pathname).toBe('/oauth2/token');
+        expect(init?.method).toBe('POST');
+
+        const headers = init?.headers as Record<string, string>;
+        expect(headers['DPoP']).toBe(MOCK_PROOF);
+        expect(headers['Content-Type']).toBe(
+          'application/x-www-form-urlencoded',
+        );
+
+        const body = new URLSearchParams(init?.body as string);
+        expect(body.get('grant_type')).toBe('authorization_code');
+        expect(body.get('code')).toBe(MOCK_CODE);
+        expect(body.get('code_verifier')).toBe(MOCK_VERIFIER);
+        expect(body.get('client_id')).toBe(dpopConfig.clientId);
+        expect(body.get('redirect_uri')).toBe(dpopConfig.redirectUri);
+
+        expect(DPoPManager.prototype.generateProof).toHaveBeenCalledWith(
+          expect.stringContaining('/oauth2/token'),
+          'POST',
+        );
+
+        expect(core.isLoggedIn).toBe(true);
+      });
+
+      it('invokes the callback with the state persisted by startLogin() and cleans up the redirect marker', async () => {
+        mockDpopLoginDependencies();
+        vi.spyOn(DPoPManager.prototype, 'generateProof').mockResolvedValue(
+          MOCK_PROOF,
+        );
+
+        const core = new SDKCore(dpopConfig);
+        const location = mockWindowLocation(vi);
+        core.startLogin('my-post-redirect-state');
+        await vi.waitFor(() => expect(location.assign).toHaveBeenCalledOnce());
+        location.search = `?code=${MOCK_CODE}`;
+        mockTokenResponse();
+
+        const redirectIndicator = () =>
+          localStorage.getItem('fa-sdk-redirect-value');
+        expect(redirectIndicator()).not.toBeNull();
+
+        const onRedirect = vi.fn();
+        core.handlePostRedirect(onRedirect);
+        await vi.waitFor(() => expect(onRedirect).toHaveBeenCalledOnce());
+
+        expect(onRedirect).toHaveBeenCalledWith('my-post-redirect-state');
+        expect(redirectIndicator()).toBeNull();
+      });
+
+      it('strips code from the URL via history.replaceState() after a successful exchange', async () => {
+        mockDpopLoginDependencies();
+        vi.spyOn(DPoPManager.prototype, 'generateProof').mockResolvedValue(
+          MOCK_PROOF,
+        );
+        const replaceState = vi.spyOn(window.history, 'replaceState');
+
+        const core = new SDKCore(dpopConfig);
+        const location = mockWindowLocation(vi);
+        core.startLogin('my-post-redirect-state');
+        await vi.waitFor(() => expect(location.assign).toHaveBeenCalledOnce());
+        location.search = `?code=${MOCK_CODE}&state=my-post-redirect-state`;
+        mockTokenResponse();
+
+        core.handlePostRedirect();
+        await vi.waitFor(() => expect(core.isLoggedIn).toBe(true));
+
+        expect(replaceState).toHaveBeenCalledOnce();
+        const [, , url] = replaceState.mock.calls[0];
+        const cleanedUrl = new URL(url as string);
+        expect(cleanedUrl.searchParams.get('code')).toBeNull();
+      });
+
+      it('schedules token expiration from expires_in', async () => {
+        vi.useFakeTimers();
+        mockDpopLoginDependencies();
+        vi.spyOn(DPoPManager.prototype, 'generateProof').mockResolvedValue(
+          MOCK_PROOF,
+        );
+
+        const onTokenExpiration = vi.fn();
+        const core = new SDKCore({ ...dpopConfig, onTokenExpiration });
+        await primePendingRedirect(core);
+        mockTokenResponse();
+
+        core.handlePostRedirect();
+        await vi.waitFor(() => expect(core.isLoggedIn).toBe(true));
+
+        vi.advanceTimersByTime(EXPIRES_IN_SECONDS * 1000 - 1000);
+        expect(onTokenExpiration).not.toHaveBeenCalled();
+
+        vi.advanceTimersByTime(1000);
+        expect(onTokenExpiration).toHaveBeenCalledTimes(1);
+      });
+
+      it('schedules auto-refresh from expires_in when shouldAutoRefresh is true', async () => {
+        vi.useFakeTimers();
+        mockDpopLoginDependencies();
+        vi.spyOn(DPoPManager.prototype, 'generateProof').mockResolvedValue(
+          MOCK_PROOF,
+        );
+        // Avoid an actual (cookie-mode) network call from the real
+        // refreshToken() — DPoP mode's refreshToken() is implemented in a
+        // later ticket. We only assert *that* a refresh was
+        // scheduled and fires at the right time.
+        const refreshToken = vi
+          .spyOn(SDKCore.prototype, 'refreshToken')
+          .mockResolvedValue(new Response(null, { status: 200 }));
+
+        const core = new SDKCore({
+          ...dpopConfig,
+          shouldAutoRefresh: true,
+          autoRefreshSecondsBeforeExpiry: 60,
+        });
+        await primePendingRedirect(core);
+        mockTokenResponse();
+
+        core.handlePostRedirect();
+        await vi.waitFor(() => expect(core.isLoggedIn).toBe(true));
+
+        // Refresh fires 60s before the 3600s expiry, i.e. at 3540s.
+        vi.advanceTimersByTime((EXPIRES_IN_SECONDS - 60) * 1000 - 1000);
+        expect(refreshToken).not.toHaveBeenCalled();
+
+        vi.advanceTimersByTime(1000);
+        expect(refreshToken).toHaveBeenCalledTimes(1);
+      });
+
+      it('does not schedule auto-refresh when shouldAutoRefresh is not set', async () => {
+        mockDpopLoginDependencies();
+        vi.spyOn(DPoPManager.prototype, 'generateProof').mockResolvedValue(
+          MOCK_PROOF,
+        );
+        const refreshToken = vi.spyOn(SDKCore.prototype, 'refreshToken');
+
+        const core = new SDKCore(dpopConfig); // shouldAutoRefresh defaults to false
+        await primePendingRedirect(core);
+        mockTokenResponse();
+
+        const onRedirect = vi.fn();
+        core.handlePostRedirect(onRedirect);
+        await vi.waitFor(() => expect(onRedirect).toHaveBeenCalledOnce());
+
+        expect(refreshToken).not.toHaveBeenCalled();
+      });
+
+      it('reports an exchange failure via onLoginFailure', async () => {
+        mockDpopLoginDependencies();
+        vi.spyOn(DPoPManager.prototype, 'generateProof').mockResolvedValue(
+          MOCK_PROOF,
+        );
+
+        const onLoginFailure = vi.fn();
+        const core = new SDKCore({ ...dpopConfig, onLoginFailure });
+        await primePendingRedirect(core);
+        vi.spyOn(window, 'fetch').mockResolvedValue(
+          new Response('invalid_grant', { status: 400 }),
+        );
+
+        core.handlePostRedirect();
+        await vi.waitFor(() => expect(onLoginFailure).toHaveBeenCalledOnce());
+
+        expect(core.isLoggedIn).toBe(false);
+      });
+
+      it('falls back to console.error when an exchange failure occurs and onLoginFailure is not configured', async () => {
+        mockDpopLoginDependencies();
+        vi.spyOn(DPoPManager.prototype, 'generateProof').mockResolvedValue(
+          MOCK_PROOF,
+        );
+        const consoleError = vi
+          .spyOn(console, 'error')
+          .mockImplementation(() => {});
+
+        const core = new SDKCore(dpopConfig); // no onLoginFailure configured
+        await primePendingRedirect(core);
+        vi.spyOn(window, 'fetch').mockResolvedValue(
+          new Response('invalid_grant', { status: 400 }),
+        );
+
+        core.handlePostRedirect();
+        await vi.waitFor(() =>
+          expect(consoleError).toHaveBeenCalledWith(
+            'FusionAuth SDK: handlePostRedirect failed',
+            expect.any(Error),
+          ),
+        );
+      });
+    });
   });
 });

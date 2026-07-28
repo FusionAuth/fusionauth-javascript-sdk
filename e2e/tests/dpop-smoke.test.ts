@@ -1,10 +1,7 @@
 /**
  * DPoP Smoke Tests — pre-SDKCore wiring + SDKCore.startLogin() integration
  *
- * Exercises SDKCore.startLogin() in DPoP mode without a live
- * FusionAuth instance. Stubs window/localStorage/indexedDB to create a real
- * SDKCore, calls startLogin(), and asserts the authorize URL shape and
- * code_verifier persistence.
+ * Stubs window/localStorage/indexedDB to create a real SDKCore.
  *
  * Exercise DPoPManager + UrlHelper directly against a
  * real FusionAuth Enterprise instance. No quickstart app is needed — the tests
@@ -26,7 +23,7 @@
 import { Page, expect, test } from '@playwright/test';
 import { IDBFactory } from 'fake-indexeddb';
 import { DPoPManager } from '../../packages/core/src/DPoP/DPoPManager';
-import { DPoPTokens } from '../../packages/core/src/DPoP/DPoPTokenStore';
+import { DPoPTokenStore } from '../../packages/core/src/DPoP/DPoPTokenStore';
 import { UrlHelper } from '../../packages/core/src/UrlHelper/UrlHelper';
 import { SDKCore } from '../../packages/core/src/SDKCore/SDKCore';
 import { RedirectHelper } from '../../packages/core/src/RedirectHelper/RedirectHelper';
@@ -68,6 +65,40 @@ function makeManager(): DPoPManager {
   // @ts-ignore — Node has no native indexedDB; fake-indexeddb fills the gap.
   globalThis.indexedDB = new IDBFactory();
   return new DPoPManager(CLIENT_ID, 'memory');
+}
+
+/**
+ * Idempotently polyfills `window` and `localStorage` in the Node/Playwright
+ * test process so that a real `SDKCore` (and its dependencies —
+ * `RedirectHelper`, `DPoPTokenStore`) can run outside a browser.
+ */
+function ensureNodeBrowserPolyfills(): void {
+  if (typeof globalThis.localStorage === 'undefined') {
+    const store: Record<string, string> = {};
+    // @ts-ignore
+    globalThis.localStorage = {
+      getItem: (k: string) => store[k] ?? null,
+      setItem: (k: string, v: string) => {
+        store[k] = v;
+      },
+      removeItem: (k: string) => {
+        delete store[k];
+      },
+      clear: () => {
+        for (const k in store) delete store[k];
+      },
+    };
+  }
+
+  if (typeof globalThis.window === 'undefined') {
+    // @ts-ignore
+    globalThis.window = {
+      location: { assign: () => {} },
+      crypto: globalThis.crypto,
+      // Needed by SDKCore.clearRedirectQueryParams() (history.replaceState).
+      history: { replaceState: () => {} },
+    };
+  }
 }
 
 /**
@@ -205,34 +236,7 @@ test.describe('SDKCore.startLogin() DPoP mode', () => {
     // @ts-ignore
     globalThis.indexedDB = new IDBFactory();
 
-    // localStorage — required by RedirectHelper and DPoPTokenStore.
-    if (typeof globalThis.localStorage === 'undefined') {
-      const store: Record<string, string> = {};
-      // @ts-ignore
-      globalThis.localStorage = {
-        getItem: (k: string) => store[k] ?? null,
-        setItem: (k: string, v: string) => {
-          store[k] = v;
-        },
-        removeItem: (k: string) => {
-          delete store[k];
-        },
-        clear: () => {
-          for (const k in store) delete store[k];
-        },
-      };
-    }
-
-    // window — SDKCore calls window.location.assign and DPoPManager uses
-    // indexedDB / crypto globals that browsers expose via window. We stub
-    // window with the minimal surface SDKCore touches.
-    if (typeof globalThis.window === 'undefined') {
-      // @ts-ignore
-      globalThis.window = {
-        location: { assign: () => {} },
-        crypto: globalThis.crypto,
-      };
-    }
+    ensureNodeBrowserPolyfills();
   });
 
   test.afterEach(() => {
@@ -312,9 +316,7 @@ test.describe('SDKCore.startLogin() DPoP mode', () => {
 
     // Wait for core1's full async chain (including its key pair being
     // written to the *first* IndexedDB instance) to complete before
-    // swapping IndexedDB out for core2 — startLogin() is fire-and-forget, so
-    // this ordering must be enforced explicitly rather than relying on
-    // sequential awaits on startLogin() itself.
+    // swapping IndexedDB out for core2.
     const waiter1 = createAssignWaiter();
     // @ts-ignore
     globalThis.window.location = { assign: waiter1.assign };
@@ -356,6 +358,8 @@ test.describe('DPoP smoke tests', () => {
     context = await browser.newContext();
     page = await context.newPage();
     manager = makeManager();
+    ensureNodeBrowserPolyfills();
+    thumbprint = await manager.getThumbprint();
   });
 
   test.afterAll(async () => {
@@ -364,7 +368,6 @@ test.describe('DPoP smoke tests', () => {
   });
 
   test('getAuthorizeUrl() produces a URL FusionAuth accepts (login page rendered)', async () => {
-    thumbprint = await manager.getThumbprint();
     const verifier = generateCodeVerifier();
     const challenge = await generateCodeChallenge(verifier);
 
@@ -387,77 +390,113 @@ test.describe('DPoP smoke tests', () => {
     await expect(page.locator('#loginId')).toBeVisible();
   });
 
-  test('full authorization code exchange — token_type is DPoP, cnf.jkt matches thumbprint', async () => {
-    const verifier = generateCodeVerifier();
-    const challenge = await generateCodeChallenge(verifier);
-    thumbprint = await manager.getThumbprint();
+  test('full authorization code grant via SDKCore.startLogin() + handlePostRedirect() — token_type is DPoP, cnf.jkt matches thumbprint', async () => {
+    const STATE = 'e2e-state';
 
-    const urlHelper = new UrlHelper({
+    ensureNodeBrowserPolyfills();
+
+    let notify:
+      ((result: { state?: string } | { error: Error }) => void) | undefined;
+
+    const core = new SDKCore({
       serverUrl: FA_URL,
       clientId: CLIENT_ID,
       redirectUri: REDIRECT_URI,
       scope: SCOPE,
+      useDpop: true,
+      dpopTokenStorage: 'localStorage',
+      onTokenExpiration: () => {},
+      onLoginFailure: error => notify?.({ error }),
     });
 
-    const authorizeUrl = urlHelper
-      .getAuthorizeUrl(thumbprint, challenge)
-      .toString();
+    // startLogin() kicks off an async chain (key pair, PKCE, etc.) and
+    // redirects via window.location.assign() — capture the assigned URL.
+    const { assign, waitForUrl } = createAssignWaiter();
+    // @ts-ignore
+    globalThis.window.location = { assign };
+
+    core.startLogin(STATE);
+    // waitForUrl()'s declared return type is `string`, but SDKCore actually
+    // calls window.location.assign() with a URL object (UrlHelper.getAuthorizeUrl()
+    // returns URL) — stringify explicitly so page.goto() below (which requires
+    // a real string) doesn't silently fail navigation.
+    const authorizeUrl = String(await waitForUrl());
 
     // Navigate fresh
     await page.goto('about:blank');
     const code = await loginAndCaptureCode(page, authorizeUrl);
 
-    // Exchange the code at the token endpoint using a real DPoP proof.
-    const proof = await manager.generateProof(TOKEN_ENDPOINT, 'POST');
-
-    const body = new URLSearchParams({
-      grant_type: 'authorization_code',
-      code,
-      code_verifier: verifier,
-      client_id: CLIENT_ID,
-      redirect_uri: REDIRECT_URI,
-    });
-
-    const response = await fetch(TOKEN_ENDPOINT, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-        DPoP: proof,
+    // Simulate landing back on the redirect URI with ?code=... in the query
+    // string, then let handlePostRedirect() run the real exchange.
+    // origin/pathname/hash are needed by SDKCore.clearRedirectQueryParams(),
+    // which rebuilds the URL from these parts (not .href) after a
+    // successful exchange, to strip code/state via history.replaceState().
+    const redirectUrl = new URL(REDIRECT_URI);
+    const replaceStateCalls: string[] = [];
+    // @ts-ignore
+    globalThis.window.location = {
+      assign: () => {},
+      origin: redirectUrl.origin,
+      pathname: redirectUrl.pathname,
+      hash: '',
+      search: `?code=${code}`,
+    };
+    // @ts-ignore
+    globalThis.window.history = {
+      replaceState: (_state: unknown, _title: string, url?: string | URL) => {
+        if (url) replaceStateCalls.push(url.toString());
       },
-      body: body.toString(),
-    });
-
-    const responseText = await response.text();
-    expect(response.status, `Token exchange failed: ${responseText}`).toBe(200);
-
-    const tokenResponse = JSON.parse(responseText) as {
-      access_token: string;
-      refresh_token?: string;
-      token_type: string;
-      expires_in: number;
     };
 
+    const outcome = await new Promise<{ state?: string } | { error: Error }>(
+      (resolve, reject) => {
+        const timeout = setTimeout(
+          () => reject(new Error('Timed out waiting for handlePostRedirect()')),
+          15_000,
+        );
+        notify = result => {
+          clearTimeout(timeout);
+          resolve(result);
+        };
+        core.handlePostRedirect(state => notify?.({ state }));
+      },
+    );
+
+    if ('error' in outcome) {
+      throw outcome.error;
+    }
+    // state round-trips through RedirectHelper's persisted storage.
+    expect(outcome.state).toBe(STATE);
+    expect(core.isLoggedIn).toBe(true);
+
+    // code/state were stripped from the URL via history.replaceState() once
+    // the exchange succeeded, so they don't linger in the address bar,
+    // browser history, referrers, logs, or screenshots.
+    expect(replaceStateCalls).toHaveLength(1);
+    const cleanedUrl = new URL(replaceStateCalls[0]!);
+    expect(cleanedUrl.searchParams.get('code')).toBeNull();
+    expect(cleanedUrl.searchParams.get('state')).toBeNull();
+
+    // Read the tokens SDKCore just persisted, directly via DPoPTokenStore
+    // (same clientId/storage mode SDKCore's internal DPoPManager used).
+    const tokenStore = new DPoPTokenStore(CLIENT_ID, 'localStorage');
+    const tokens = tokenStore.get();
+    expect(tokens).not.toBeNull();
+
     // token_type must be 'DPoP' — proves FusionAuth recognised and bound the proof.
-    expect(tokenResponse.token_type.toLowerCase()).toBe('dpop');
-    expect(tokenResponse.access_token).toBeDefined();
+    expect(tokens!.tokenType).toBe('DPoP');
+    expect(tokens!.accessToken).toBeDefined();
 
     // Decode the access token and verify cnf.jkt matches our key's thumbprint.
-    const atPayload = decodeJwt(tokenResponse.access_token);
+    const atPayload = decodeJwt(tokens!.accessToken);
     expect(atPayload.cnf).toBeDefined();
     expect((atPayload.cnf as { jkt: string }).jkt).toBe(thumbprint);
 
-    // Persist tokens for subsequent tests.
-    accessToken = tokenResponse.access_token;
-    refreshToken = tokenResponse.refresh_token ?? '';
-
-    const expiresAt = Date.now() + tokenResponse.expires_in * 1000;
-    const tokens: DPoPTokens = {
-      accessToken,
-      refreshToken: refreshToken || undefined,
-      expiresAt,
-      tokenType: 'DPoP',
-    };
-    manager.setTokens(tokens);
+    // Persist tokens for subsequent tests — same key pair as `manager`, so
+    // proofs `manager` signs for these tokens remain valid.
+    accessToken = tokens!.accessToken;
+    refreshToken = tokens!.refreshToken ?? '';
+    manager.setTokens(tokens!);
 
     expect(manager.isLoggedIn).toBe(true);
   });
@@ -611,15 +650,11 @@ test.describe('DPoP smoke tests', () => {
   test('nonce retry (deterministic) — DPoPManager.fetch() retries with the correct nonce claim when the resource server issues a use_dpop_nonce challenge', async () => {
     // FusionAuth (as the Authorization Server) never issues a use_dpop_nonce
     // challenge itself — nonce enforcement is explicitly a Resource Server
-    // responsibility that your own APIs implement (see FusionAuth's DPoP
-    // docs: "FusionAuth currently does not require nonce handling, but your
-    // APIs may require one for resource access").
+    // responsibility that your own APIs implement.
     //
     // This test simulates a Resource Server that DOES require a nonce, by
     // mocking globalThis.fetch (DPoPManager.fetch() calls the native fetch
     // directly, so this is a substitute for a real RS response).
-    // It uses its own fresh DPoPManager so it does not depend on shared
-    // state/order.
 
     const FAKE_RESOURCE_URL = 'https://fake-resource-server.example.com/data';
     const SERVER_NONCE = 'server-issued-nonce-abc123';

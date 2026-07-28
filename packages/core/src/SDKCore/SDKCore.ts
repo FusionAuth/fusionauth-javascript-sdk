@@ -75,7 +75,7 @@ export class SDKCore {
   }
 
   /**
-   * Performs the DPoP-mode login flow.
+   * Performs the DPoP mode login flow.
    */
   private async startDpopLogin(state?: string): Promise<void> {
     await this.dpopManager!.getOrCreateKeyPair();
@@ -174,17 +174,108 @@ export class SDKCore {
   /**
    * Cancels a pending automatic token refresh without disposing the core.
    * Unlike {@link dispose}, the core remains usable and auto refresh can be
-   * restarted via {@link initAutoRefresh}. This makes it safe to stop/start
-   * across React StrictMode's mount → unmount → remount cycle.
+   * restarted via {@link initAutoRefresh}.
    */
   stopAutoRefresh(): void {
     clearTimeout(this.refreshTokenTimeout);
   }
 
-  handlePostRedirect(callback?: (state?: string) => void) {
+  /**
+   * Handles the return trip from a login/register redirect.
+   *
+   * In DPoP mode (`useDpop: true`), this synchronously returns after
+   * kicking off an async chain, otherwise continue using Hosted
+   * Backend Mode.
+   */
+  handlePostRedirect(callback?: (state?: string) => void): void {
+    if (this.dpopManager) {
+      this.handleDpopPostRedirect(callback).catch(error => {
+        if (this.config.onLoginFailure) {
+          this.config.onLoginFailure(error as Error);
+        } else {
+          console.error('FusionAuth SDK: handlePostRedirect failed', error);
+        }
+      });
+      return;
+    }
+
     if (this.isLoggedIn) {
       this.redirectHelper.handlePostRedirect(callback);
     }
+  }
+
+  /**
+   * Performs the DPoP-mode authorization code exchange.
+   */
+  private async handleDpopPostRedirect(
+    callback?: (state?: string) => void,
+  ): Promise<void> {
+    const code = new URLSearchParams(window.location.search).get('code');
+    const codeVerifier = this.redirectHelper.getCodeVerifier();
+
+    // No pending exchange
+    if (!code || !codeVerifier) {
+      return;
+    }
+
+    const tokenUrl = this.urlHelper.getTokenUrl();
+    const proof = await this.dpopManager!.generateProof(
+      tokenUrl.toString(),
+      'POST',
+    );
+
+    const body = new URLSearchParams({
+      grant_type: 'authorization_code',
+      code,
+      code_verifier: codeVerifier,
+      client_id: this.config.clientId,
+      redirect_uri: this.config.redirectUri,
+    });
+
+    const response = await fetch(tokenUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        DPoP: proof,
+      },
+      body: body.toString(),
+    });
+
+    if (!response.ok) {
+      const errorDetails = {
+        status: response.status,
+        details:
+          (await response.text()) ||
+          'Failed to exchange authorization code for tokens',
+      };
+      throw new Error(JSON.stringify(errorDetails));
+    }
+
+    const tokenResponse = await response.json();
+    this.dpopManager!.setTokens({
+      accessToken: tokenResponse.access_token,
+      refreshToken: tokenResponse.refresh_token,
+      expiresAt: Date.now() + tokenResponse.expires_in * 1000,
+      tokenType: 'DPoP',
+    });
+
+    this.clearRedirectQueryParams();
+    this.scheduleTokenExpiration();
+    if (this.config.shouldAutoRefresh) {
+      this.initAutoRefresh();
+    }
+
+    this.redirectHelper.handlePostRedirect(callback);
+  }
+
+  /**
+   * Removes `code` from the current URL.
+   */
+  private clearRedirectQueryParams(): void {
+    const { origin, pathname, search, hash } = window.location;
+    const url = new URL(`${origin}${pathname}${search}${hash}`);
+    url.searchParams.delete('code');
+    window.history.replaceState(null, '', url.toString());
   }
 
   /**
@@ -192,7 +283,7 @@ export class SDKCore {
    *
    * - DPoP mode: delegates to `DPoPManager.isLoggedIn` which checks whether
    *   the stored tokens exist and have not expired.
-   * - hosted backend mode: reads the `app.at_exp` cookie (existing behavior).
+   * - Hosted backend mode: reads the `app.at_exp` cookie (existing behavior).
    */
   get isLoggedIn() {
     if (this.dpopManager) {
@@ -201,8 +292,16 @@ export class SDKCore {
     return this.at_exp > new Date().getTime();
   }
 
-  /** The moment of access token expiration in milliseconds since epoch. */
+  /**
+   * The moment of access token expiration in milliseconds since epoch.
+   *
+   * - DPoP mode: delegates to `DPoPManager.getExpiresAt()`.
+   * - Hosted backend mode: reads the `app.at_exp` cookie (existing behavior).
+   */
   private get at_exp(): number | -1 {
+    if (this.dpopManager) {
+      return this.dpopManager.getExpiresAt();
+    }
     return getAccessTokenExpirationMoment(
       this.config.accessTokenExpireCookieName,
       this.config.cookieAdapter,
@@ -212,7 +311,8 @@ export class SDKCore {
   /**
    * Schedules `onTokenExpiration` at moment of access token expiration.
    * SDKCore is not necessarily reactive like React, Angular, and Vue.
-   * so `onTokenExpiration` is for reactive frameworks to hook in and perform actions as on token expiration.
+   * so `onTokenExpiration` is for reactive frameworks to hook in and
+   * perform actions as on token expiration.
    */
   private scheduleTokenExpiration(): void {
     clearTimeout(this.tokenExpirationTimeout);

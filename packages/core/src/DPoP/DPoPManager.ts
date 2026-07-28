@@ -89,6 +89,16 @@ export class DPoPManager {
   }
 
   /**
+   * Returns the expiration moment (ms since epoch) of the stored access
+   * token, or `-1` if no tokens are stored. Mirrors the `-1` convention used
+   * by `CookieHelpers.getAccessTokenExpirationMoment()` so `SDKCore` can
+   * schedule token expiration / auto-refresh identically in both modes.
+   */
+  getExpiresAt(): number | -1 {
+    return this.tokenStore.get()?.expiresAt ?? -1;
+  }
+
+  /**
    * Generates a signed DPoP proof JWT.
    *
    * - `ath` (access token hash) is included only when `accessToken` is provided.
