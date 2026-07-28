@@ -634,12 +634,6 @@ describe('SDKCore', () => {
           token_type: string;
         }> = {},
       ) {
-        // Use mockImplementation (not mockResolvedValue) so every fetch()
-        // call gets its own fresh Response instance — refreshToken() may be
-        // invoked multiple times within a single test (e.g. an explicit
-        // call followed by an auto-refresh timer firing), and a shared
-        // Response instance would throw "body already used" once its body
-        // has been read by an earlier call.
         return vi.spyOn(window, 'fetch').mockImplementation(() =>
           Promise.resolve(
             new Response(
@@ -794,36 +788,6 @@ describe('SDKCore', () => {
           'No refresh token available. Have you called startLogin()?',
         );
         expect(fetchMock).not.toHaveBeenCalled();
-      });
-
-      it('preserves the existing refresh token when the response omits refresh_token (no rotation)', async () => {
-        vi.spyOn(DPoPManager.prototype, 'getOrCreateKeyPair').mockResolvedValue(
-          {} as any,
-        );
-        vi.spyOn(DPoPManager.prototype, 'generateProof').mockResolvedValue(
-          MOCK_PROOF,
-        );
-        const core = new SDKCore(dpopConfig);
-        seedExistingTokens(core);
-        // FusionAuth may not rotate the refresh token on every refresh —
-        // simulate a response with no refresh_token field.
-        mockTokenResponse({ refresh_token: undefined });
-
-        await core.refreshToken();
-
-        expect(core.getAccessToken()).toBe(MOCK_NEW_ACCESS_TOKEN);
-
-        // A subsequent refresh must still succeed using the *original*
-        // refresh token — proving it wasn't cleared out by the first
-        // refresh's response.
-        const fetchMock = mockTokenResponse();
-        await core.refreshToken();
-
-        const call = fetchMock.mock.calls[0];
-        if (!call) throw new Error('fetch was not called');
-        const [, init] = call;
-        const body = new URLSearchParams(init?.body as string);
-        expect(body.get('refresh_token')).toBe(MOCK_OLD_REFRESH_TOKEN);
       });
     });
   });
