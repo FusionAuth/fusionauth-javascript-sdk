@@ -149,8 +149,8 @@ describe('FusionAuthProvider', () => {
     mockIsLoggedIn();
 
     const stateValue = 'hello-world';
-    // Format: nonce:codeVerifier:state (empty verifier in cookie mode)
-    localStorage.setItem('fa-sdk-redirect-value', `abc123::${stateValue}`);
+    // Format: nonce:state (hosted backend mode)
+    localStorage.setItem('fa-sdk-redirect-value', `abc123:${stateValue}`);
 
     const onRedirect = vi.fn();
     renderWithWrapper({ ...TEST_CONFIG, onRedirect });
@@ -428,7 +428,7 @@ describe('FusionAuthProvider', () => {
       mockWindowLocation(vi, '?code=mock-authorization-code');
       localStorage.setItem(
         'fa-sdk-redirect-value',
-        'mock-nonce:mock-code-verifier:',
+        JSON.stringify({ codeVerifier: 'mock-code-verifier' }),
       );
       vi.spyOn(global, 'fetch').mockResolvedValueOnce(
         new Response(

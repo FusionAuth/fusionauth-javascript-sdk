@@ -1,13 +1,11 @@
 /**
- * DPoP Smoke Tests — pre-SDKCore wiring + SDKCore integration
+ * DPoP Smoke Tests — pre-SDKCore wiring + SDKCore.startLogin() integration
  *
- * Exercises SDKCore.startLogin() in DPoP mode with a live
- * FusionAuth instance. Stubs window/localStorage/indexedDB to create a real
- * SDKCore, calls startLogin(), and asserts the authorize URL shape and
- * code_verifier persistence.
+ * Stubs window/localStorage/indexedDB to create a real SDKCore.
  *
  * Exercise DPoPManager + UrlHelper directly against a
- * real FusionAuth instance.
+ * real FusionAuth Enterprise instance. No quickstart app is needed — the tests
+ * drive FusionAuth's hosted login UI via Playwright.
  *
  * Run with:
  *   npx playwright test e2e/tests/dpop-smoke.test.ts \
@@ -71,10 +69,7 @@ function makeManager(): DPoPManager {
 /**
  * Idempotently polyfills `window` and `localStorage` in the Node/Playwright
  * test process so that a real `SDKCore` (and its dependencies —
- * `RedirectHelper`, `DPoPTokenStore`) can run outside a browser:
- *  - `window.location.assign` — used by `SDKCore.startLogin()`.
- *  - `window.crypto` — used by `RedirectHelper.generateRandomString()`.
- *  - `localStorage` — used by `RedirectHelper` and `DPoPTokenStore`.
+ * `RedirectHelper`, `DPoPTokenStore`) can run outside a browser.
  */
 function ensureNodeBrowserPolyfills(): void {
   if (typeof globalThis.localStorage === 'undefined') {
@@ -320,9 +315,7 @@ test.describe('SDKCore.startLogin() DPoP mode', () => {
 
     // Wait for core1's full async chain (including its key pair being
     // written to the *first* IndexedDB instance) to complete before
-    // swapping IndexedDB out for core2 — startLogin() is fire-and-forget, so
-    // this ordering must be enforced explicitly rather than relying on
-    // sequential awaits on startLogin() itself.
+    // swapping IndexedDB out for core2.
     const waiter1 = createAssignWaiter();
     // @ts-ignore
     globalThis.window.location = { assign: waiter1.assign };
@@ -365,6 +358,7 @@ test.describe('DPoP smoke tests', () => {
     page = await context.newPage();
     manager = makeManager();
     ensureNodeBrowserPolyfills();
+    thumbprint = await manager.getThumbprint();
   });
 
   test.afterAll(async () => {
@@ -373,7 +367,6 @@ test.describe('DPoP smoke tests', () => {
   });
 
   test('getAuthorizeUrl() produces a URL FusionAuth accepts (login page rendered)', async () => {
-    thumbprint = await manager.getThumbprint();
     const verifier = generateCodeVerifier();
     const challenge = await generateCodeChallenge(verifier);
 
@@ -401,11 +394,6 @@ test.describe('DPoP smoke tests', () => {
 
     ensureNodeBrowserPolyfills();
 
-    // A real SDKCore in DPoP mode, running in the Node/Playwright test
-    // process (see ensureNodeBrowserPolyfills). `dpopTokenStorage:
-    // 'localStorage'` so the exchanged tokens can be read back directly.
-    // Assigned to the shared outer `core` so the startLogout() smoke test
-    // below can reuse this same logged-in instance.
     let notify:
       ((result: { state?: string } | { error: Error }) => void) | undefined;
 
@@ -417,10 +405,6 @@ test.describe('DPoP smoke tests', () => {
       useDpop: true,
       dpopTokenStorage: 'localStorage',
       onTokenExpiration: () => {},
-      // handlePostRedirect() reports exchange failures here instead of
-      // throwing — wire it into the same single-shot `notify` used by the
-      // handlePostRedirect() callback below so either outcome resolves the
-      // same promise.
       onLoginFailure: error => notify?.({ error }),
     });
 
@@ -518,30 +502,24 @@ test.describe('DPoP smoke tests', () => {
   test('refreshToken() — issues new DPoP-bound tokens and reschedules expiration', async () => {
     test.skip(!accessToken, 'No access token from previous test');
 
-    // Sanity: still logged in from the previous grant test.
     expect(core.isLoggedIn).toBe(true);
     const previousAccessToken = accessToken;
 
     const response = await core.refreshToken();
     expect(response.ok).toBe(true);
 
-    // core.refreshToken() updates DPoPManager's stored tokens directly —
-    // isLoggedIn must remain true and getAccessToken() must reflect the
-    // newly issued access token.
     expect(core.isLoggedIn).toBe(true);
     const newAccessToken = core.getAccessToken();
     expect(newAccessToken).toBeDefined();
-    // New access token must be different from the original.
     expect(newAccessToken).not.toBe(previousAccessToken);
 
-    // Decode the new access token and verify cnf.jkt still matches our
-    // key's thumbprint — proves FusionAuth bound the refreshed token to the
+    // verify cnf.jkt still matches our key's thumbprint —
+    // proves FusionAuth bound the refreshed token to the
     // same DPoP key pair.
     const atPayload = decodeJwt(newAccessToken!);
     expect(atPayload.cnf).toBeDefined();
     expect((atPayload.cnf as { jkt: string }).jkt).toBe(thumbprint);
 
-    // DPoPTokenStore reflects the refreshed tokens with a future expiresAt.
     const tokenStore = new DPoPTokenStore(CLIENT_ID, 'localStorage');
     const tokens = tokenStore.get();
     expect(tokens).not.toBeNull();
@@ -549,15 +527,12 @@ test.describe('DPoP smoke tests', () => {
     expect(tokens!.accessToken).toBe(newAccessToken);
     expect(tokens!.expiresAt).toBeGreaterThan(Date.now());
 
-    // Keep the shared accessToken in sync for the subsequent startLogout()
-    // test, which asserts core.getAccessToken() against it.
     accessToken = newAccessToken!;
   });
 
   test('startLogout() clears DPoP state and redirects to the logout URL', async () => {
     test.skip(!accessToken, 'No access token from previous test');
 
-    // Sanity: still logged in from the previous grant test.
     expect(core.isLoggedIn).toBe(true);
     expect(core.getAccessToken()).toBe(accessToken);
 
@@ -568,8 +543,6 @@ test.describe('DPoP smoke tests', () => {
     core.startLogout();
     const assignedUrl = new URL(String(await waitForUrl()));
 
-    // getLogoutUrl() is unchanged by DPoP mode — still the Hosted Backend
-    // API path, not a direct FusionAuth /oauth2/* endpoint.
     expect(assignedUrl.origin).toBe(FA_URL);
     expect(assignedUrl.pathname).toBe('/app/logout/');
     expect(assignedUrl.searchParams.get('client_id')).toBe(CLIENT_ID);
@@ -577,7 +550,6 @@ test.describe('DPoP smoke tests', () => {
       REDIRECT_URI,
     );
 
-    // DPoPManager.clear() ran before the redirect — local DPoP state is gone.
     expect(core.isLoggedIn).toBe(false);
     expect(core.getAccessToken()).toBeNull();
 
@@ -682,15 +654,11 @@ test.describe('DPoP smoke tests', () => {
   test('nonce retry (deterministic) — DPoPManager.fetch() retries with the correct nonce claim when the resource server issues a use_dpop_nonce challenge', async () => {
     // FusionAuth (as the Authorization Server) never issues a use_dpop_nonce
     // challenge itself — nonce enforcement is explicitly a Resource Server
-    // responsibility that your own APIs implement (see FusionAuth's DPoP
-    // docs: "FusionAuth currently does not require nonce handling, but your
-    // APIs may require one for resource access").
+    // responsibility that your own APIs implement.
     //
     // This test simulates a Resource Server that DOES require a nonce, by
     // mocking globalThis.fetch (DPoPManager.fetch() calls the native fetch
     // directly, so this is a substitute for a real RS response).
-    // It uses its own fresh DPoPManager so it does not depend on shared
-    // state/order.
 
     const FAKE_RESOURCE_URL = 'https://fake-resource-server.example.com/data';
     const SERVER_NONCE = 'server-issued-nonce-abc123';
