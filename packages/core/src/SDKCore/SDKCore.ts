@@ -248,26 +248,11 @@ export class SDKCore {
   }
 
   /**
-   * Performs the DPoP mode authorization code exchange.
-   *
-   * -Detects the `code` query parameter on the current URL.
-   * -Retrieves the persisted PKCE `code_verifier`.
-   * -Exchanges the code for tokens at `/oauth2/token`
-   *  signing the request with a DPoP proof.
-   * -Stores the returned tokens.
-   * -Schedules token expiration and (if `shouldAutoRefresh`) auto-refresh
-   *  from the tokens' `expiresAt`.
-   * -Invokes `callback` with the `state` value and cleans up the
-   *  redirect marker, via `RedirectHelper.handlePostRedirect()`.
+   * Performs the DPoP-mode authorization code exchange.
    */
   private async handleDpopPostRedirect(
     callback?: (state?: string) => void,
   ): Promise<void> {
-    // SSR/non-browser guard
-    if (typeof window === 'undefined') {
-      return;
-    }
-
     const code = new URLSearchParams(window.location.search).get('code');
     const codeVerifier = this.redirectHelper.getCodeVerifier();
 
@@ -327,13 +312,12 @@ export class SDKCore {
   }
 
   /**
-   * Removes `code` and `state` from the current URL for security.
+   * Removes `code` from the current URL.
    */
   private clearRedirectQueryParams(): void {
     const { origin, pathname, search, hash } = window.location;
     const url = new URL(`${origin}${pathname}${search}${hash}`);
     url.searchParams.delete('code');
-    url.searchParams.delete('state');
     window.history.replaceState(null, '', url.toString());
   }
 
