@@ -2,6 +2,11 @@ import { defineConfig, devices } from '@playwright/test';
 
 export default defineConfig({
   testDir: './e2e',
+  /* DPoP tests require their own FusionAuth Application config and are run
+   * via dedicated configs (playwright.dpop.config.ts /
+   * playwright.dpop-endpoints.config.ts) — exclude them here so they don't
+   * get mixed into hosted-backend-mode runs (e.g. `yarn test:e2e`). */
+  testIgnore: ['**/dpop-smoke.test.ts', '**/dpop-endpoints.test.ts'],
   /* Run tests in files in parallel */
   fullyParallel: true,
   /* Fail the build on CI if you accidentally left test.only in the source code. */
