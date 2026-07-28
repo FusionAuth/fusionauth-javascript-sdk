@@ -67,6 +67,18 @@ export class UrlHelper {
     });
   }
 
+  /**
+   * Builds the direct `/oauth2/logout` URL used in DPoP mode. Targets
+   * FusionAuth directly, since there is no hosted backend mode in DPoP mode
+   * to proxy through `logoutPath` (e.g. `/app/logout/`).
+   */
+  getOAuth2LogoutUrl(): URL {
+    return this.generateUrl('/oauth2/logout', {
+      client_id: this.clientId,
+      post_logout_redirect_uri: this.postLogoutRedirectUri || this.redirectUri,
+    });
+  }
+
   getAccountManagementUrl(): URL {
     return this.generateUrl('/account/', {
       client_id: this.clientId,

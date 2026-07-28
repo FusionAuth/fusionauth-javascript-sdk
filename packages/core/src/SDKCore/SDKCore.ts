@@ -114,13 +114,15 @@ export class SDKCore {
 
   /**
    * Performs the DPoP mode logout flow, clearing the key pair, stored
-   * tokens, and in-memory nonces.
+   * tokens, and in-memory nonces, then redirecting directly to FusionAuth's
+   * `/oauth2/logout` (there is no hosted backend mode in DPoP mode to proxy
+   * through `/app/logout/`).
    */
   private async startDpopLogout(): Promise<void> {
     try {
       await this.dpopManager!.clear();
     } finally {
-      window.location.assign(this.urlHelper.getLogoutUrl());
+      window.location.assign(this.urlHelper.getOAuth2LogoutUrl());
     }
   }
 

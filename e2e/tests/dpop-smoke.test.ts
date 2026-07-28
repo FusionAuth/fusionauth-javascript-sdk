@@ -544,7 +544,9 @@ test.describe('DPoP smoke tests', () => {
     const assignedUrl = new URL(String(await waitForUrl()));
 
     expect(assignedUrl.origin).toBe(FA_URL);
-    expect(assignedUrl.pathname).toBe('/app/logout/');
+    // DPoP mode has no hosted backend to proxy through — the SDK targets
+    // FusionAuth's /oauth2/logout directly instead of /app/logout/.
+    expect(assignedUrl.pathname).toBe('/oauth2/logout');
     expect(assignedUrl.searchParams.get('client_id')).toBe(CLIENT_ID);
     expect(assignedUrl.searchParams.get('post_logout_redirect_uri')).toBe(
       REDIRECT_URI,

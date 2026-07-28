@@ -290,6 +290,52 @@ describe('SDKCore', () => {
       );
     });
 
+    it('startLogout() in DPoP mode clears DPoPManager state and redirects to /oauth2/logout directly', async () => {
+      vi.spyOn(DPoPManager.prototype, 'getOrCreateKeyPair').mockResolvedValue(
+        {} as any,
+      );
+      const clearSpy = vi
+        .spyOn(DPoPManager.prototype, 'clear')
+        .mockResolvedValue(undefined);
+      const location = mockWindowLocation(vi);
+
+      const core = new SDKCore(dpopConfig);
+      core.startLogout();
+      await vi.waitFor(() => expect(location.assign).toHaveBeenCalledOnce());
+
+      expect(clearSpy).toHaveBeenCalledOnce();
+
+      const assignedUrl = new URL(
+        String((location.assign as ReturnType<typeof vi.fn>).mock.calls[0][0]),
+      );
+      // DPoP mode has no hosted backend to proxy through — target
+      // FusionAuth's /oauth2/logout directly instead of /app/logout/.
+      expect(assignedUrl.pathname).toBe('/oauth2/logout');
+      expect(assignedUrl.searchParams.get('client_id')).toBe(
+        dpopConfig.clientId,
+      );
+    });
+
+    it('startLogout() in DPoP mode still redirects even if DPoPManager.clear() fails', async () => {
+      vi.spyOn(DPoPManager.prototype, 'getOrCreateKeyPair').mockResolvedValue(
+        {} as any,
+      );
+      vi.spyOn(DPoPManager.prototype, 'clear').mockRejectedValue(
+        new Error('clear() failed'),
+      );
+      vi.spyOn(console, 'error').mockImplementation(() => {});
+      const location = mockWindowLocation(vi);
+
+      const core = new SDKCore(dpopConfig);
+      core.startLogout();
+      await vi.waitFor(() => expect(location.assign).toHaveBeenCalledOnce());
+
+      const assignedUrl = new URL(
+        String((location.assign as ReturnType<typeof vi.fn>).mock.calls[0][0]),
+      );
+      expect(assignedUrl.pathname).toBe('/oauth2/logout');
+    });
+
     it('getAccessToken() returns the stored access token when useDpop: true', () => {
       vi.spyOn(DPoPManager.prototype, 'getOrCreateKeyPair').mockResolvedValue(
         {} as any,
