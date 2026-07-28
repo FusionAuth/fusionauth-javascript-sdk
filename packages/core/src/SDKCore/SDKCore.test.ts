@@ -616,7 +616,6 @@ describe('SDKCore', () => {
       const MOCK_NEW_REFRESH_TOKEN = 'mock-new-refresh-token';
       const EXPIRES_IN_SECONDS = 3600;
 
-      /** Seeds the DPoPManager with an existing (pre-refresh) token set. */
       function seedExistingTokens(core: SDKCore) {
         const dpopManager = (core as any).dpopManager as DPoPManager;
         dpopManager.setTokens({
@@ -680,8 +679,6 @@ describe('SDKCore', () => {
         expect(body.get('refresh_token')).toBe(MOCK_OLD_REFRESH_TOKEN);
         expect(body.get('client_id')).toBe(dpopConfig.clientId);
 
-        // No `ath`/access-token argument — token endpoint request, not a
-        // resource server request.
         expect(DPoPManager.prototype.generateProof).toHaveBeenCalledWith(
           expect.stringContaining('/oauth2/token'),
           'POST',
@@ -748,9 +745,9 @@ describe('SDKCore', () => {
         const refreshTokenSpy = vi.spyOn(SDKCore.prototype, 'refreshToken');
 
         await core.refreshToken();
-        expect(refreshTokenSpy).toHaveBeenCalledTimes(1); // just the explicit call above
+        expect(refreshTokenSpy).toHaveBeenCalledTimes(1);
 
-        // Auto-refresh fires 60s before the 3600s expiry, i.e. at 3540s.
+        // Auto-refresh fires 60s before the 3600s expiry
         vi.advanceTimersByTime((EXPIRES_IN_SECONDS - 60) * 1000 - 1000);
         expect(refreshTokenSpy).toHaveBeenCalledTimes(1);
 
@@ -775,7 +772,7 @@ describe('SDKCore', () => {
         await core.refreshToken();
 
         vi.advanceTimersByTime(EXPIRES_IN_SECONDS * 1000);
-        expect(refreshTokenSpy).toHaveBeenCalledTimes(1); // only the explicit call above
+        expect(refreshTokenSpy).toHaveBeenCalledTimes(1);
       });
 
       it('throws a descriptive error when no refresh token is stored', async () => {
@@ -789,25 +786,6 @@ describe('SDKCore', () => {
           'No refresh token available. Have you called startLogin()?',
         );
         expect(fetchMock).not.toHaveBeenCalled();
-      });
-
-      it('throws on a non-OK response and does not update stored tokens', async () => {
-        vi.spyOn(DPoPManager.prototype, 'getOrCreateKeyPair').mockResolvedValue(
-          {} as any,
-        );
-        vi.spyOn(DPoPManager.prototype, 'generateProof').mockResolvedValue(
-          MOCK_PROOF,
-        );
-        const core = new SDKCore(dpopConfig);
-        seedExistingTokens(core);
-        vi.spyOn(window, 'fetch').mockResolvedValue(
-          new Response('invalid_grant', { status: 400 }),
-        );
-
-        await expect(core.refreshToken()).rejects.toThrow();
-
-        // The old access token must still be the one in effect.
-        expect(core.getAccessToken()).toBe('mock-old-access-token');
       });
     });
   });

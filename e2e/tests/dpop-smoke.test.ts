@@ -502,20 +502,15 @@ test.describe('DPoP smoke tests', () => {
   test('refreshToken() — issues new DPoP-bound tokens and reschedules expiration', async () => {
     test.skip(!accessToken, 'No access token from previous test');
 
-    // Sanity: still logged in from the previous grant test.
     expect(core.isLoggedIn).toBe(true);
     const previousAccessToken = accessToken;
 
     const response = await core.refreshToken();
     expect(response.ok).toBe(true);
 
-    // core.refreshToken() updates DPoPManager's stored tokens directly —
-    // isLoggedIn must remain true and getAccessToken() must reflect the
-    // newly issued access token.
     expect(core.isLoggedIn).toBe(true);
     const newAccessToken = core.getAccessToken();
     expect(newAccessToken).toBeDefined();
-    // New access token must be different from the original.
     expect(newAccessToken).not.toBe(previousAccessToken);
 
     // Decode the new access token and verify cnf.jkt still matches our
@@ -525,7 +520,6 @@ test.describe('DPoP smoke tests', () => {
     expect(atPayload.cnf).toBeDefined();
     expect((atPayload.cnf as { jkt: string }).jkt).toBe(thumbprint);
 
-    // DPoPTokenStore reflects the refreshed tokens with a future expiresAt.
     const tokenStore = new DPoPTokenStore(CLIENT_ID, 'localStorage');
     const tokens = tokenStore.get();
     expect(tokens).not.toBeNull();
@@ -533,8 +527,6 @@ test.describe('DPoP smoke tests', () => {
     expect(tokens!.accessToken).toBe(newAccessToken);
     expect(tokens!.expiresAt).toBeGreaterThan(Date.now());
 
-    // Keep the shared accessToken in sync for the subsequent startLogout()
-    // test, which asserts core.getAccessToken() against it.
     accessToken = newAccessToken!;
   });
 
