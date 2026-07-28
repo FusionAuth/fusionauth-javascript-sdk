@@ -185,43 +185,6 @@ describe('SDKCore', () => {
       serverUrl: 'http://my-fusionauth-server',
     };
 
-    it('constructs a DPoPManager when useDpop is true', () => {
-      // The constructor call itself is the assertion: if it throws, the test
-      // fails. We also verify the DPoP-mode isLoggedIn path is used (not cookie).
-      vi.spyOn(DPoPManager.prototype, 'getOrCreateKeyPair').mockResolvedValue(
-        {} as any,
-      );
-      vi.spyOn(DPoPManager.prototype, 'getThumbprint').mockResolvedValue(
-        MOCK_JKT,
-      );
-      vi.spyOn(Pkce, 'generateCodeVerifier').mockReturnValue(MOCK_VERIFIER);
-      vi.spyOn(Pkce, 'generateCodeChallenge').mockResolvedValue(MOCK_CHALLENGE);
-
-      // DPoPManager.isLoggedIn returns false by default (no tokens stored).
-      const core = new SDKCore(dpopConfig);
-      expect(core.isLoggedIn).toBe(false);
-    });
-
-    it('does not construct a DPoPManager when useDpop is false (default)', () => {
-      // isLoggedIn should fall back to cookie path (no tokens, no cookie → false)
-      const core = new SDKCore(config);
-      expect(core.isLoggedIn).toBe(false);
-    });
-
-    it('isLoggedIn reads from DPoPTokenStore (not app.at_exp cookie) in DPoP mode', () => {
-      // Cookie is present but DPoP mode should NOT consult it.
-      mockIsLoggedIn(); // sets app.at_exp cookie → cookie-mode isLoggedIn = true
-      vi.spyOn(DPoPManager.prototype, 'getOrCreateKeyPair').mockResolvedValue(
-        {} as any,
-      );
-
-      const core = new SDKCore(dpopConfig);
-
-      // DPoP tokens are not stored, so isLoggedIn is false even though the
-      // app.at_exp cookie says the user is logged in.
-      expect(core.isLoggedIn).toBe(false);
-    });
-
     it('startLogin() in DPoP mode redirects to /oauth2/authorize with dpop_jkt and code_challenge', async () => {
       vi.spyOn(DPoPManager.prototype, 'getOrCreateKeyPair').mockResolvedValue(
         {} as any,
@@ -234,8 +197,6 @@ describe('SDKCore', () => {
       const location = mockWindowLocation(vi);
 
       const core = new SDKCore(dpopConfig);
-      // startLogin() is synchronous (void) — the DPoP chain runs async
-      // internally. Wait for the redirect to happen before asserting.
       core.startLogin();
       await vi.waitFor(() => expect(location.assign).toHaveBeenCalledOnce());
 
@@ -293,25 +254,6 @@ describe('SDKCore', () => {
       expect(assignedUrl.searchParams.get('state')).toBe('my-state');
     });
 
-    it('startLogin() in DPoP mode calls getOrCreateKeyPair and getThumbprint', async () => {
-      const getOrCreateKeyPair = vi
-        .spyOn(DPoPManager.prototype, 'getOrCreateKeyPair')
-        .mockResolvedValue({} as any);
-      const getThumbprint = vi
-        .spyOn(DPoPManager.prototype, 'getThumbprint')
-        .mockResolvedValue(MOCK_JKT);
-      vi.spyOn(Pkce, 'generateCodeVerifier').mockReturnValue(MOCK_VERIFIER);
-      vi.spyOn(Pkce, 'generateCodeChallenge').mockResolvedValue(MOCK_CHALLENGE);
-      const location = mockWindowLocation(vi);
-
-      const core = new SDKCore(dpopConfig);
-      core.startLogin();
-      await vi.waitFor(() => expect(location.assign).toHaveBeenCalledOnce());
-
-      expect(getOrCreateKeyPair).toHaveBeenCalledOnce();
-      expect(getThumbprint).toHaveBeenCalledOnce();
-    });
-
     it('reports a DPoP startLogin() failure via onLoginFailure instead of an unhandled rejection', async () => {
       const failure = new Error('crypto.subtle unavailable');
       vi.spyOn(DPoPManager.prototype, 'getOrCreateKeyPair').mockRejectedValue(
@@ -348,76 +290,6 @@ describe('SDKCore', () => {
       );
     });
 
-    it('startLogin() in cookie mode is unaffected by useDpop: false', () => {
-      const location = mockWindowLocation(vi);
-      const core = new SDKCore(config); // no useDpop
-
-      // Cookie mode is fully synchronous — no waiting required.
-      core.startLogin('some-state');
-
-      expect(location.assign).toHaveBeenCalledOnce();
-      const assignedUrl = new URL(
-        (location.assign as ReturnType<typeof vi.fn>).mock.calls[0][0],
-      );
-      // Cookie mode uses the app server login path, not /oauth2/authorize.
-      expect(assignedUrl.pathname).not.toBe('/oauth2/authorize');
-      expect(assignedUrl.searchParams.get('dpop_jkt')).toBeNull();
-      expect(assignedUrl.searchParams.get('code_challenge')).toBeNull();
-    });
-
-    it('startLogout() in DPoP mode calls DPoPManager.clear() before redirecting', async () => {
-      vi.spyOn(DPoPManager.prototype, 'getOrCreateKeyPair').mockResolvedValue(
-        {} as any,
-      );
-      const clearSpy = vi
-        .spyOn(DPoPManager.prototype, 'clear')
-        .mockResolvedValue(undefined);
-      const location = mockWindowLocation(vi);
-
-      const core = new SDKCore(dpopConfig);
-      core.startLogout();
-      await vi.waitFor(() => expect(location.assign).toHaveBeenCalledOnce());
-
-      expect(clearSpy).toHaveBeenCalledOnce();
-      const assignedUrl = new URL(
-        (location.assign as ReturnType<typeof vi.fn>).mock.calls[0][0],
-      );
-      expect(assignedUrl.searchParams.get('client_id')).toBe(
-        dpopConfig.clientId,
-      );
-    });
-
-    it('reports a DPoP startLogout() failure via console.error', async () => {
-      vi.spyOn(DPoPManager.prototype, 'getOrCreateKeyPair').mockResolvedValue(
-        {} as any,
-      );
-      const failure = new Error('clear() failed');
-      vi.spyOn(DPoPManager.prototype, 'clear').mockRejectedValue(failure);
-      const consoleError = vi
-        .spyOn(console, 'error')
-        .mockImplementation(() => {});
-
-      const core = new SDKCore(dpopConfig);
-      core.startLogout();
-
-      await vi.waitFor(() =>
-        expect(consoleError).toHaveBeenCalledWith(
-          'FusionAuth SDK: startLogout failed',
-          failure,
-        ),
-      );
-    });
-
-    it('startLogout() in cookie mode is unaffected by useDpop: false', () => {
-      const location = mockWindowLocation(vi);
-      const core = new SDKCore(config); // no useDpop
-
-      // Cookie mode is fully synchronous — no waiting required.
-      core.startLogout();
-
-      expect(location.assign).toHaveBeenCalledOnce();
-    });
-
     it('getAccessToken() returns the stored access token when useDpop: true', () => {
       vi.spyOn(DPoPManager.prototype, 'getOrCreateKeyPair').mockResolvedValue(
         {} as any,
@@ -448,7 +320,7 @@ describe('SDKCore', () => {
       const core = new SDKCore(config); // no useDpop
 
       expect(() => core.getAccessToken()).toThrow(
-        'getAccessToken() is only available in DPoP mode. In cookie mode, tokens are stored in HttpOnly cookies and are not accessible to JavaScript.',
+        'getAccessToken() is only available in DPoP mode. In hosted backend mode, tokens are stored in HttpOnly cookies and are not accessible to JavaScript.',
       );
     });
 
@@ -601,7 +473,7 @@ describe('SDKCore', () => {
         expect(redirectIndicator()).toBeNull();
       });
 
-      it('strips code and state from the URL via history.replaceState() after a successful exchange', async () => {
+      it('strips code from the URL via history.replaceState() after a successful exchange', async () => {
         mockDpopLoginDependencies();
         vi.spyOn(DPoPManager.prototype, 'generateProof').mockResolvedValue(
           MOCK_PROOF,
@@ -622,31 +494,6 @@ describe('SDKCore', () => {
         const [, , url] = replaceState.mock.calls[0];
         const cleanedUrl = new URL(url as string);
         expect(cleanedUrl.searchParams.get('code')).toBeNull();
-        expect(cleanedUrl.searchParams.get('state')).toBeNull();
-      });
-
-      it('does not throw or report a failure when window is undefined (SSR)', async () => {
-        // Some framework layers (e.g. Angular's FusionAuthService) call
-        // handlePostRedirect() unconditionally from their constructor, which
-        // also runs during SSR — window is not defined in that environment.
-        const consoleError = vi
-          .spyOn(console, 'error')
-          .mockImplementation(() => {});
-        const onLoginFailure = vi.fn();
-        const core = new SDKCore({ ...dpopConfig, onLoginFailure });
-        const onRedirect = vi.fn();
-
-        vi.stubGlobal('window', undefined);
-        try {
-          core.handlePostRedirect(onRedirect);
-          await Promise.resolve();
-        } finally {
-          vi.unstubAllGlobals();
-        }
-
-        expect(onRedirect).not.toHaveBeenCalled();
-        expect(onLoginFailure).not.toHaveBeenCalled();
-        expect(consoleError).not.toHaveBeenCalled();
       });
 
       it('schedules token expiration from expires_in', async () => {

@@ -51,22 +51,10 @@ export class SDKCore {
   /**
    * Initiates the login flow.
    *
-   * In DPoP mode (`useDpop: true`), this synchronously returns after kicking
-   * off an async chain that:
-   * 1. Loads or generates the DPoP key pair.
-   * 2. Computes `dpop_jkt` (JWK SHA-256 thumbprint of the public key).
-   * 3. Generates a PKCE `code_verifier` and derives `code_challenge`.
-   * 4. Persists `code_verifier` via `RedirectHelper` for later token exchange.
-   * 5. Redirects to FusionAuth `/oauth2/authorize` directly with `dpop_jkt`
-   *    and `code_challenge` parameters.
-   *
-   * `startLogin()` itself is `void` (not `async`) so its signature matches
-   * the public `SDKContext`/framework wrapper types exactly. If the async
-   * DPoP chain fails, the error is reported via `SDKConfig.onLoginFailure`
-   * (or `console.error` if not configured) rather than becoming an unhandled
-   * promise rejection.
-   *
-   * In cookie mode: delegates to the Hosted Backend API, fully synchronously.
+   * In DPoP mode, this synchronously returns after starting an async chain
+   * that handles the DPoP login flow.
+  
+   * In hosted backend mode the processing is synchronous.
    *
    * @param state  Optional OAuth2 state value echoed back post-login.
    */
@@ -82,16 +70,12 @@ export class SDKCore {
       return;
     }
 
-    // Cookie mode — unchanged behavior.
     this.redirectHelper.handlePreRedirect(state);
     window.location.assign(this.urlHelper.getLoginUrl(state));
   }
 
   /**
-   * Performs the DPoP-mode login flow. See {@link startLogin} for the full
-   * step-by-step description. Split out as its own async method so that
-   * `startLogin()` itself can remain synchronous (`void`) while still
-   * performing the necessary async key-pair/PKCE work before redirecting.
+   * Performs the DPoP mode login flow.
    */
   private async startDpopLogin(state?: string): Promise<void> {
     await this.dpopManager!.getOrCreateKeyPair();
@@ -113,9 +97,9 @@ export class SDKCore {
    * Initiates the logout flow.
    *
    * In DPoP mode, this synchronously returns after starting an
-   * asynchronously flow.
+   * asynchronous flow.
    *
-   * In cookie mode, the flow is synchronous.
+   * In hosted backend mode, the flow is synchronous.
    */
   startLogout(): void {
     if (this.dpopManager) {
@@ -129,12 +113,15 @@ export class SDKCore {
   }
 
   /**
-   * Performs the DPoP-mode logout flow clearing the key
-   * pair, stored tokens, and in-memory nonces.
+   * Performs the DPoP mode logout flow, clearing the key pair, stored
+   * tokens, and in-memory nonces.
    */
   private async startDpopLogout(): Promise<void> {
-    await this.dpopManager!.clear();
-    window.location.assign(this.urlHelper.getLogoutUrl());
+    try {
+      await this.dpopManager!.clear();
+    } finally {
+      window.location.assign(this.urlHelper.getLogoutUrl());
+    }
   }
 
   manageAccount() {
@@ -142,16 +129,16 @@ export class SDKCore {
   }
 
   /**
-   * Returns the current DPoP-bound access token.  In cookie mode, tokens
+   * Returns the current DPoP mode access token.  In hosted backend mode, tokens
    * are stored in HttpOnly cookies and are never accessible to JavaScript,
    * so this method throws instead.
    *
-   * @throws {Error} if called in cookie mode (`useDpop: false`).
+   * @throws {Error} if called in hosted backend mode
    */
   getAccessToken(): string | null {
     if (!this.dpopManager) {
       throw new Error(
-        'getAccessToken() is only available in DPoP mode. In cookie mode, tokens are stored in HttpOnly cookies and are not accessible to JavaScript.',
+        'getAccessToken() is only available in DPoP mode. In hosted backend mode, tokens are stored in HttpOnly cookies and are not accessible to JavaScript.',
       );
     }
     return this.dpopManager.getAccessToken();
@@ -292,8 +279,7 @@ export class SDKCore {
   /**
    * Cancels a pending automatic token refresh without disposing the core.
    * Unlike {@link dispose}, the core remains usable and auto refresh can be
-   * restarted via {@link initAutoRefresh}. This makes it safe to stop/start
-   * across React StrictMode's mount → unmount → remount cycle.
+   * restarted via {@link initAutoRefresh}.
    */
   stopAutoRefresh(): void {
     clearTimeout(this.refreshTokenTimeout);
@@ -303,8 +289,8 @@ export class SDKCore {
    * Handles the return trip from a login/register redirect.
    *
    * In DPoP mode (`useDpop: true`), this synchronously returns after
-   * kicking off an async chain, otherwise continue using the Hosted
-   * Backend API.
+   * kicking off an async chain, otherwise continue using Hosted
+   * Backend Mode.
    */
   handlePostRedirect(callback?: (state?: string) => void): void {
     if (this.dpopManager) {
@@ -324,27 +310,11 @@ export class SDKCore {
   }
 
   /**
-   * Performs the DPoP-mode authorization code exchange. The full
-   * step-by-step description:
-   *
-   * 1. Detects the `code` query parameter on the current URL.
-   * 2. Retrieves the persisted PKCE `code_verifier`.
-   * 3. Exchanges the code for tokens at FusionAuth's `/oauth2/token`,
-   *    signing the request with a DPoP proof.
-   * 4. Stores the returned tokens via `DPoPManager.setTokens()`.
-   * 5. Schedules token expiration and (if `shouldAutoRefresh`) auto-refresh
-   *    from the tokens' `expiresAt`.
-   * 6. Invokes `callback` with the `state` value and cleans up the
-   *    redirect marker, via `RedirectHelper.handlePostRedirect()`.
+   * Performs the DPoP-mode authorization code exchange.
    */
   private async handleDpopPostRedirect(
     callback?: (state?: string) => void,
   ): Promise<void> {
-    // SSR/non-browser guard
-    if (typeof window === 'undefined') {
-      return;
-    }
-
     const code = new URLSearchParams(window.location.search).get('code');
     const codeVerifier = this.redirectHelper.getCodeVerifier();
 
@@ -404,13 +374,12 @@ export class SDKCore {
   }
 
   /**
-   * Removes `code` and `state` from the current URL for security.
+   * Removes `code` from the current URL.
    */
   private clearRedirectQueryParams(): void {
     const { origin, pathname, search, hash } = window.location;
     const url = new URL(`${origin}${pathname}${search}${hash}`);
     url.searchParams.delete('code');
-    url.searchParams.delete('state');
     window.history.replaceState(null, '', url.toString());
   }
 
@@ -419,7 +388,7 @@ export class SDKCore {
    *
    * - DPoP mode: delegates to `DPoPManager.isLoggedIn` which checks whether
    *   the stored tokens exist and have not expired.
-   * - Cookie mode: reads the `app.at_exp` cookie (existing behavior).
+   * - Hosted backend mode: reads the `app.at_exp` cookie (existing behavior).
    */
   get isLoggedIn() {
     if (this.dpopManager) {
@@ -432,7 +401,7 @@ export class SDKCore {
    * The moment of access token expiration in milliseconds since epoch.
    *
    * - DPoP mode: delegates to `DPoPManager.getExpiresAt()`.
-   * - Cookie mode: reads the `app.at_exp` cookie (existing behavior).
+   * - Hosted backend mode: reads the `app.at_exp` cookie (existing behavior).
    */
   private get at_exp(): number | -1 {
     if (this.dpopManager) {
@@ -447,7 +416,8 @@ export class SDKCore {
   /**
    * Schedules `onTokenExpiration` at moment of access token expiration.
    * SDKCore is not necessarily reactive like React, Angular, and Vue.
-   * so `onTokenExpiration` is for reactive frameworks to hook in and perform actions as on token expiration.
+   * so `onTokenExpiration` is for reactive frameworks to hook in and
+   * perform actions as on token expiration.
    */
   private scheduleTokenExpiration(): void {
     clearTimeout(this.tokenExpirationTimeout);

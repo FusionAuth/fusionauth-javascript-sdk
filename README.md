@@ -89,6 +89,20 @@ The e2e tests are structured to use the Page Object Model (POM) design pattern. 
     Example: In common.page.ts, methods for navigation and authentication are defined.
 Tests import these page objects to perform actions, ensuring that if the UI changes, only the page object needs updating, not all the tests.
 
+### DPoP E2E tests
+
+There are two separate DPoP-related test files, each with their own prerequisites:
+
+- `e2e/tests/dpop-smoke.test.ts` — exercises `DPoPManager`/`UrlHelper`/`SDKCore` directly against a live FusionAuth instance. No consuming quickstart application is required. Run with:
+  ```
+  npx playwright test e2e/tests/dpop-smoke.test.ts --config playwright.dpop.config.ts
+  ```
+- `e2e/tests/dpop-endpoints.test.ts` — mirrors `endpoints.test.ts`, but drives a consuming quickstart application configured with `useDpop: true` through its UI. Since DPoP mode has no hosted backend mode (`SDKCore` talks directly to FusionAuth), this only covers the login / authorization-code-exchange flow — see the file header for the current coverage gaps (Logout/Register/Refresh/user-info aren't DPoP-aware in `SDKCore` yet). Run with a DPoP-enabled quickstart instance:
+  ```
+  SERVER_COMMAND="your-dpop-quickstart-start-command" PORT=your-port-number npx playwright test e2e/tests/dpop-endpoints.test.ts
+  ```
+  This must be run on its own — it cannot be combined with `endpoints.test.ts` / `cookies.test.ts` in the same invocation, since those require a hosted backend mode quickstart instance instead.
+
 ## Architecture
 
 We use a monorepo because our SDKs share core functionality, which is contained in the @fusionauth-sdk/core package. This private module is bundled into the distributed SDK packages, allowing us to maintain core logic in a single place.

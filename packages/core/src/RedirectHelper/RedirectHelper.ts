@@ -1,16 +1,6 @@
 /**
  * A class responsible for storing pre-redirect values in localStorage and
  * cleaning them up afterward.
- *
- * Storage format: `${randomNonce}:${codeVerifier ?? ''}:${state ?? ''}`
- *
- * - `randomNonce`   — prevents replay; marks that a redirect was initiated.
- * - `codeVerifier`  — PKCE `code_verifier` persisted for DPoP token exchange.
- *                     Empty string when not in DPoP mode.
- * - `state`         — optional caller-supplied OAuth2 state value. May contain
- *                     colons; retrieved by skipping the nonce and codeVerifier
- *                     segments (indices 0 and 1) and joining all remaining
- *                     segments (index 2 onward) with `:`.
  */
 export class RedirectHelper {
   private readonly REDIRECT_VALUE = 'fa-sdk-redirect-value';
@@ -33,71 +23,71 @@ export class RedirectHelper {
   }
 
   /**
-   * Persists a redirect marker, an optional PKCE `code_verifier`, and an
-   * optional `state` value to localStorage before a redirect is initiated.
+   * Persists a redirect marker and an optional `state` value to localStorage
+   * before a redirect is initiated. When `codeVerifier` is provided (DPoP
+   * mode), it is persisted alongside `state` as a JSON object instead of the
+   * plain colon-delimited string used by hosted backend mode.
+   *
+   * Hosted backend mode format: a plain string `${randomNonce}:${state ?? ''}`
+   *
+   * DPoP mode format: a JSON object `{ codeVerifier, state }`
    *
    * @param state         Optional OAuth2 state string echoed back post-login.
    * @param codeVerifier  Optional PKCE `code_verifier` (DPoP mode only).
    */
   handlePreRedirect(state?: string, codeVerifier?: string) {
-    const valueForStorage = `${this.generateRandomString()}:${codeVerifier ?? ''}:${state ?? ''}`;
+    const isDpopMode = codeVerifier !== undefined;
+    const valueForStorage = isDpopMode
+      ? JSON.stringify({ codeVerifier, state })
+      : `${this.generateRandomString()}:${state ?? ''}`;
     this.storage.setItem(this.REDIRECT_VALUE, valueForStorage);
   }
 
   handlePostRedirect(callback?: (state?: string) => void) {
-    const didRedirect = Boolean(this.storage.getItem(this.REDIRECT_VALUE));
-    if (!didRedirect) {
+    const raw = this.storage.getItem(this.REDIRECT_VALUE);
+    if (!raw) {
       return;
     }
 
-    const state = this.state;
-    callback?.(state);
+    callback?.(this.parseStoredValue(raw).state);
     this.storage.removeItem(this.REDIRECT_VALUE);
   }
 
   /**
    * Returns the PKCE `code_verifier` that was persisted by
-   * {@link handlePreRedirect}, or `undefined` if none was stored (cookie mode)
-   * or if no redirect has been initiated.
+   * {@link handlePreRedirect}, or `undefined` if none was stored (hosted
+   * backend mode) or if no redirect has been initiated.
    */
   getCodeVerifier(): string | undefined {
     const raw = this.storage.getItem(this.REDIRECT_VALUE);
     if (!raw) return undefined;
 
-    // Legacy 2-segment format (nonce:state) from pre-DPoP SDK versions never
-    // carried a code_verifier. Guard against misreading a fragment of a
-    // legacy state value as a verifier — see the `state` getter below for the
-    // full rationale of this legacy-format detection.
-    if (raw.split(':').length === 2) return undefined;
-
-    // Format: randomNonce:codeVerifier:state
-    const firstColon = raw.indexOf(':');
-    if (firstColon === -1) return undefined;
-
-    const afterNonce = raw.slice(firstColon + 1);
-    const secondColon = afterNonce.indexOf(':');
-    if (secondColon === -1) return undefined;
-
-    const verifier = afterNonce.slice(0, secondColon);
-    return verifier || undefined;
+    return this.parseStoredValue(raw).codeVerifier;
   }
 
-  private get state() {
-    const redirectValue = this.storage.getItem(this.REDIRECT_VALUE);
-    if (!redirectValue) return undefined;
-
-    const segments = redirectValue.split(':');
-
-    // Legacy 2-segment format (nonce:state) from pre-DPoP SDK versions.
-    if (segments.length === 2) {
-      return segments[1] || undefined;
+  /**
+   * Parses a raw stored value for either mode.
+   */
+  private parseStoredValue(raw: string): {
+    codeVerifier?: string;
+    state?: string;
+  } {
+    if (raw.startsWith('{')) {
+      // DPoP mode
+      const parsed = JSON.parse(raw) as {
+        codeVerifier?: string;
+        state?: string;
+      };
+      return {
+        codeVerifier: parsed.codeVerifier || undefined,
+        state: parsed.state ?? undefined,
+      };
     }
 
-    // Current format: randomNonce:codeVerifier:state
-    // Skip the nonce segment and the codeVerifier segment; join remainder with
-    // ':' to correctly reconstruct state values that themselves contain colons.
-    const [, , ...stateSegments] = segments;
-    return stateSegments.join(':') || undefined;
+    // Hosted backend mode format: randomNonce:state (state may itself
+    // contain colons; rejoin the remainder to preserve them).
+    const [, ...stateValue] = raw.split(':');
+    return { state: stateValue.join(':') || undefined };
   }
 
   private generateRandomString() {

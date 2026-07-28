@@ -121,8 +121,8 @@ describe('FusionAuthProvider', () => {
     mockIsLoggedIn();
 
     const stateValue = 'hello-world';
-    // Format: nonce:codeVerifier:state (empty verifier in cookie mode)
-    localStorage.setItem('fa-sdk-redirect-value', `abc123::${stateValue}`);
+    // Format: nonce:state (hosted backend mode)
+    localStorage.setItem('fa-sdk-redirect-value', `abc123:${stateValue}`);
 
     const onRedirect = vi.fn();
     renderWithWrapper({ ...TEST_CONFIG, onRedirect });
