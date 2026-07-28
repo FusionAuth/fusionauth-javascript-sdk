@@ -273,10 +273,13 @@ export class SDKCore {
       throw new Error(JSON.stringify(errorDetails));
     }
 
-    const tokenResponse = await response.json();
+    const tokenResponse = await response.clone().json();
     this.dpopManager!.setTokens({
       accessToken: tokenResponse.access_token,
-      refreshToken: tokenResponse.refresh_token,
+      // FusionAuth may omit refresh_token when refresh token rotation is
+      // not enabled — fall back to the existing refresh token so it isn't
+      // cleared out, which would otherwise break future refreshes.
+      refreshToken: tokenResponse.refresh_token ?? refreshToken,
       expiresAt: Date.now() + tokenResponse.expires_in * 1000,
       tokenType: 'DPoP',
     });
@@ -331,22 +334,9 @@ export class SDKCore {
   /**
    * Handles the return trip from a login/register redirect.
    *
-<<<<<<< HEAD
-   * In DPoP mode (`useDpop: true`), this kicks off an async chain to
-   * exchange the authorization code for tokens, otherwise it continues
-   * using the Hosted Backend API (fully synchronous).
-   *
-   * The returned promise always resolves (never rejects) — DPoP failures are
-   * reported via `SDKConfig.onLoginFailure` (or `console.error`), exactly as
-   * before. Callers may await it purely to know when the post-redirect work
-   * (and, in DPoP mode, the resulting `isLoggedIn` transition) has settled;
-   * awaiting is optional and not required for existing fire-and-forget
-   * callers.
-=======
    * In DPoP mode (`useDpop: true`), this synchronously returns after
    * kicking off an async chain, otherwise continue using Hosted
    * Backend Mode.
->>>>>>> miker/eng-4801/refresh-token
    */
   handlePostRedirect(callback?: (state?: string) => void): Promise<void> {
     if (this.dpopManager) {
