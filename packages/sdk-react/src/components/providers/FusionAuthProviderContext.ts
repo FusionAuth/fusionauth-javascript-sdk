@@ -73,7 +73,7 @@ export interface FusionAuthProviderContext<T = UserInfo> {
   ) => Promise<Response>;
 
   /**
-   * Advanced: returns a signed DPoP proof JWT for use with axios or other
+   * Returns a signed DPoP proof JWT for use with axios or other
    * HTTP libraries. Present only when `useDpop: true`.
    */
   generateProof?: (

@@ -98,7 +98,7 @@ This is handled automatically if the SDK is configured with `shouldAutoFetchUser
 
 • `Optional` **generateProof**: (`htu`: `string`, `htm`: `string`, `accessToken?`: `string`, `nonce?`: `string`) => `Promise`\<`string`\>
 
-Advanced: returns a signed DPoP proof JWT for use with axios or other
+Returns a signed DPoP proof JWT for use with axios or other
 HTTP libraries. Present only when `useDpop: true`.
 
 #### Type declaration
