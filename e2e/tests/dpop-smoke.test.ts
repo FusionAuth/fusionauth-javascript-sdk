@@ -513,8 +513,8 @@ test.describe('DPoP smoke tests', () => {
     expect(newAccessToken).toBeDefined();
     expect(newAccessToken).not.toBe(previousAccessToken);
 
-    // Decode the new access token and verify cnf.jkt still matches our
-    // key's thumbprint — proves FusionAuth bound the refreshed token to the
+    // verify cnf.jkt still matches our key's thumbprint —
+    // proves FusionAuth bound the refreshed token to the
     // same DPoP key pair.
     const atPayload = decodeJwt(newAccessToken!);
     expect(atPayload.cnf).toBeDefined();
