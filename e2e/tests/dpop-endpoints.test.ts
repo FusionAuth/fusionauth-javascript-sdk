@@ -130,7 +130,12 @@ test.describe('DPoP Endpoint Tests', () => {
     await quickstart.logOut();
   });
 
-  test('User info is fetched directly from /oauth2/userinfo, not the hosted backend /app/me', async () => {
+  test('User info is fetched after login, and the access token auto-refreshes via a direct /oauth2/token refresh_token grant', async () => {
+    // The refresh window depends on the FusionAuth Application's configured
+    // access token lifetime and the quickstart's autoRefreshSecondsBeforeExpiry
+    // — allow more time than Playwright's default 30s test timeout.
+    test.setTimeout(90_000);
+
     await quickstart.navToLogIn();
 
     // Arm the listener before authenticating — shouldAutoFetchUserInfo
@@ -151,18 +156,6 @@ test.describe('DPoP Endpoint Tests', () => {
 
     // The app surfaces the fetched claims via userInfo.email.
     await expect(page.getByText('richard@example.com')).toBeVisible();
-
-    await quickstart.logOut();
-  });
-
-  test('Access token auto-refreshes via a direct /oauth2/token refresh_token grant', async () => {
-    // The refresh window depends on the FusionAuth Application's configured
-    // access token lifetime and the quickstart's autoRefreshSecondsBeforeExpiry
-    // — allow more time than Playwright's default 30s test timeout.
-    test.setTimeout(90_000);
-
-    await quickstart.navToLogIn();
-    await quickstart.authenticate();
 
     const initialTokens = await readDpopTokens(page);
     expect(initialTokens).not.toBeNull();
