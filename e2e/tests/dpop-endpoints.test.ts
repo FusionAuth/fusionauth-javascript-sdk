@@ -27,6 +27,17 @@
  *     before expiry (e.g. 20s before a 30s token lifetime).
  *   - Same login credentials/UI as `endpoints.test.ts` (the FusionAuth
  *     hosted login page itself doesn't change based on DPoP mode).
+ *   - CORS must be configured in FusionAuth (Settings -> System -> CORS)
+ *     to allow the quickstart's origin (e.g. http://localhost:3000) to call
+ *     `/oauth2/userinfo` directly: enable the filter, add the origin to
+ *     Allowed origins, and add `DPoP` and `Authorization` to Allowed
+ *     headers. Without this, the userinfo request's CORS preflight fails
+ *     with "No 'Access-Control-Allow-Origin' header is present" and the
+ *     request never reaches FusionAuth — this is a FusionAuth Application
+ *     configuration issue, not a bug in SDKCore/DPoPManager. Note that
+ *     `/oauth2/authorize` and `/oauth2/token` are unaffected by this since
+ *     FusionAuth's OAuth workflow endpoints handle CORS independently of
+ *     the System CORS filter.
  *
  * Known coverage gaps (not yet DPoP-aware in `SDKCore`, so not covered
  * here): Register (`startRegister()`) still assumes hosted backend mode.
