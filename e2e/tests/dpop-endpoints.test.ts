@@ -69,30 +69,6 @@ test.describe('DPoP Endpoint Tests', () => {
     browserContext = await browser.newContext();
     page = await browserContext.newPage();
     quickstart = new quickstartPage(page);
-
-    // TEMPORARY diagnostics for the /oauth2/userinfo investigation — logs
-    // every request/response/failure to/from FusionAuth so we can see
-    // whether the userinfo call is attempted at all, and if so, how it
-    // fails. Remove once the root cause is found.
-    page.on('request', req => {
-      if (req.url().includes('localhost:9011')) {
-        console.log('>> REQUEST', req.method(), req.url());
-      }
-    });
-    page.on('response', res => {
-      if (res.url().includes('localhost:9011')) {
-        console.log('<< RESPONSE', res.status(), res.url());
-      }
-    });
-    page.on('requestfailed', req => {
-      console.log('XX FAILED', req.url(), req.failure()?.errorText);
-    });
-    page.on('console', msg => {
-      console.log('BROWSER CONSOLE', msg.type(), msg.text());
-    });
-    page.on('pageerror', err => {
-      console.log('BROWSER PAGE ERROR', err.message);
-    });
   });
 
   test.afterAll(async () => {
