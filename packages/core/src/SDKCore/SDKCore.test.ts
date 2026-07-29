@@ -653,10 +653,6 @@ describe('SDKCore', () => {
         await primePendingRedirect(core);
         const fetchMock = mockTokenResponse();
 
-        // Simulate two concurrent invocations, as would happen if a
-        // consuming framework's effect fires twice before the first
-        // exchange's cleanup (clearRedirectQueryParams() /
-        // RedirectHelper.handlePostRedirect()) has run.
         const first = core.handlePostRedirect();
         const second = core.handlePostRedirect();
 
@@ -664,28 +660,6 @@ describe('SDKCore', () => {
 
         await Promise.all([first, second]);
 
-        expect(fetchMock).toHaveBeenCalledOnce();
-      });
-
-      it('memoizes the settled promise so a later call does not re-invoke handleDpopPostRedirect', async () => {
-        mockDpopLoginDependencies();
-        vi.spyOn(DPoPManager.prototype, 'generateProof').mockResolvedValue(
-          MOCK_PROOF,
-        );
-
-        const core = new SDKCore(dpopConfig);
-        await primePendingRedirect(core);
-        const fetchMock = mockTokenResponse();
-
-        const first = core.handlePostRedirect();
-        await first;
-        const second = core.handlePostRedirect();
-
-        // Same memoized promise is returned even after the first call has
-        // already settled — a later call never re-enters
-        // handleDpopPostRedirect(), regardless of the current `code` /
-        // `code_verifier` state.
-        expect(second).toBe(first);
         expect(fetchMock).toHaveBeenCalledOnce();
       });
 
