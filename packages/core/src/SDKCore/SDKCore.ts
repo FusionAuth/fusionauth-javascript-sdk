@@ -189,7 +189,11 @@ export class SDKCore {
     return this.dpopManager.generateProof(htu, htm, accessToken, nonce);
   }
 
-  async fetchUserInfo<T = UserInfo>() {
+  async fetchUserInfo<T = UserInfo>(): Promise<T> {
+    if (this.dpopManager) {
+      return this.fetchDpopUserInfo<T>();
+    }
+
     const userInfoResponse = await fetch(this.urlHelper.getMeUrl(), {
       credentials: 'include',
     });
@@ -202,6 +206,33 @@ export class SDKCore {
 
     const userInfo: T = await userInfoResponse.json();
     return userInfo;
+  }
+
+  /**
+   * Performs the DPoP mode userInfo fetch. Targets FusionAuth's
+   * `/oauth2/userinfo` directly (not the hosted backend's `/app/me`), via
+   * `DPoPManager.fetch()`, which attaches the `Authorization`/`DPoP`
+   * headers (including `ath`) and handles the nonce-retry dance.
+   */
+  private async fetchDpopUserInfo<T>(): Promise<T> {
+    const accessToken = this.dpopManager!.getAccessToken();
+    if (!accessToken) {
+      throw new Error(
+        'No access token available. Have you called startLogin()?',
+      );
+    }
+
+    const userInfoResponse = await this.dpopManager!.fetch(
+      this.urlHelper.getUserInfoUrl(),
+    );
+
+    if (!userInfoResponse.ok) {
+      throw new Error(
+        `Unable to fetch userInfo in fusionauth. Request failed with status code ${userInfoResponse?.status}`,
+      );
+    }
+
+    return (await userInfoResponse.json()) as T;
   }
 
   async refreshToken(): Promise<Response> {

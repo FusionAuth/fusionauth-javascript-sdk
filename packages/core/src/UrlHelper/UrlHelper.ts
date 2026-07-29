@@ -117,6 +117,16 @@ export class UrlHelper {
     return this.generateUrl('/oauth2/token');
   }
 
+  /**
+   * Builds the direct `/oauth2/userinfo` URL used in DPoP mode. Targets
+   * FusionAuth directly, since there is no hosted backend mode in DPoP mode
+   * to proxy through `mePath` (e.g. `/app/me/`). Authentication is via the
+   * `Authorization`/`DPoP` headers, not query params.
+   */
+  getUserInfoUrl(): URL {
+    return this.generateUrl('/oauth2/userinfo');
+  }
+
   private generateUrl(path: string, params?: UrlHelperQueryParams): URL {
     const url = new URL(this.serverUrl);
     url.pathname = path;

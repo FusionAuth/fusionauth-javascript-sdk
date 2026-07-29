@@ -438,6 +438,87 @@ describe('SDKCore', () => {
       );
     });
 
+    describe('fetchUserInfo() in DPoP mode', () => {
+      function seedAccessToken(
+        core: SDKCore,
+        accessToken = 'mock-access-token',
+      ) {
+        const dpopManager = (core as any).dpopManager as DPoPManager;
+        dpopManager.setTokens({
+          accessToken,
+          refreshToken: undefined,
+          expiresAt: Date.now() + 60_000,
+          tokenType: 'DPoP',
+        });
+      }
+
+      it('calls DPoPManager.fetch() targeting /oauth2/userinfo and returns the claims', async () => {
+        vi.spyOn(DPoPManager.prototype, 'getOrCreateKeyPair').mockResolvedValue(
+          {} as any,
+        );
+        const core = new SDKCore(dpopConfig);
+        seedAccessToken(core);
+
+        const userInfoClaims = { sub: 'mock-sub', email: 'user@example.com' };
+        const fetchSpy = vi
+          .spyOn(DPoPManager.prototype, 'fetch')
+          .mockResolvedValue(
+            new Response(JSON.stringify(userInfoClaims), { status: 200 }),
+          );
+
+        const userInfo = await core.fetchUserInfo();
+
+        expect(fetchSpy).toHaveBeenCalledOnce();
+        const requestedUrl = fetchSpy.mock.calls[0]?.[0];
+        expect(new URL(String(requestedUrl)).pathname).toBe('/oauth2/userinfo');
+        expect(userInfo).toEqual(userInfoClaims);
+      });
+
+      it('throws a descriptive error when no access token is stored', async () => {
+        vi.spyOn(DPoPManager.prototype, 'getOrCreateKeyPair').mockResolvedValue(
+          {} as any,
+        );
+        const core = new SDKCore(dpopConfig); // no tokens stored — never logged in
+        const fetchSpy = vi.spyOn(DPoPManager.prototype, 'fetch');
+
+        await expect(core.fetchUserInfo()).rejects.toThrow(
+          'No access token available. Have you called startLogin()?',
+        );
+        expect(fetchSpy).not.toHaveBeenCalled();
+      });
+
+      it('throws on a non-OK response', async () => {
+        vi.spyOn(DPoPManager.prototype, 'getOrCreateKeyPair').mockResolvedValue(
+          {} as any,
+        );
+        const core = new SDKCore(dpopConfig);
+        seedAccessToken(core);
+
+        vi.spyOn(DPoPManager.prototype, 'fetch').mockResolvedValue(
+          new Response(null, { status: 401 }),
+        );
+
+        await expect(core.fetchUserInfo()).rejects.toThrow(
+          'Unable to fetch userInfo in fusionauth. Request failed with status code 401',
+        );
+      });
+
+      it('cookie-mode fetchUserInfo() is unaffected', async () => {
+        vi.spyOn(window, 'fetch').mockResolvedValue(
+          new Response(JSON.stringify({ sub: 'mock-sub' }), { status: 200 }),
+        );
+
+        const core = new SDKCore(config); // no useDpop
+        const userInfo = await core.fetchUserInfo();
+
+        expect(userInfo).toEqual({ sub: 'mock-sub' });
+        expect(window.fetch).toHaveBeenCalledWith(
+          expect.objectContaining({ pathname: '/app/me/' }),
+          { credentials: 'include' },
+        );
+      });
+    });
+
     describe('handlePostRedirect() in DPoP mode', () => {
       const MOCK_PROOF = 'mock-dpop-proof-jwt';
       const MOCK_CODE = 'mock-authorization-code';

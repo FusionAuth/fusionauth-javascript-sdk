@@ -5,8 +5,8 @@
  * configured with `useDpop: true`. Since DPoP mode has no hosted backend to
  * proxy through (`SDKCore` talks directly to FusionAuth), these tests
  * validate the *direct* calls to FusionAuth's `/oauth2/authorize`,
- * `/oauth2/token`, and `/oauth2/logout` endpoints, and check for tokens in
- * `localStorage` instead of `app.*` HttpOnly cookies.
+ * `/oauth2/token`, `/oauth2/userinfo`, and `/oauth2/logout` endpoints, and
+ * check for tokens in `localStorage` instead of `app.*` HttpOnly cookies.
  *
  * Run with:
  *   SERVER_COMMAND="your-dpop-quickstart-start-command" PORT=your-port-number \
@@ -14,10 +14,12 @@
  *     --config playwright.dpop-endpoints.config.ts
  *
  * Prerequisites:
- *   - A consuming quickstart application (e.g. a copy of
- *     fusionauth-quickstart-javascript-react-web) configured with
- *     `useDpop: true` and `shouldAutoRefresh: true`, running against a live
- *     FusionAuth instance.
+ *   - A consuming quickstart application (e.g. fusionauth-quickstart-react's
+ *     react-frontend-steps, or fusionauth-quickstart-javascript-react-web)
+ *     configured with `useDpop: true`, `shouldAutoRefresh: true`, and
+ *     `shouldAutoFetchUserInfo: true`, running against a live FusionAuth
+ *     instance. The app must surface the fetched `userInfo.email` somewhere
+ *     in its UI (e.g. a titlebar/account page) for the userInfo test below.
  *   - The FusionAuth Application used by that quickstart should have a
  *     short access token (JWT) lifetime configured — e.g. 30-60 seconds —
  *     so the auto-refresh test below doesn't need a long wall-clock wait.
@@ -27,8 +29,7 @@
  *     hosted login page itself doesn't change based on DPoP mode).
  *
  * Known coverage gaps (not yet DPoP-aware in `SDKCore`, so not covered
- * here): Register and fetching user info (`fetchUserInfo()`/`/app/me`
- * equivalent) still assume hosted backend mode.
+ * here): Register (`startRegister()`) still assumes hosted backend mode.
  */
 
 import { Page, test, BrowserContext, expect } from '@playwright/test';
@@ -125,6 +126,31 @@ test.describe('DPoP Endpoint Tests', () => {
     ['app.at', 'app.idt', 'app.rt', 'app.at_exp'].forEach(name => {
       expect(cookies.find(cookie => cookie.name === name)).toBeUndefined();
     });
+
+    await quickstart.logOut();
+  });
+
+  test('User info is fetched directly from /oauth2/userinfo, not the hosted backend /app/me', async () => {
+    await quickstart.navToLogIn();
+
+    // Arm the listener before authenticating — shouldAutoFetchUserInfo
+    // triggers fetchUserInfo() right after login, which in DPoP mode calls
+    // /oauth2/userinfo directly (via DPoPManager.fetch()) instead of the
+    // hosted backend's /app/me.
+    const userInfoResponsePromise = page.waitForResponse(response =>
+      response.url().includes('/oauth2/userinfo'),
+    );
+
+    await quickstart.authenticate();
+
+    const userInfoResponse = await userInfoResponsePromise;
+    const userInfoRequest = userInfoResponse.request();
+    expect(new URL(userInfoRequest.url()).pathname).toBe('/oauth2/userinfo');
+    expect(userInfoRequest.headers()['dpop']).toBeTruthy();
+    expect(userInfoResponse.ok()).toBe(true);
+
+    // The app surfaces the fetched claims via userInfo.email.
+    await expect(page.getByText('richard@example.com')).toBeVisible();
 
     await quickstart.logOut();
   });

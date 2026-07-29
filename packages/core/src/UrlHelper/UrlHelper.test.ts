@@ -227,6 +227,24 @@ describe('UrlHelper', () => {
       expect(logoutUrl.pathname).toBe('/app/logout/');
     });
   });
+
+  describe('getUserInfoUrl', () => {
+    it('targets the FusionAuth /oauth2/userinfo endpoint directly', () => {
+      const userInfoUrl = urlHelper.getUserInfoUrl();
+      expect(userInfoUrl.origin).toBe(config.serverUrl);
+      expect(userInfoUrl.pathname).toBe('/oauth2/userinfo');
+    });
+
+    it('has no query params — authentication is via the Authorization/DPoP headers', () => {
+      const userInfoUrl = urlHelper.getUserInfoUrl();
+      expect(userInfoUrl.search).toBe('');
+    });
+
+    it('does not affect the hosted backend getMeUrl()', () => {
+      const meUrl = urlHelper.getMeUrl();
+      expect(meUrl.pathname).toBe('/app/me/');
+    });
+  });
 });
 
 function getAllUrls(urlHelper: UrlHelper) {
