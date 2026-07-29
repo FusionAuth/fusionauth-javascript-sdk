@@ -15,6 +15,11 @@ export class SDKCore {
   private refreshTokenTimeout?: NodeJS.Timeout;
   private isDisposed = false;
   private dpopManager?: DPoPManager;
+  /**
+   * Memoized single-flight promise for {@link handlePostRedirect}. See that
+   * method's doc comment for why this guard is necessary.
+   */
+  private postRedirectPromise?: Promise<void>;
 
   constructor(config: SDKConfig) {
     this.config = config;
@@ -370,23 +375,43 @@ export class SDKCore {
    * In DPoP mode (`useDpop: true`), this synchronously returns after
    * kicking off an async chain, otherwise continue using Hosted
    * Backend Mode.
+   *
+   * Memoizes the resulting promise (single-flight, like
+   * `DPoPManager.getOrCreateKeyPair()`'s `keyPairPromise`) so that repeated
+   * or concurrent calls never trigger a second authorization code exchange.
+   * This matters because the DPoP-mode exchange only clears the pending
+   * `code` query param / persisted `code_verifier` *after* a successful
+   * response — without this guard, a second call arriving while the first
+   * is still in flight (e.g. React StrictMode's mount → cleanup → mount
+   * double-invoke of effects, or an un-memoized `onRedirect` prop causing
+   * the effect to re-run) would read the same still-pending `code` and
+   * `code_verifier` and re-POST to `/oauth2/token`, exchanging the same
+   * authorization code twice.
    */
   handlePostRedirect(callback?: (state?: string) => void): Promise<void> {
+    if (this.postRedirectPromise) {
+      return this.postRedirectPromise;
+    }
+
     if (this.dpopManager) {
-      return this.handleDpopPostRedirect(callback).catch(error => {
-        if (this.config.onLoginFailure) {
-          this.config.onLoginFailure(error as Error);
-        } else {
-          console.error('FusionAuth SDK: handlePostRedirect failed', error);
-        }
-      });
+      this.postRedirectPromise = this.handleDpopPostRedirect(callback).catch(
+        error => {
+          if (this.config.onLoginFailure) {
+            this.config.onLoginFailure(error as Error);
+          } else {
+            console.error('FusionAuth SDK: handlePostRedirect failed', error);
+          }
+        },
+      );
+      return this.postRedirectPromise;
     }
 
     if (this.isLoggedIn) {
       this.redirectHelper.handlePostRedirect(callback);
     }
 
-    return Promise.resolve();
+    this.postRedirectPromise = Promise.resolve();
+    return this.postRedirectPromise;
   }
 
   /**
