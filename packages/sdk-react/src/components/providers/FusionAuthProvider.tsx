@@ -112,6 +112,7 @@ function FusionAuthProvider<T = DefaultUserInfo>(
   const { isFetchingUserInfo, userInfo, fetchUserInfo, error } = useUserInfo<T>(
     core,
     config.shouldAutoFetchUserInfo ?? false,
+    isLoggedIn,
   );
 
   const { refreshToken, initAutoRefresh } = useTokenRefresh(
