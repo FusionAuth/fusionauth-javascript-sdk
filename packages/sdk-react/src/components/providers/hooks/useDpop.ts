@@ -3,7 +3,7 @@ import { SDKCore } from '@fusionauth-sdk/core';
 
 /**
  * Exposes `dpopFetch`, `generateProof`, and `getAccessToken` from `core`
- * when DPoP mode is enabled. Each is `undefined` when `useDpop` is falsy,
+ * when DPoP mode is enabled. Each is `undefined` when `useDpop` is false,
  * matching `FusionAuthProviderContext`'s optional fields.
  */
 export function useDpop(core: SDKCore, enabled: boolean) {
