@@ -499,35 +499,8 @@ test.describe('DPoP smoke tests', () => {
     expect(manager.isLoggedIn).toBe(true);
   });
 
-  test('startLogout() clears DPoP state and redirects to the logout URL', async () => {
-    test.skip(!accessToken, 'No access token from previous test');
-
-    expect(core.isLoggedIn).toBe(true);
-    expect(core.getAccessToken()).toBe(accessToken);
-
-    const { assign, waitForUrl } = createAssignWaiter();
-    // @ts-ignore
-    globalThis.window.location = { assign };
-
-    core.startLogout();
-    const assignedUrl = new URL(String(await waitForUrl()));
-
-    expect(assignedUrl.origin).toBe(FA_URL);
-    expect(assignedUrl.pathname).toBe('/app/logout/');
-    expect(assignedUrl.searchParams.get('client_id')).toBe(CLIENT_ID);
-    expect(assignedUrl.searchParams.get('post_logout_redirect_uri')).toBe(
-      REDIRECT_URI,
-    );
-
-    expect(core.isLoggedIn).toBe(false);
-    expect(core.getAccessToken()).toBeNull();
-
-    const tokenStore = new DPoPTokenStore(CLIENT_ID, 'localStorage');
-    expect(tokenStore.get()).toBeNull();
-  });
-
   test('refresh token grant — issues new DPoP-bound tokens', async () => {
-    test.skip(!refreshToken, 'No refresh token from previous test');
+    test.skip(!accessToken, 'No access token from previous test');
 
     expect(core.isLoggedIn).toBe(true);
     const previousAccessToken = accessToken;
@@ -555,6 +528,33 @@ test.describe('DPoP smoke tests', () => {
     expect(tokens!.expiresAt).toBeGreaterThan(Date.now());
 
     accessToken = newAccessToken!;
+  });
+
+  test('startLogout() clears DPoP state and redirects to the logout URL', async () => {
+    test.skip(!accessToken, 'No access token from previous test');
+
+    expect(core.isLoggedIn).toBe(true);
+    expect(core.getAccessToken()).toBe(accessToken);
+
+    const { assign, waitForUrl } = createAssignWaiter();
+    // @ts-ignore
+    globalThis.window.location = { assign };
+
+    core.startLogout();
+    const assignedUrl = new URL(String(await waitForUrl()));
+
+    expect(assignedUrl.origin).toBe(FA_URL);
+    expect(assignedUrl.pathname).toBe('/app/logout/');
+    expect(assignedUrl.searchParams.get('client_id')).toBe(CLIENT_ID);
+    expect(assignedUrl.searchParams.get('post_logout_redirect_uri')).toBe(
+      REDIRECT_URI,
+    );
+
+    expect(core.isLoggedIn).toBe(false);
+    expect(core.getAccessToken()).toBeNull();
+
+    const tokenStore = new DPoPTokenStore(CLIENT_ID, 'localStorage');
+    expect(tokenStore.get()).toBeNull();
   });
 
   test('DPoPManager.fetch() calls /oauth2/userinfo with correct DPoP headers and gets user claims', async () => {
