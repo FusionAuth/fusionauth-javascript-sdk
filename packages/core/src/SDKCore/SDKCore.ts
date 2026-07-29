@@ -310,9 +310,6 @@ export class SDKCore {
     const tokenResponse = await response.clone().json();
     this.dpopManager!.setTokens({
       accessToken: tokenResponse.access_token,
-      // FusionAuth may omit refresh_token when refresh token rotation is
-      // not enabled — fall back to the existing refresh token so it isn't
-      // cleared out, which would otherwise break future refreshes.
       refreshToken: tokenResponse.refresh_token ?? refreshToken,
       expiresAt: Date.now() + tokenResponse.expires_in * 1000,
       tokenType: 'DPoP',

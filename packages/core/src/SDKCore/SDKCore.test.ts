@@ -883,12 +883,6 @@ describe('SDKCore', () => {
           token_type: string;
         }> = {},
       ) {
-        // Use mockImplementation (not mockResolvedValue) so every fetch()
-        // call gets its own fresh Response instance — refreshToken() may be
-        // invoked multiple times within a single test (e.g. an explicit
-        // call followed by an auto-refresh timer firing), and a shared
-        // Response instance would throw "body already used" once its body
-        // has been read by an earlier call.
         return vi.spyOn(window, 'fetch').mockImplementation(() =>
           Promise.resolve(
             new Response(
