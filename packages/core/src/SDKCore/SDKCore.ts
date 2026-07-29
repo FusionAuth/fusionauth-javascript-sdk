@@ -93,12 +93,55 @@ export class SDKCore {
     window.location.assign(this.urlHelper.getRegisterUrl(state));
   }
 
-  startLogout() {
+  /**
+   * Initiates the logout flow.
+   *
+   * In DPoP mode, this synchronously returns after starting an
+   * asynchronous flow.
+   *
+   * In hosted backend mode, the flow is synchronous.
+   */
+  startLogout(): void {
+    if (this.dpopManager) {
+      this.startDpopLogout().catch(error => {
+        console.error('FusionAuth SDK: startLogout failed', error);
+      });
+      return;
+    }
+
     window.location.assign(this.urlHelper.getLogoutUrl());
+  }
+
+  /**
+   * Performs the DPoP mode logout flow, clearing the key pair, stored
+   * tokens, and in-memory nonces.
+   */
+  private async startDpopLogout(): Promise<void> {
+    try {
+      await this.dpopManager!.clear();
+    } finally {
+      window.location.assign(this.urlHelper.getLogoutUrl());
+    }
   }
 
   manageAccount() {
     window.location.assign(this.urlHelper.getAccountManagementUrl());
+  }
+
+  /**
+   * Returns the current DPoP mode access token.  In hosted backend mode, tokens
+   * are stored in HttpOnly cookies and are never accessible to JavaScript,
+   * so this method throws instead.
+   *
+   * @throws {Error} if called in hosted backend mode
+   */
+  getAccessToken(): string | null {
+    if (!this.dpopManager) {
+      throw new Error(
+        'getAccessToken() is only available in DPoP mode. In hosted backend mode, tokens are stored in HttpOnly cookies and are not accessible to JavaScript.',
+      );
+    }
+    return this.dpopManager.getAccessToken();
   }
 
   async fetchUserInfo<T = UserInfo>() {

@@ -89,6 +89,13 @@ export class DPoPManager {
   }
 
   /**
+   * Returns the stored access token string, or `null` if none is stored.
+   */
+  getAccessToken(): string | null {
+    return this.tokenStore.getAccessToken();
+  }
+
+  /**
    * Returns the expiration moment (ms since epoch) of the stored access
    * token, or `-1` if no tokens are stored. Mirrors the `-1` convention used
    * by `CookieHelpers.getAccessTokenExpirationMoment()` so `SDKCore` can

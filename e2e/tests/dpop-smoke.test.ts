@@ -353,6 +353,7 @@ test.describe('DPoP smoke tests', () => {
   let accessToken: string;
   let refreshToken: string;
   let thumbprint: string;
+  let core: SDKCore;
 
   test.beforeAll(async ({ browser }) => {
     context = await browser.newContext();
@@ -398,7 +399,7 @@ test.describe('DPoP smoke tests', () => {
     let notify:
       ((result: { state?: string } | { error: Error }) => void) | undefined;
 
-    const core = new SDKCore({
+    core = new SDKCore({
       serverUrl: FA_URL,
       clientId: CLIENT_ID,
       redirectUri: REDIRECT_URI,
@@ -499,6 +500,33 @@ test.describe('DPoP smoke tests', () => {
     manager.setTokens(tokens!);
 
     expect(manager.isLoggedIn).toBe(true);
+  });
+
+  test('startLogout() clears DPoP state and redirects to the logout URL', async () => {
+    test.skip(!accessToken, 'No access token from previous test');
+
+    expect(core.isLoggedIn).toBe(true);
+    expect(core.getAccessToken()).toBe(accessToken);
+
+    const { assign, waitForUrl } = createAssignWaiter();
+    // @ts-ignore
+    globalThis.window.location = { assign };
+
+    core.startLogout();
+    const assignedUrl = new URL(String(await waitForUrl()));
+
+    expect(assignedUrl.origin).toBe(FA_URL);
+    expect(assignedUrl.pathname).toBe('/app/logout/');
+    expect(assignedUrl.searchParams.get('client_id')).toBe(CLIENT_ID);
+    expect(assignedUrl.searchParams.get('post_logout_redirect_uri')).toBe(
+      REDIRECT_URI,
+    );
+
+    expect(core.isLoggedIn).toBe(false);
+    expect(core.getAccessToken()).toBeNull();
+
+    const tokenStore = new DPoPTokenStore(CLIENT_ID, 'localStorage');
+    expect(tokenStore.get()).toBeNull();
   });
 
   test('refresh token grant — issues new DPoP-bound tokens', async () => {

@@ -290,6 +290,40 @@ describe('SDKCore', () => {
       );
     });
 
+    it('getAccessToken() returns the stored access token when useDpop: true', () => {
+      vi.spyOn(DPoPManager.prototype, 'getOrCreateKeyPair').mockResolvedValue(
+        {} as any,
+      );
+      const core = new SDKCore(dpopConfig);
+
+      const dpopManager = (core as any).dpopManager as DPoPManager;
+      dpopManager.setTokens({
+        accessToken: 'mock-access-token',
+        refreshToken: undefined,
+        expiresAt: Date.now() + 60_000,
+        tokenType: 'DPoP',
+      });
+
+      expect(core.getAccessToken()).toBe('mock-access-token');
+    });
+
+    it('getAccessToken() returns null when logged out in DPoP mode', () => {
+      vi.spyOn(DPoPManager.prototype, 'getOrCreateKeyPair').mockResolvedValue(
+        {} as any,
+      );
+      const core = new SDKCore(dpopConfig);
+
+      expect(core.getAccessToken()).toBeNull();
+    });
+
+    it('getAccessToken() throws when useDpop: false', () => {
+      const core = new SDKCore(config); // no useDpop
+
+      expect(() => core.getAccessToken()).toThrow(
+        'getAccessToken() is only available in DPoP mode. In hosted backend mode, tokens are stored in HttpOnly cookies and are not accessible to JavaScript.',
+      );
+    });
+
     describe('handlePostRedirect() in DPoP mode', () => {
       const MOCK_PROOF = 'mock-dpop-proof-jwt';
       const MOCK_CODE = 'mock-authorization-code';

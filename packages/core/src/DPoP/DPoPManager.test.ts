@@ -540,6 +540,28 @@ describe('getExpiresAt()', () => {
   });
 });
 
+describe('getAccessToken()', () => {
+  it('returns null when no tokens are stored', () => {
+    const manager = makeManager();
+    expect(manager.getAccessToken()).toBeNull();
+  });
+
+  it('returns the accessToken of the stored tokens', () => {
+    const manager = makeManager();
+    manager.setTokens(makeTokens({ accessToken: 'stored-access-token' }));
+    expect(manager.getAccessToken()).toBe('stored-access-token');
+  });
+
+  it('returns null after clear()', async () => {
+    const manager = makeManager();
+    manager.setTokens(makeTokens());
+
+    await manager.clear();
+
+    expect(manager.getAccessToken()).toBeNull();
+  });
+});
+
 describe('clear()', () => {
   it('removes the key pair from DPoPStorage', async () => {
     const manager = makeManager();
