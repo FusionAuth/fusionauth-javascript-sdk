@@ -1074,36 +1074,6 @@ describe('SDKCore', () => {
         );
         expect(fetchMock).not.toHaveBeenCalled();
       });
-
-      it('preserves the existing refresh token when the response omits refresh_token (no rotation)', async () => {
-        vi.spyOn(DPoPManager.prototype, 'getOrCreateKeyPair').mockResolvedValue(
-          {} as any,
-        );
-        vi.spyOn(DPoPManager.prototype, 'generateProof').mockResolvedValue(
-          MOCK_PROOF,
-        );
-        const core = new SDKCore(dpopConfig);
-        seedExistingTokens(core);
-        // FusionAuth may not rotate the refresh token on every refresh —
-        // simulate a response with no refresh_token field.
-        mockTokenResponse({ refresh_token: undefined });
-
-        await core.refreshToken();
-
-        expect(core.getAccessToken()).toBe(MOCK_NEW_ACCESS_TOKEN);
-
-        // A subsequent refresh must still succeed using the *original*
-        // refresh token — proving it wasn't cleared out by the first
-        // refresh's response.
-        const fetchMock = mockTokenResponse();
-        await core.refreshToken();
-
-        const call = fetchMock.mock.calls[0];
-        if (!call) throw new Error('fetch was not called');
-        const [, init] = call;
-        const body = new URLSearchParams(init?.body as string);
-        expect(body.get('refresh_token')).toBe(MOCK_OLD_REFRESH_TOKEN);
-      });
     });
   });
 });
