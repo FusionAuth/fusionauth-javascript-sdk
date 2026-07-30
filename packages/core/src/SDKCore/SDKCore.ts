@@ -160,6 +160,10 @@ export class SDKCore {
   }
 
   async refreshToken(): Promise<Response> {
+    if (this.dpopManager) {
+      return this.refreshDpopToken();
+    }
+
     const response = await fetch(this.urlHelper.getTokenRefreshUrl(), {
       method: 'POST',
       credentials: 'include',
@@ -180,6 +184,64 @@ export class SDKCore {
     // a successful request means that app_exp was bumped into the future.
     // reschedule the access token expiration event.
     this.scheduleTokenExpiration();
+
+    return response;
+  }
+
+  /**
+   * Performs the DPoP mode refresh token grant.
+   */
+  private async refreshDpopToken(): Promise<Response> {
+    const refreshToken = this.dpopManager!.getRefreshToken();
+    if (!refreshToken) {
+      throw new Error(
+        'No refresh token available. Have you called startLogin()?',
+      );
+    }
+
+    const tokenUrl = this.urlHelper.getTokenUrl();
+    const proof = await this.dpopManager!.generateProof(
+      tokenUrl.toString(),
+      'POST',
+    );
+
+    const body = new URLSearchParams({
+      grant_type: 'refresh_token',
+      refresh_token: refreshToken,
+      client_id: this.config.clientId,
+    });
+
+    const response = await fetch(tokenUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        DPoP: proof,
+      },
+      body: body.toString(),
+    });
+
+    if (!response.ok) {
+      const errorDetails = {
+        status: response.status,
+        details:
+          (await response.text()) ||
+          'Failed to refresh fusionauth access token',
+      };
+      throw new Error(JSON.stringify(errorDetails));
+    }
+
+    const tokenResponse = await response.clone().json();
+    this.dpopManager!.setTokens({
+      accessToken: tokenResponse.access_token,
+      refreshToken: tokenResponse.refresh_token ?? refreshToken,
+      expiresAt: Date.now() + tokenResponse.expires_in * 1000,
+      tokenType: 'DPoP',
+    });
+
+    this.scheduleTokenExpiration();
+    if (this.config.shouldAutoRefresh) {
+      this.initAutoRefresh();
+    }
 
     return response;
   }
