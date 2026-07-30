@@ -11,6 +11,7 @@ An SDK for using FusionAuth in Angular applications.
   -   [Pre-built buttons](#pre-built-buttons)
   -   [State Parameter](#state-parameter)
   -   [SSR](#ssr)
+  -   [DPoP Mode](#dpop-mode)
 -   [Known issues](#known-issues)
 -   [Documentation](#documentation)
 -   [Releases](#releases)
@@ -94,6 +95,7 @@ import { FusionAuthModule } from '@fusionauth/angular-sdk';
       serverUrl: '', // The base URL of the server that performs the token exchange
       redirectUri: '', // The URI that the user is directed to after the login/register/logout action
       shouldAutoRefresh: true // option to configure the SDK to automatically handle token refresh. Defaults to false if not specified here.
+      // useDpop: true, // Opt-in to DPoP mode. See "DPoP Mode" below. Defaults to false.
     }),
   ],
   providers: [],
@@ -184,6 +186,40 @@ user can be returned to that location after a successful authentication.
 #### SSR
 
 The SDK supports Angular applications using SSR. No additional configuration is needed.
+
+### DPoP Mode
+
+By default, the SDK calls a Hosted Backend that stores tokens in HttpOnly cookies (`useDpop: false`, the default). In DPoP mode, the SDK instead calls FusionAuth endpoints directly and binds tokens to a private key generated in the browser. Enable it by setting `useDpop: true` on `FusionAuthConfig`:
+
+```typescript
+FusionAuthModule.forRoot({
+  clientId: '',
+  serverUrl: '',
+  redirectUri: '',
+  useDpop: true, // Opt-in to DPoP mode.
+  dpopTokenStorage: 'localStorage', // 'localStorage' (default, persists across reloads) or 'memory'.
+}),
+```
+
+When `useDpop: true`, `FusionAuthService` additionally exposes `dpopFetch()`, `generateProof()`, and `getAccessToken()`. These throw a descriptive error if called when `useDpop` is not enabled.
+
+```typescript
+class AppComponent {
+  private fusionAuthService: FusionAuthService = inject(FusionAuthService);
+
+  async callApi() {
+    // Recommended — handles attaching DPoP headers (and nonce retries) automatically.
+    const response = await this.fusionAuthService.dpopFetch('https://api.example.com/data', { method: 'GET' });
+
+    // Advanced — for axios or other HTTP libraries that can't use dpopFetch.
+    const accessToken = this.fusionAuthService.getAccessToken();
+    const proof = await this.fusionAuthService.generateProof('https://api.example.com/data', 'GET', accessToken ?? undefined);
+    // axios.get('https://api.example.com/data', {
+    //   headers: { Authorization: `DPoP ${accessToken}`, DPoP: proof }
+    // });
+  }
+}
+```
 
 ### Known Issues
 

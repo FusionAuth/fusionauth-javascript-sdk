@@ -44,6 +44,11 @@ export class quickstartPage {
     // code exchange → redirect back to the app). Without this, webkit doesn't finish
     // committing the session cookies before the test body reads them.
     await expect(this.locators.logOutBtn).toBeVisible();
+    // Belt-and-suspenders: settle on 'load' in case any trailing navigation
+    // (e.g. dev-server tooling reconnecting after the cross-origin
+    // authorize/callback round trip) is still in flight, so the caller
+    // doesn't read localStorage/cookies mid-navigation.
+    await this.page.waitForLoadState('load');
   }
 
   async navToRegister() {
@@ -54,5 +59,7 @@ export class quickstartPage {
   async logOut() {
     await this.locators.logOutBtn.click();
     await expect(this.locators.logInBtn.nth(0)).toBeVisible();
+    // See the comment in authenticate() above.
+    await this.page.waitForLoadState('load');
   }
 }

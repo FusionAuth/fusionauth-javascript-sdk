@@ -44,14 +44,35 @@ interface DPoPTokens {
  * without needing to know the exact `clientId` ahead of time — finds the
  * first key matching `DPoPTokenStore`'s `fusionauth-sdk:tokens:<clientId>`
  * format. Returns `null` if no tokens are stored (e.g. logged out).
+ *
+ * Belt-and-suspenders: retries once on a destroyed execution context, in
+ * case a trailing navigation is still in flight right after a redirect
+ * round trip lands back on the app, which would otherwise fail the
+ * `page.evaluate()` call below with "Execution context was destroyed".
  */
 async function readDpopTokens(page: Page): Promise<DPoPTokens | null> {
-  const raw = await page.evaluate(() => {
-    const key = Object.keys(localStorage).find(k =>
-      k.startsWith('fusionauth-sdk:tokens:'),
-    );
-    return key ? localStorage.getItem(key) : null;
-  });
+  const evaluateTokens = () =>
+    page.evaluate(() => {
+      const key = Object.keys(localStorage).find(k =>
+        k.startsWith('fusionauth-sdk:tokens:'),
+      );
+      return key ? localStorage.getItem(key) : null;
+    });
+
+  let raw: string | null;
+  try {
+    raw = await evaluateTokens();
+  } catch (error) {
+    if (
+      error instanceof Error &&
+      error.message.includes('Execution context was destroyed')
+    ) {
+      await page.waitForLoadState('load');
+      raw = await evaluateTokens();
+    } else {
+      throw error;
+    }
+  }
   return raw ? JSON.parse(raw) : null;
 }
 

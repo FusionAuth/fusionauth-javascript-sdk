@@ -1,4 +1,12 @@
-import { Injectable, Inject, PLATFORM_ID } from '@angular/core';
+import {
+  Injectable,
+  Inject,
+  PLATFORM_ID,
+  NgZone,
+  Signal,
+  ApplicationRef,
+} from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
 import { isPlatformBrowser } from '@angular/common';
 import { Observable, catchError, BehaviorSubject } from 'rxjs';
 
@@ -21,27 +29,68 @@ export class FusionAuthService<T = UserInfo> {
   constructor(
     @Inject(FUSIONAUTH_SERVICE_CONFIG) config: FusionAuthConfig,
     @Inject(PLATFORM_ID) platformId: Object,
+    private ngZone: NgZone,
+    private appRef: ApplicationRef,
   ) {
     this.core = new SDKCore({
       ...config,
       onTokenExpiration: () => {
-        this.isLoggedInSubject.next(false);
+        this.runInZoneAndTick(() => this.isLoggedInSubject.next(false));
       },
       cookieAdapter: new SSRCookieAdapter(isPlatformBrowser(platformId)),
     });
 
     this.isLoggedInSubject = new BehaviorSubject(this.core.isLoggedIn);
     this.isLoggedIn$ = this.isLoggedInSubject.asObservable();
+    this.isLoggedInSignal = toSignal(this.isLoggedIn$, {
+      initialValue: this.core.isLoggedIn,
+    });
 
-    this.core.handlePostRedirect(config.onRedirect);
+    // handlePostRedirect()'s DPoP-mode chain runs through IndexedDB (via
+    // DPoPManager.getOrCreateKeyPair()), which zone.js does not patch (no
+    // official zone-patch-indexeddb plugin exists). Left unpatched, this can
+    // leave zone.js's internal task-tracking out of sync — NgZone.run() still
+    // re-enters the Angular zone correctly (verified: NgZone.isInAngularZone()
+    // reports true), but the zone's "stable" check that normally schedules a
+    // change-detection tick doesn't reliably fire afterward. An explicit
+    // ApplicationRef.tick() removes the dependency on that zone-stability
+    // heuristic entirely, guaranteeing the update is rendered regardless of
+    // which zone (or which async primitives) the underlying chain used.
+    this.core.handlePostRedirect(config.onRedirect).then(() => {
+      this.runInZoneAndTick(() =>
+        this.isLoggedInSubject.next(this.core.isLoggedIn),
+      );
+    });
 
     if (config.shouldAutoRefresh && this.core.isLoggedIn) {
       this.initAutoRefresh();
     }
   }
 
+  /**
+   * Re-enters the Angular zone to run `fn`, then forces a synchronous
+   * change-detection tick. See the comment on `handlePostRedirect()` in the
+   * constructor for why both steps are necessary — merely re-entering the
+   * zone is not sufficient when the preceding async chain went through APIs
+   * (e.g. IndexedDB) that zone.js doesn't patch.
+   */
+  private runInZoneAndTick(fn: () => void): void {
+    this.ngZone.run(fn);
+    if (!this.appRef.destroyed) {
+      this.appRef.tick();
+    }
+  }
+
   /** An observable representing whether the user is logged in. */
   isLoggedIn$: Observable<boolean>;
+
+  /**
+   * A Signal representing whether the user is logged in. Prefer this for
+   * template bindings (e.g. `@if (isLoggedInSignal())`) over the static
+   * isLoggedIn() snapshot — it stays reactive automatically, without
+   * requiring a manual subscription that could be omitted or lost.
+   */
+  isLoggedInSignal: Signal<boolean>;
 
   /** A function that returns whether the user is logged in. This returned value is non-observable. */
   isLoggedIn() {
@@ -80,13 +129,15 @@ export class FusionAuthService<T = UserInfo> {
       this.core
         .fetchUserInfo<T>()
         .then(userInfo => {
-          observer.next(userInfo);
+          // See runInZoneAndTick() above — fetchUserInfo()'s chain runs
+          // through IndexedDB in DPoP mode, which zone.js doesn't patch.
+          this.runInZoneAndTick(() => observer.next(userInfo));
         })
         .catch(error => {
-          observer.error(error);
+          this.runInZoneAndTick(() => observer.error(error));
         })
         .finally(() => {
-          callbacks?.onDone?.();
+          this.runInZoneAndTick(() => callbacks?.onDone?.());
         });
     }).pipe(
       catchError(error => {
@@ -100,7 +151,18 @@ export class FusionAuthService<T = UserInfo> {
    * @throws {Error} - if an error occurred while fetching.
    */
   async getUserInfo<T>(): Promise<T> {
-    return await this.core.fetchUserInfo<T>();
+    // See getUserInfoObservable() / runInZoneAndTick() above — re-enter the
+    // zone and force a tick at the point this promise resolves so the
+    // caller's `await` continuation (and any state it sets) is rendered,
+    // even in DPoP mode where the underlying chain runs through unpatched
+    // IndexedDB.
+    return this.core.fetchUserInfo<T>().then(userInfo => {
+      let result!: T;
+      this.runInZoneAndTick(() => {
+        result = userInfo;
+      });
+      return result;
+    });
   }
 
   /**
@@ -132,5 +194,39 @@ export class FusionAuthService<T = UserInfo> {
    */
   manageAccount(): void {
     this.core.manageAccount();
+  }
+
+  /**
+   * DPoP mode `fetch()` wrapper that automatically attaches DPoP proof
+   * headers.
+   * @throws {Error} if called when `useDpop` is not enabled.
+   */
+  async dpopFetch(
+    input: RequestInfo | URL,
+    init?: RequestInit,
+  ): Promise<Response> {
+    return this.core.dpopFetch(input, init);
+  }
+
+  /**
+   * Returns a signed DPoP proof JWT for use with axios or other
+   * HTTP libraries that can't use {@link dpopFetch}.
+   * @throws {Error} if called when `useDpop` is not enabled.
+   */
+  async generateProof(
+    htu: string,
+    htm: string,
+    accessToken?: string,
+    nonce?: string,
+  ): Promise<string> {
+    return this.core.generateProof(htu, htm, accessToken, nonce);
+  }
+
+  /**
+   * Returns the stored DPoP access token, or `null` if not logged in.
+   * @throws {Error} if called when `useDpop` is not enabled.
+   */
+  getAccessToken(): string | null {
+    return this.core.getAccessToken();
   }
 }
