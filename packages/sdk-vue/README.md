@@ -11,6 +11,7 @@ An SDK for using FusionAuth in Vue applications.
     - [Configuring with Nuxt](#configuring-with-nuxt)
   - [useFusionAuth Composable](#usefusionauth-composable)
     - [State parameter](#state-parameter)
+    - [DPoP Mode](#dpop-mode)
   - [UI Components](#ui-components)
     - [Protecting Content](#protecting-content)
     - [Pre-built buttons](#pre-built-buttons)
@@ -98,6 +99,7 @@ const config: FusionAuthConfig = {
   shouldAutoFetchUserInfo: true, // Automatically fetch userInfo when logged in. Defaults to false.
   shouldAutoRefresh: true, // Enables automatic token refresh. Defaults to false.
   onRedirect: (state?: string) => { }, // Optional callback invoked upon redirect back from login or register.
+  // useDpop: true, // Opt-in to DPoP mode. See "DPoP Mode" below. Defaults to false.
 }
 
 const app = createApp(App);
@@ -191,6 +193,50 @@ const welcomeMessage = computed(() => {
 #### State parameter
 
 The `login` and `register` functions accept an optional string parameter: `state`, which will be passed back to the optional `onRedirect` callback specified on your `FusionAuthConfig`. Though you may pass any value you would like for the state parameter, it is often used to indicate which page the user was on before redirecting to login or registration, so that the user can be returned to that location after a successful authentication.
+
+#### DPoP Mode
+
+By default, the SDK calls a Hosted Backend that stores tokens in HttpOnly cookies (`useDpop: false`, the default). In DPoP mode, the SDK instead calls FusionAuth endpoints directly and binds tokens to a private key generated in the browser, per [RFC 9449](https://datatracker.ietf.org/doc/html/rfc9449). Enable it by setting `useDpop: true` on `FusionAuthConfig`:
+
+```typescript
+const config: FusionAuthConfig = {
+  clientId: "",
+  redirectUri: "",
+  serverUrl: "",
+  useDpop: true, // Opt-in to DPoP mode.
+  dpopTokenStorage: 'localStorage', // 'localStorage' (default, persists across reloads) or 'memory'.
+}
+```
+
+When `useDpop: true`, `useFusionAuth()` additionally returns `dpopFetch`, `generateProof`, and `getAccessToken`. These are `undefined` when `useDpop` is `false` or not set.
+
+```html
+<script setup lang="ts">
+import { useFusionAuth } from "@fusionauth/vue-sdk";
+
+const { dpopFetch, generateProof, getAccessToken } = useFusionAuth();
+
+// Recommended — handles attaching DPoP headers (and nonce retries) automatically.
+const response = await dpopFetch('https://api.example.com/data', { method: 'GET' });
+
+// Advanced — for axios or other HTTP libraries that can't use dpopFetch.
+const accessToken = getAccessToken();
+const proof = await generateProof('https://api.example.com/data', 'GET', accessToken);
+// axios.get('https://api.example.com/data', {
+//   headers: { Authorization: `DPoP ${accessToken}`, DPoP: proof }
+// });
+</script>
+```
+
+In DPoP mode, the login/register redirect round trip finishes asynchronously (there's no Hosted Backend to set cookies before the app reloads). `onRedirect` fires only after `isLoggedIn` and tokens are fully updated, so it's a reliable place to hook in post-login navigation, e.g. with [Vue Router](https://router.vuejs.org/):
+
+```typescript
+const config: FusionAuthConfig = {
+  // ...
+  useDpop: true,
+  onRedirect: () => router.push('/account'),
+}
+```
 
 ### UI Components
 

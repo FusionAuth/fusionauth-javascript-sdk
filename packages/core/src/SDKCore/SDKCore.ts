@@ -103,6 +103,16 @@ export class SDKCore {
    * In hosted backend mode, the flow is synchronous.
    */
   startLogout(): void {
+    // Cancel any pending token-expiration/refresh timers immediately. In
+    // DPoP mode, the actual navigation away doesn't happen until the async
+    // clear()+redirect chain below completes — without this, a stale timer
+    // (scheduled against the token that's about to be cleared) can fire
+    // `onTokenExpiration` (or attempt a refresh) during that window,
+    // producing a misleading transient "logged out" state before the real
+    // redirect has even started.
+    clearTimeout(this.tokenExpirationTimeout);
+    this.stopAutoRefresh();
+
     if (this.dpopManager) {
       this.startDpopLogout().catch(error => {
         console.error('FusionAuth SDK: startLogout failed', error);

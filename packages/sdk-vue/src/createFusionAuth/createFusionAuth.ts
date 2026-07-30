@@ -63,15 +63,62 @@ export const createFusionAuth = <T = UserInfo>(
     core.manageAccount();
   }
 
-  if (config.shouldAutoFetchUserInfo && core.isLoggedIn === true) {
+  async function dpopFetch(input: RequestInfo | URL, init?: RequestInit) {
+    return core.dpopFetch(input, init);
+  }
+
+  async function generateProof(
+    htu: string,
+    htm: string,
+    accessToken?: string,
+    nonce?: string,
+  ) {
+    return core.generateProof(htu, htm, accessToken, nonce);
+  }
+
+  function getAccessToken() {
+    return core.getAccessToken();
+  }
+
+  let didAttemptAutoFetch = false;
+
+  function syncIsLoggedIn() {
+    isLoggedIn.value = core.isLoggedIn;
+  }
+
+  function maybeAutoFetchUserInfo() {
+    if (
+      !config.shouldAutoFetchUserInfo ||
+      didAttemptAutoFetch ||
+      !core.isLoggedIn
+    ) {
+      return;
+    }
+
+    // ensures this does not run multiple times if we fail to fetch the user
+    didAttemptAutoFetch = true;
     getUserInfo();
   }
+
+  maybeAutoFetchUserInfo();
 
   if (config.shouldAutoRefresh && core.isLoggedIn === true) {
     core.initAutoRefresh();
   }
 
-  core.handlePostRedirect(config.onRedirect);
+  // In DPoP mode, the authorization code exchange happens asynchronously
+  // after this function returns (there is no hosted backend to set cookies
+  // before the app reloads). Re-sync `isLoggedIn` and re-check auto-fetch
+  // once that settles, *before* invoking the caller's `onRedirect` --
+  // `SDKCore` invokes it synchronously as the final step of the DPoP
+  // exchange, so without this ordering, `onRedirect` (e.g. a handler that
+  // navigates based on `isLoggedIn.value`, such as `router.push` gated by a
+  // route guard) could run against a still-stale `isLoggedIn` ref.
+  core.handlePostRedirect(state => {
+    syncIsLoggedIn();
+    maybeAutoFetchUserInfo();
+    config.onRedirect?.(state);
+  });
 
   return {
     isLoggedIn,
@@ -85,5 +132,8 @@ export const createFusionAuth = <T = UserInfo>(
     manageAccount,
     refreshToken,
     initAutoRefresh,
+    dpopFetch: config.useDpop ? dpopFetch : undefined,
+    generateProof: config.useDpop ? generateProof : undefined,
+    getAccessToken: config.useDpop ? getAccessToken : undefined,
   };
 };

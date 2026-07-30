@@ -57,7 +57,22 @@ export class quickstartPage {
   }
 
   async logOut() {
+    // Arm before clicking — in DPoP mode, startLogout() is asynchronous (it
+    // awaits DPoPManager.clear() before navigating), so the click can return
+    // before the actual navigation to FusionAuth's logout endpoint has even
+    // started. Without this, the caller (or a subsequent serial test) can
+    // proceed while that navigation is still pending, racing with it --
+    // observed as an aborted/interrupted navigation in the next test, or
+    // even a silent SSO re-authentication on the next login attempt if the
+    // FusionAuth-side session was never actually reached/cleared.
+    const logoutNavigationPromise = this.page.waitForURL(
+      url => /\/(oauth2|app)\/logout/.test(url.pathname),
+      { timeout: 10_000 },
+    );
+
     await this.locators.logOutBtn.click();
+    await logoutNavigationPromise;
+
     await expect(this.locators.logInBtn.nth(0)).toBeVisible();
     // See the comment in authenticate() above.
     await this.page.waitForLoadState('load');

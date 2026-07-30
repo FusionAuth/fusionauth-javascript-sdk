@@ -336,6 +336,42 @@ describe('SDKCore', () => {
       expect(assignedUrl.pathname).toBe('/oauth2/logout');
     });
 
+    it('startLogout() cancels the pending token-expiration timer before the async clear()+redirect settles, so a stale onTokenExpiration does not fire for the token being cleared', async () => {
+      vi.useFakeTimers();
+      vi.spyOn(DPoPManager.prototype, 'getOrCreateKeyPair').mockResolvedValue(
+        {} as any,
+      );
+      const clearSpy = vi
+        .spyOn(DPoPManager.prototype, 'clear')
+        .mockResolvedValue(undefined);
+      mockWindowLocation(vi);
+
+      // A token expiring shortly after startLogout() is called — without the
+      // fix, this would schedule `onTokenExpiration` to fire during the
+      // async DPoP clear()+redirect window below.
+      localStorage.setItem(
+        `fusionauth-sdk:tokens:${dpopConfig.clientId}`,
+        JSON.stringify({
+          accessToken: 'mock-access-token',
+          refreshToken: 'mock-refresh-token',
+          expiresAt: Date.now() + 1000,
+          tokenType: 'DPoP',
+        }),
+      );
+
+      const onTokenExpiration = vi.fn();
+      const core = new SDKCore({ ...dpopConfig, onTokenExpiration });
+
+      core.startLogout();
+
+      // Advance well past the original token's expiry — if the timer wasn't
+      // cancelled by startLogout(), onTokenExpiration would fire here.
+      await vi.advanceTimersByTimeAsync(5000);
+
+      expect(onTokenExpiration).not.toHaveBeenCalled();
+      expect(clearSpy).toHaveBeenCalledOnce();
+    });
+
     it('getAccessToken() returns the stored access token when useDpop: true', () => {
       vi.spyOn(DPoPManager.prototype, 'getOrCreateKeyPair').mockResolvedValue(
         {} as any,
