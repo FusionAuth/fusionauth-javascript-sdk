@@ -91,13 +91,7 @@ Tests import these page objects to perform actions, ensuring that if the UI chan
 
 ### DPoP E2E tests
 
-There are two separate DPoP-related test files, each with their own prerequisites:
-
-- `e2e/tests/dpop-smoke.test.ts` — exercises `DPoPManager`/`UrlHelper`/`SDKCore` directly against a live FusionAuth instance. No consuming quickstart application is required. Run with:
-  ```
-  npx playwright test e2e/tests/dpop-smoke.test.ts --config playwright.dpop.config.ts
-  ```
-- `e2e/tests/dpop-endpoints.test.ts` — mirrors `endpoints.test.ts`, but drives a consuming quickstart application configured with `useDpop: true` through its UI. Since DPoP mode has no hosted backend mode (`SDKCore` talks directly to FusionAuth), this validates the *direct* calls to `/oauth2/authorize`, `/oauth2/token` (both the authorization code exchange and the refresh token grant), `/oauth2/userinfo`, and `/oauth2/logout` — see the file header for the current coverage gaps (Register isn't DPoP-aware in `SDKCore` yet). Run with a DPoP-enabled quickstart instance:
+`e2e/tests/dpop-endpoints.test.ts` — mirrors `endpoints.test.ts`, but drives a consuming quickstart application configured with `useDpop: true` through its UI. Since DPoP mode has no hosted backend mode (`SDKCore` talks directly to FusionAuth), this validates the *direct* calls to `/oauth2/authorize`, `/oauth2/token` (both the authorization code exchange and the refresh token grant), `/oauth2/userinfo`, and `/oauth2/logout`:
   ```
   SERVER_COMMAND="your-dpop-quickstart-start-command" PORT=your-port-number npx playwright test e2e/tests/dpop-endpoints.test.ts --config playwright.dpop-endpoints.config.ts
   ```

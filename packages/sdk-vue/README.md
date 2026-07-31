@@ -196,7 +196,7 @@ The `login` and `register` functions accept an optional string parameter: `state
 
 #### DPoP Mode
 
-By default, the SDK calls a Hosted Backend that stores tokens in HttpOnly cookies (`useDpop: false`, the default). In DPoP mode, the SDK instead calls FusionAuth endpoints directly and binds tokens to a private key generated in the browser, per [RFC 9449](https://datatracker.ietf.org/doc/html/rfc9449). Enable it by setting `useDpop: true` on `FusionAuthConfig`:
+By default, the SDK calls a Hosted Backend that stores tokens in HttpOnly cookies (`useDpop: false`, the default). In DPoP mode, the SDK instead calls FusionAuth endpoints directly and binds tokens to a private key generated in the browser. Enable it by setting `useDpop: true` on `FusionAuthConfig`:
 
 ```typescript
 const config: FusionAuthConfig = {
@@ -216,10 +216,8 @@ import { useFusionAuth } from "@fusionauth/vue-sdk";
 
 const { dpopFetch, generateProof, getAccessToken } = useFusionAuth();
 
-// Recommended — handles attaching DPoP headers (and nonce retries) automatically.
 const response = await dpopFetch('https://api.example.com/data', { method: 'GET' });
 
-// Advanced — for axios or other HTTP libraries that can't use dpopFetch.
 const accessToken = getAccessToken();
 const proof = await generateProof('https://api.example.com/data', 'GET', accessToken);
 // axios.get('https://api.example.com/data', {
@@ -228,7 +226,7 @@ const proof = await generateProof('https://api.example.com/data', 'GET', accessT
 </script>
 ```
 
-In DPoP mode, the login/register redirect round trip finishes asynchronously (there's no Hosted Backend to set cookies before the app reloads). `onRedirect` fires only after `isLoggedIn` and tokens are fully updated, so it's a reliable place to hook in post-login navigation, e.g. with [Vue Router](https://router.vuejs.org/):
+In DPoP mode, the login/register redirect round trip finishes asynchronously (there's no Hosted Backend to set cookies before the app reloads). `onRedirect` fires only after `isLoggedIn` and tokens are fully updated, so it's a reliable place to hook in post-login navigation:
 
 ```typescript
 const config: FusionAuthConfig = {

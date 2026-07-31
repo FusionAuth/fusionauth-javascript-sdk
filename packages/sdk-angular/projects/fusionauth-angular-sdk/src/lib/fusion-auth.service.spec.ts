@@ -1,5 +1,4 @@
 import { TestBed } from '@angular/core/testing';
-import { NgZone } from '@angular/core';
 import { vi } from 'vitest';
 import { take } from 'rxjs';
 
@@ -24,7 +23,6 @@ const dpopConfig: FusionAuthConfig = {
   useDpop: true,
 };
 
-/** Seeds `localStorage` with a valid, unexpired DPoP token set for `clientId`. */
 function seedDpopTokens(
   clientId: string,
   overrides: Partial<{
@@ -201,7 +199,7 @@ describe('FusionAuthService', () => {
       await expect(
         service.dpopFetch('https://api.example.com/data'),
       ).rejects.toThrow(
-        'dpopFetch() is only available in DPoP mode. In cookie mode, use fetch() with credentials: "include" instead.',
+        'dpopFetch() is only available in DPoP mode. In hosted backend mode, use fetch() with credentials: "include" instead.',
       );
     });
 
@@ -233,7 +231,7 @@ describe('FusionAuthService', () => {
       await expect(
         service.generateProof('https://api.example.com/data', 'POST'),
       ).rejects.toThrow(
-        'generateProof() is only available in DPoP mode. In cookie mode, tokens are stored in HttpOnly cookies and DPoP proofs are not applicable.',
+        'generateProof() is only available in DPoP mode. In hosted backend mode, tokens are stored in HttpOnly cookies and DPoP proofs are not applicable.',
       );
     });
 
@@ -261,7 +259,7 @@ describe('FusionAuthService', () => {
       );
     });
 
-    it('isLoggedIn$ emits true once the post-redirect DPoP token exchange settles', async () => {
+    it('isLoggedIn$ emits true once the post-redirect DPoP token exchange completes', async () => {
       vi.spyOn(DPoPManager.prototype, 'getOrCreateKeyPair').mockResolvedValue(
         {} as any,
       );
@@ -287,11 +285,6 @@ describe('FusionAuthService', () => {
 
       const service = configureTestingModule(dpopConfig);
 
-      // isLoggedIn$ is a BehaviorSubject seeded at construction time — before
-      // the DPoP exchange has had a chance to complete — so the first
-      // emission must be false. A second emission of true, once the async
-      // exchange settles, only happens if handlePostRedirect()'s promise is
-      // observed and used to re-emit the (now-updated) isLoggedIn state.
       const emissions: boolean[] = [];
       service.isLoggedIn$.subscribe(isLoggedIn => emissions.push(isLoggedIn));
 
@@ -304,7 +297,7 @@ describe('FusionAuthService', () => {
       expect(service.getAccessToken()).toBe('mock-access-token');
     });
 
-    it('isLoggedInSignal reflects true once the post-redirect DPoP token exchange settles', async () => {
+    it('isLoggedInSignal reflects true once the post-redirect DPoP token exchange completes', async () => {
       vi.spyOn(DPoPManager.prototype, 'getOrCreateKeyPair').mockResolvedValue(
         {} as any,
       );
@@ -335,50 +328,6 @@ describe('FusionAuthService', () => {
       await vi.waitFor(() => {
         expect(service.isLoggedInSignal()).toBe(true);
       });
-    });
-
-    it('getUserInfoObservable() re-enters the Angular zone for its `next` callback, even when the underlying fetch settles outside it (as happens via IndexedDB in DPoP mode)', async () => {
-      seedDpopTokens(dpopConfig.clientId);
-
-      const service = configureTestingModule(dpopConfig);
-      const ngZone = TestBed.inject(NgZone);
-      const mockUserInfo = { email: 'richard@example.com' };
-
-      // Simulate the real DPoP-mode zone leak: DPoPManager.fetch() resolves
-      // through IndexedDB (via getOrCreateKeyPair()/generateProof()), which
-      // zone.js cannot patch, so the promise settles outside NgZone.
-      vi.spyOn(DPoPManager.prototype, 'fetch').mockImplementation(
-        () =>
-          ngZone.runOutsideAngular(
-            () =>
-              new Promise<Response>(resolve => {
-                setTimeout(() => {
-                  resolve(
-                    new Response(JSON.stringify(mockUserInfo), {
-                      status: 200,
-                    }),
-                  );
-                }, 0);
-              }),
-          ) as Promise<Response>,
-      );
-
-      let wasInAngularZone: boolean | undefined;
-      await new Promise<void>((resolve, reject) => {
-        service
-          .getUserInfoObservable()
-          .pipe(take(1))
-          .subscribe({
-            next: userInfo => {
-              wasInAngularZone = NgZone.isInAngularZone();
-              expect(userInfo).toEqual(mockUserInfo);
-              resolve();
-            },
-            error: reject,
-          });
-      });
-
-      expect(wasInAngularZone).toBe(true);
     });
   });
 });

@@ -103,13 +103,6 @@ export class SDKCore {
    * In hosted backend mode, the flow is synchronous.
    */
   startLogout(): void {
-    // Cancel any pending token-expiration/refresh timers immediately. In
-    // DPoP mode, the actual navigation away doesn't happen until the async
-    // clear()+redirect chain below completes — without this, a stale timer
-    // (scheduled against the token that's about to be cleared) can fire
-    // `onTokenExpiration` (or attempt a refresh) during that window,
-    // producing a misleading transient "logged out" state before the real
-    // redirect has even started.
     clearTimeout(this.tokenExpirationTimeout);
     this.stopAutoRefresh();
 
@@ -125,9 +118,7 @@ export class SDKCore {
 
   /**
    * Performs the DPoP mode logout flow, clearing the key pair, stored
-   * tokens, and in-memory nonces, then redirecting directly to FusionAuth's
-   * `/oauth2/logout` (there is no hosted backend mode in DPoP mode to proxy
-   * through `/app/logout/`).
+   * tokens, and in-memory nonces.
    */
   private async startDpopLogout(): Promise<void> {
     try {
@@ -159,12 +150,9 @@ export class SDKCore {
 
   /**
    * DPoP-aware `fetch()` wrapper. Automatically attaches `Authorization: DPoP
-   * <token>` and `DPoP: <proof>` headers to the outgoing request, and
-   * transparently retries once if the server responds with a
-   * `use_dpop_nonce` challenge. See {@link DPoPManager.fetch} for the full
-   * behavior.
+   * <token>` and `DPoP: <proof>` headers to the outgoing request.
    *
-   * @throws {Error} if called in cookie mode (`useDpop: false`).
+   * @throws {Error} if called in hosted backend mode (`useDpop: false`).
    */
   async dpopFetch(
     input: RequestInfo | URL,
@@ -172,19 +160,19 @@ export class SDKCore {
   ): Promise<Response> {
     if (!this.dpopManager) {
       throw new Error(
-        'dpopFetch() is only available in DPoP mode. In cookie mode, use fetch() with credentials: "include" instead.',
+        'dpopFetch() is only available in DPoP mode. In hosted backend mode, use fetch() with credentials: "include" instead.',
       );
     }
     return this.dpopManager.fetch(input, init);
   }
 
   /**
-   * Generates a signed DPoP proof JWT for the given request, for advanced
-   * use cases (e.g. axios or other HTTP libraries that can't use
+   * Generates a signed DPoP proof JWT for the given request, for use cases
+   *  (e.g. axios or other HTTP libraries) that can't use
    * {@link dpopFetch}). See {@link DPoPManager.generateProof} for the full
    * behavior.
    *
-   * @throws {Error} if called in cookie mode (`useDpop: false`).
+   * @throws {Error} if called in hosted backend mode (`useDpop: false`).
    */
   async generateProof(
     htu: string,
@@ -194,7 +182,7 @@ export class SDKCore {
   ): Promise<string> {
     if (!this.dpopManager) {
       throw new Error(
-        'generateProof() is only available in DPoP mode. In cookie mode, tokens are stored in HttpOnly cookies and DPoP proofs are not applicable.',
+        'generateProof() is only available in DPoP mode. In hosted backend mode, tokens are stored in HttpOnly cookies and DPoP proofs are not applicable.',
       );
     }
     return this.dpopManager.generateProof(htu, htm, accessToken, nonce);
@@ -220,10 +208,7 @@ export class SDKCore {
   }
 
   /**
-   * Performs the DPoP mode userInfo fetch. Targets FusionAuth's
-   * `/oauth2/userinfo` directly (not the hosted backend's `/app/me`), via
-   * `DPoPManager.fetch()`, which attaches the `Authorization`/`DPoP`
-   * headers (including `ath`) and handles the nonce-retry dance.
+   * Performs the DPoP mode userInfo fetch.
    */
   private async fetchDpopUserInfo<T>(): Promise<T> {
     const accessToken = this.dpopManager!.getAccessToken();

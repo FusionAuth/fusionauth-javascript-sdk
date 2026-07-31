@@ -211,7 +211,7 @@ class AppComponent {
     // Recommended — handles attaching DPoP headers (and nonce retries) automatically.
     const response = await this.fusionAuthService.dpopFetch('https://api.example.com/data', { method: 'GET' });
 
-    // Advanced — for axios or other HTTP libraries that can't use dpopFetch.
+    // For axios or other HTTP libraries that can't use dpopFetch.
     const accessToken = this.fusionAuthService.getAccessToken();
     const proof = await this.fusionAuthService.generateProof('https://api.example.com/data', 'GET', accessToken ?? undefined);
     // axios.get('https://api.example.com/data', {

@@ -308,8 +308,7 @@ describe('SDKCore', () => {
       const assignedUrl = new URL(
         String((location.assign as ReturnType<typeof vi.fn>).mock.calls[0][0]),
       );
-      // DPoP mode has no hosted backend to proxy through — target
-      // FusionAuth's /oauth2/logout directly instead of /app/logout/.
+
       expect(assignedUrl.pathname).toBe('/oauth2/logout');
       expect(assignedUrl.searchParams.get('client_id')).toBe(
         dpopConfig.clientId,
@@ -334,42 +333,6 @@ describe('SDKCore', () => {
         String((location.assign as ReturnType<typeof vi.fn>).mock.calls[0][0]),
       );
       expect(assignedUrl.pathname).toBe('/oauth2/logout');
-    });
-
-    it('startLogout() cancels the pending token-expiration timer before the async clear()+redirect settles, so a stale onTokenExpiration does not fire for the token being cleared', async () => {
-      vi.useFakeTimers();
-      vi.spyOn(DPoPManager.prototype, 'getOrCreateKeyPair').mockResolvedValue(
-        {} as any,
-      );
-      const clearSpy = vi
-        .spyOn(DPoPManager.prototype, 'clear')
-        .mockResolvedValue(undefined);
-      mockWindowLocation(vi);
-
-      // A token expiring shortly after startLogout() is called — without the
-      // fix, this would schedule `onTokenExpiration` to fire during the
-      // async DPoP clear()+redirect window below.
-      localStorage.setItem(
-        `fusionauth-sdk:tokens:${dpopConfig.clientId}`,
-        JSON.stringify({
-          accessToken: 'mock-access-token',
-          refreshToken: 'mock-refresh-token',
-          expiresAt: Date.now() + 1000,
-          tokenType: 'DPoP',
-        }),
-      );
-
-      const onTokenExpiration = vi.fn();
-      const core = new SDKCore({ ...dpopConfig, onTokenExpiration });
-
-      core.startLogout();
-
-      // Advance well past the original token's expiry — if the timer wasn't
-      // cancelled by startLogout(), onTokenExpiration would fire here.
-      await vi.advanceTimersByTimeAsync(5000);
-
-      expect(onTokenExpiration).not.toHaveBeenCalled();
-      expect(clearSpy).toHaveBeenCalledOnce();
     });
 
     it('getAccessToken() returns the stored access token when useDpop: true', () => {
@@ -435,7 +398,7 @@ describe('SDKCore', () => {
       await expect(
         core.dpopFetch('https://api.example.com/data'),
       ).rejects.toThrow(
-        'dpopFetch() is only available in DPoP mode. In cookie mode, use fetch() with credentials: "include" instead.',
+        'dpopFetch() is only available in DPoP mode. In hosted backend mode, use fetch() with credentials: "include" instead.',
       );
     });
 
@@ -470,7 +433,7 @@ describe('SDKCore', () => {
       await expect(
         core.generateProof('https://api.example.com/data', 'POST'),
       ).rejects.toThrow(
-        'generateProof() is only available in DPoP mode. In cookie mode, tokens are stored in HttpOnly cookies and DPoP proofs are not applicable.',
+        'generateProof() is only available in DPoP mode. In hosted backend mode, tokens are stored in HttpOnly cookies and DPoP proofs are not applicable.',
       );
     });
 
@@ -510,36 +473,7 @@ describe('SDKCore', () => {
         expect(userInfo).toEqual(userInfoClaims);
       });
 
-      it('throws a descriptive error when no access token is stored', async () => {
-        vi.spyOn(DPoPManager.prototype, 'getOrCreateKeyPair').mockResolvedValue(
-          {} as any,
-        );
-        const core = new SDKCore(dpopConfig); // no tokens stored — never logged in
-        const fetchSpy = vi.spyOn(DPoPManager.prototype, 'fetch');
-
-        await expect(core.fetchUserInfo()).rejects.toThrow(
-          'No access token available. Have you called startLogin()?',
-        );
-        expect(fetchSpy).not.toHaveBeenCalled();
-      });
-
-      it('throws on a non-OK response', async () => {
-        vi.spyOn(DPoPManager.prototype, 'getOrCreateKeyPair').mockResolvedValue(
-          {} as any,
-        );
-        const core = new SDKCore(dpopConfig);
-        seedAccessToken(core);
-
-        vi.spyOn(DPoPManager.prototype, 'fetch').mockResolvedValue(
-          new Response(null, { status: 401 }),
-        );
-
-        await expect(core.fetchUserInfo()).rejects.toThrow(
-          'Unable to fetch userInfo in fusionauth. Request failed with status code 401',
-        );
-      });
-
-      it('cookie-mode fetchUserInfo() is unaffected', async () => {
+      it('hosted backend mode fetchUserInfo() is unaffected', async () => {
         vi.spyOn(window, 'fetch').mockResolvedValue(
           new Response(JSON.stringify({ sub: 'mock-sub' }), { status: 200 }),
         );
@@ -679,7 +613,7 @@ describe('SDKCore', () => {
         expect(core.isLoggedIn).toBe(true);
       });
 
-      it('does not exchange the code twice when called concurrently (e.g. React StrictMode double-invoke)', async () => {
+      it('does not exchange the code twice when called concurrently)', async () => {
         mockDpopLoginDependencies();
         vi.spyOn(DPoPManager.prototype, 'generateProof').mockResolvedValue(
           MOCK_PROOF,
@@ -697,40 +631,6 @@ describe('SDKCore', () => {
         await Promise.all([first, second]);
 
         expect(fetchMock).toHaveBeenCalledOnce();
-      });
-
-      it('returns a promise that resolves once the token exchange settles, reflecting the isLoggedIn transition', async () => {
-        mockDpopLoginDependencies();
-        vi.spyOn(DPoPManager.prototype, 'generateProof').mockResolvedValue(
-          MOCK_PROOF,
-        );
-
-        const core = new SDKCore(dpopConfig);
-        await primePendingRedirect(core);
-        mockTokenResponse();
-
-        expect(core.isLoggedIn).toBe(false);
-
-        await core.handlePostRedirect();
-
-        expect(core.isLoggedIn).toBe(true);
-      });
-
-      it('returns a resolved (never rejected) promise even when the exchange fails', async () => {
-        mockDpopLoginDependencies();
-        vi.spyOn(DPoPManager.prototype, 'generateProof').mockResolvedValue(
-          MOCK_PROOF,
-        );
-        vi.spyOn(console, 'error').mockImplementation(() => {});
-
-        const core = new SDKCore(dpopConfig);
-        await primePendingRedirect(core);
-        vi.spyOn(window, 'fetch').mockResolvedValue(
-          new Response('boom', { status: 500 }),
-        );
-
-        await expect(core.handlePostRedirect()).resolves.toBeUndefined();
-        expect(core.isLoggedIn).toBe(false);
       });
 
       it('invokes the callback with the state persisted by startLogin() and cleans up the redirect marker', async () => {

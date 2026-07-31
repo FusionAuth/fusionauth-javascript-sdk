@@ -46,16 +46,6 @@ export class FusionAuthService<T = UserInfo> {
       initialValue: this.core.isLoggedIn,
     });
 
-    // handlePostRedirect()'s DPoP-mode chain runs through IndexedDB (via
-    // DPoPManager.getOrCreateKeyPair()), which zone.js does not patch (no
-    // official zone-patch-indexeddb plugin exists). Left unpatched, this can
-    // leave zone.js's internal task-tracking out of sync — NgZone.run() still
-    // re-enters the Angular zone correctly (verified: NgZone.isInAngularZone()
-    // reports true), but the zone's "stable" check that normally schedules a
-    // change-detection tick doesn't reliably fire afterward. An explicit
-    // ApplicationRef.tick() removes the dependency on that zone-stability
-    // heuristic entirely, guaranteeing the update is rendered regardless of
-    // which zone (or which async primitives) the underlying chain used.
     this.core.handlePostRedirect(config.onRedirect).then(() => {
       this.runInZoneAndTick(() =>
         this.isLoggedInSubject.next(this.core.isLoggedIn),
@@ -67,13 +57,6 @@ export class FusionAuthService<T = UserInfo> {
     }
   }
 
-  /**
-   * Re-enters the Angular zone to run `fn`, then forces a synchronous
-   * change-detection tick. See the comment on `handlePostRedirect()` in the
-   * constructor for why both steps are necessary — merely re-entering the
-   * zone is not sufficient when the preceding async chain went through APIs
-   * (e.g. IndexedDB) that zone.js doesn't patch.
-   */
   private runInZoneAndTick(fn: () => void): void {
     this.ngZone.run(fn);
     if (!this.appRef.destroyed) {
@@ -129,8 +112,6 @@ export class FusionAuthService<T = UserInfo> {
       this.core
         .fetchUserInfo<T>()
         .then(userInfo => {
-          // See runInZoneAndTick() above — fetchUserInfo()'s chain runs
-          // through IndexedDB in DPoP mode, which zone.js doesn't patch.
           this.runInZoneAndTick(() => observer.next(userInfo));
         })
         .catch(error => {
@@ -151,11 +132,6 @@ export class FusionAuthService<T = UserInfo> {
    * @throws {Error} - if an error occurred while fetching.
    */
   async getUserInfo<T>(): Promise<T> {
-    // See getUserInfoObservable() / runInZoneAndTick() above — re-enter the
-    // zone and force a tick at the point this promise resolves so the
-    // caller's `await` continuation (and any state it sets) is rendered,
-    // even in DPoP mode where the underlying chain runs through unpatched
-    // IndexedDB.
     return this.core.fetchUserInfo<T>().then(userInfo => {
       let result!: T;
       this.runInZoneAndTick(() => {

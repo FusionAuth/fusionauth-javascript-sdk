@@ -55,10 +55,6 @@ describe('FusionAuthProvider', () => {
     removeAt_expCookie();
     localStorage.clear();
     vi.clearAllMocks();
-    // Some tests enable fake timers (vi.useFakeTimers()) without restoring
-    // real timers afterward; without this, they leak into later tests and
-    // break anything relying on real timer polling (e.g. @testing-library's
-    // waitFor()).
     vi.useRealTimers();
   });
 
@@ -418,7 +414,7 @@ describe('FusionAuthProvider', () => {
       expect(result.current.isLoggedIn).toBe(false);
     });
 
-    test('isLoggedIn flips to true once the post-redirect DPoP token exchange settles', async () => {
+    test('isLoggedIn flips to true once the post-redirect DPoP token exchange completes', async () => {
       vi.spyOn(DPoPManager.prototype, 'getOrCreateKeyPair').mockResolvedValue(
         {} as any,
       );
@@ -452,7 +448,7 @@ describe('FusionAuthProvider', () => {
       expect(result.current.getAccessToken?.()).toBe('mock-access-token');
     });
 
-    test('shouldAutoFetchUserInfo fetches userInfo once isLoggedIn flips to true after the DPoP redirect settles (not just at mount)', async () => {
+    test('shouldAutoFetchUserInfo fetches userInfo once isLoggedIn flips to true after the DPoP redirect completes', async () => {
       vi.spyOn(DPoPManager.prototype, 'getOrCreateKeyPair').mockResolvedValue(
         {} as any,
       );
@@ -497,9 +493,6 @@ describe('FusionAuthProvider', () => {
         expect(result.current.isLoggedIn).toBe(true);
       });
 
-      // isLoggedIn only becomes true asynchronously, well after mount — the
-      // auto-fetch must react to that transition, not just check isLoggedIn
-      // once at the initial render (which would always see `false` here).
       await waitFor(() => {
         expect(result.current.userInfo).toEqual({ email: 'user@example.com' });
       });
