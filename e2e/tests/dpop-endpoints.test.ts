@@ -39,17 +39,6 @@ interface DPoPTokens {
   tokenType: string;
 }
 
-/**
- * Reads the DPoP token store entry from `localStorage` on the current page,
- * without needing to know the exact `clientId` ahead of time — finds the
- * first key matching `DPoPTokenStore`'s `fusionauth-sdk:tokens:<clientId>`
- * format. Returns `null` if no tokens are stored (e.g. logged out).
- *
- * Belt-and-suspenders: retries once on a destroyed execution context, in
- * case a trailing navigation is still in flight right after a redirect
- * round trip lands back on the app, which would otherwise fail the
- * `page.evaluate()` call below with "Execution context was destroyed".
- */
 async function readDpopTokens(page: Page): Promise<DPoPTokens | null> {
   const evaluateTokens = () =>
     page.evaluate(() => {
@@ -101,9 +90,6 @@ test.describe('DPoP Endpoint Tests', () => {
   test('Login redirects directly to /oauth2/authorize with dpop_jkt and code_challenge, then exchanges the code at /oauth2/token', async () => {
     await quickstart.navToLogIn();
 
-    // DPoP mode's startLogin() calls window.location.assign() straight to
-    // FusionAuth — there is no intermediate /app/login redirect to
-    // intercept, so the current page URL *is* the authorize request.
     const authorizeUrl = new URL(page.url());
     expect(authorizeUrl.pathname).toBe('/oauth2/authorize');
     expect(authorizeUrl.searchParams.get('response_type')).toBe('code');
@@ -114,9 +100,6 @@ test.describe('DPoP Endpoint Tests', () => {
     expect(dpopJkt).toBeTruthy();
     expect(codeChallenge).toBeTruthy();
 
-    // Arm the listener before authenticating — handlePostRedirect() fires a
-    // direct fetch() to /oauth2/token as soon as the app lands back on its
-    // redirect_uri with the authorization code.
     const tokenExchangeResponsePromise = page.waitForResponse(
       response =>
         response.url().includes('/oauth2/token') &&
@@ -134,7 +117,6 @@ test.describe('DPoP Endpoint Tests', () => {
     expect(body.get('grant_type')).toBe('authorization_code');
     expect(body.get('code_verifier')).toBeTruthy();
 
-    // Tokens land in localStorage (DPoPTokenStore), not app.* cookies.
     const tokens = await readDpopTokens(page);
     expect(tokens).not.toBeNull();
     expect(tokens!.tokenType).toBe('DPoP');
@@ -150,16 +132,11 @@ test.describe('DPoP Endpoint Tests', () => {
 
   test('User info is fetched after login, and the access token auto-refreshes via a direct /oauth2/token refresh_token grant', async () => {
     // The refresh window depends on the FusionAuth Application's configured
-    // access token lifetime and the quickstart's autoRefreshSecondsBeforeExpiry
-    // — allow more time than Playwright's default 30s test timeout.
+    // access token lifetime and the quickstart's autoRefreshSecondsBeforeExpiry.
     test.setTimeout(90_000);
 
     await quickstart.navToLogIn();
 
-    // Arm the listener before authenticating — shouldAutoFetchUserInfo
-    // triggers fetchUserInfo() right after login, which in DPoP mode calls
-    // /oauth2/userinfo directly (via DPoPManager.fetch()) instead of the
-    // hosted backend's /app/me.
     const userInfoResponsePromise = page.waitForResponse(response =>
       response.url().includes('/oauth2/userinfo'),
     );
@@ -172,7 +149,6 @@ test.describe('DPoP Endpoint Tests', () => {
     expect(userInfoRequest.headers()['dpop']).toBeTruthy();
     expect(userInfoResponse.ok()).toBe(true);
 
-    // The app surfaces the fetched claims via userInfo.email.
     await expect(page.getByText('richard@example.com')).toBeVisible();
 
     const initialTokens = await readDpopTokens(page);
@@ -194,7 +170,6 @@ test.describe('DPoP Endpoint Tests', () => {
 
     const refreshedTokens = await readDpopTokens(page);
     expect(refreshedTokens).not.toBeNull();
-    // A new access token must be issued on every refresh.
     expect(refreshedTokens!.accessToken).not.toBe(initialTokens!.accessToken);
 
     await quickstart.logOut();
@@ -206,8 +181,6 @@ test.describe('DPoP Endpoint Tests', () => {
 
     expect(await readDpopTokens(page)).not.toBeNull();
 
-    // Arm the listener before logging out — startLogout() clears local
-    // state, then navigates straight to FusionAuth (no /app/logout proxy).
     const logoutRequestPromise = page.waitForRequest(request =>
       request.url().includes('/oauth2/logout'),
     );

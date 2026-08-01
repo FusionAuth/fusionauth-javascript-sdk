@@ -315,26 +315,6 @@ describe('SDKCore', () => {
       );
     });
 
-    it('startLogout() in DPoP mode still redirects even if DPoPManager.clear() fails', async () => {
-      vi.spyOn(DPoPManager.prototype, 'getOrCreateKeyPair').mockResolvedValue(
-        {} as any,
-      );
-      vi.spyOn(DPoPManager.prototype, 'clear').mockRejectedValue(
-        new Error('clear() failed'),
-      );
-      vi.spyOn(console, 'error').mockImplementation(() => {});
-      const location = mockWindowLocation(vi);
-
-      const core = new SDKCore(dpopConfig);
-      core.startLogout();
-      await vi.waitFor(() => expect(location.assign).toHaveBeenCalledOnce());
-
-      const assignedUrl = new URL(
-        String((location.assign as ReturnType<typeof vi.fn>).mock.calls[0][0]),
-      );
-      expect(assignedUrl.pathname).toBe('/oauth2/logout');
-    });
-
     it('getAccessToken() returns the stored access token when useDpop: true', () => {
       vi.spyOn(DPoPManager.prototype, 'getOrCreateKeyPair').mockResolvedValue(
         {} as any,

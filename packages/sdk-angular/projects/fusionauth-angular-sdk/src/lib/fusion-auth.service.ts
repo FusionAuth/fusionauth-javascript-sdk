@@ -68,10 +68,7 @@ export class FusionAuthService<T = UserInfo> {
   isLoggedIn$: Observable<boolean>;
 
   /**
-   * A Signal representing whether the user is logged in. Prefer this for
-   * template bindings (e.g. `@if (isLoggedInSignal())`) over the static
-   * isLoggedIn() snapshot — it stays reactive automatically, without
-   * requiring a manual subscription that could be omitted or lost.
+   * A Signal representing whether the user is logged in.
    */
   isLoggedInSignal: Signal<boolean>;
 

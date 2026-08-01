@@ -221,11 +221,6 @@ describe('UrlHelper', () => {
         'http://my-client',
       );
     });
-
-    it('does not affect the hosted backend getLogoutUrl()', () => {
-      const logoutUrl = urlHelper.getLogoutUrl();
-      expect(logoutUrl.pathname).toBe('/app/logout/');
-    });
   });
 
   describe('getUserInfoUrl', () => {

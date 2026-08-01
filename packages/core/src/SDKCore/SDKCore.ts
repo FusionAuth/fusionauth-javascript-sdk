@@ -169,8 +169,7 @@ export class SDKCore {
   /**
    * Generates a signed DPoP proof JWT for the given request, for use cases
    *  (e.g. axios or other HTTP libraries) that can't use
-   * {@link dpopFetch}). See {@link DPoPManager.generateProof} for the full
-   * behavior.
+   * {@link dpopFetch}).
    *
    * @throws {Error} if called in hosted backend mode (`useDpop: false`).
    */
@@ -207,9 +206,6 @@ export class SDKCore {
     return userInfo;
   }
 
-  /**
-   * Performs the DPoP mode userInfo fetch.
-   */
   private async fetchDpopUserInfo<T>(): Promise<T> {
     const accessToken = this.dpopManager!.getAccessToken();
     if (!accessToken) {
@@ -224,7 +220,7 @@ export class SDKCore {
 
     if (!userInfoResponse.ok) {
       throw new Error(
-        `Unable to fetch userInfo in fusionauth. Request failed with status code ${userInfoResponse?.status}`,
+        `Unable to fetch userInfo. Request failed with status code ${userInfoResponse?.status}`,
       );
     }
 
@@ -253,8 +249,6 @@ export class SDKCore {
       throw new Error(JSON.stringify(errorDetails));
     }
 
-    // a successful request means that app_exp was bumped into the future.
-    // reschedule the access token expiration event.
     this.scheduleTokenExpiration();
 
     return response;
