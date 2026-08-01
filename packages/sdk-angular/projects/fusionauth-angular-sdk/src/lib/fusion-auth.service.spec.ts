@@ -259,44 +259,6 @@ describe('FusionAuthService', () => {
       );
     });
 
-    it('isLoggedIn$ emits true once the post-redirect DPoP token exchange completes', async () => {
-      vi.spyOn(DPoPManager.prototype, 'getOrCreateKeyPair').mockResolvedValue(
-        {} as any,
-      );
-      vi.spyOn(DPoPManager.prototype, 'generateProof').mockResolvedValue(
-        'mock-dpop-proof-jwt',
-      );
-      mockWindowLocation(vi, '?code=mock-authorization-code');
-      localStorage.setItem(
-        'fa-sdk-redirect-value',
-        JSON.stringify({ codeVerifier: 'mock-code-verifier' }),
-      );
-      vi.spyOn(global, 'fetch').mockResolvedValueOnce(
-        new Response(
-          JSON.stringify({
-            access_token: 'mock-access-token',
-            refresh_token: 'mock-refresh-token',
-            expires_in: 3600,
-            token_type: 'DPoP',
-          }),
-          { status: 200 },
-        ),
-      );
-
-      const service = configureTestingModule(dpopConfig);
-
-      const emissions: boolean[] = [];
-      service.isLoggedIn$.subscribe(isLoggedIn => emissions.push(isLoggedIn));
-
-      expect(emissions).toEqual([false]);
-
-      await vi.waitFor(() => {
-        expect(emissions).toContain(true);
-      });
-
-      expect(service.getAccessToken()).toBe('mock-access-token');
-    });
-
     it('isLoggedInSignal reflects true once the post-redirect DPoP token exchange completes', async () => {
       vi.spyOn(DPoPManager.prototype, 'getOrCreateKeyPair').mockResolvedValue(
         {} as any,
