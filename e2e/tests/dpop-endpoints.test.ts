@@ -27,7 +27,20 @@
  *     Allowed origins, and add `DPoP` and `Authorization` to Allowed
  *     headers. Without this, the userinfo request's CORS preflight fails
  *     with "No 'Access-Control-Allow-Origin' header is present"
+ *   - `packages/core` must be built (`yarn build:core`) before running the
+ *     resource-access/nonce-retry tests below — they inject a second
+ *     `SDKCore` instance straight from `packages/core/dist/index.js` (see
+ *     `injectDpopSdkCore()`). This requires no changes to the quickstart
+ *     application: DPoP key pairs (IndexedDB, keyed by `clientId`) and
+ *     tokens (`localStorage`, keyed by `fusionauth-sdk:tokens:<clientId>`)
+ *     are namespaced by `clientId`/origin, not by JS object identity, so the
+ *     injected instance transparently reuses the state the quickstart's own
+ *     React app already created via a normal login.
  */
+
+import { createHash } from 'node:crypto';
+import * as fs from 'node:fs';
+import * as path from 'node:path';
 
 import { Page, test, BrowserContext, expect } from '@playwright/test';
 import { quickstartPage } from '../pages/common.page';
@@ -38,6 +51,17 @@ interface DPoPTokens {
   expiresAt: number;
   tokenType: string;
 }
+
+interface DpopSdkConfig {
+  clientId: string;
+  serverUrl: string;
+  redirectUri: string;
+}
+
+const CORE_BUNDLE_PATH = path.resolve(
+  __dirname,
+  '../../packages/core/dist/index.js',
+);
 
 async function readDpopTokens(page: Page): Promise<DPoPTokens | null> {
   const evaluateTokens = () =>
@@ -63,6 +87,90 @@ async function readDpopTokens(page: Page): Promise<DPoPTokens | null> {
     }
   }
   return raw ? JSON.parse(raw) : null;
+}
+
+/** Decodes the payload segment of a JWT (no signature verification). */
+function decodeJwtPayload(jwt: string): Record<string, unknown> {
+  const payload = jwt.split('.')[1];
+  return JSON.parse(Buffer.from(payload, 'base64url').toString('utf-8'));
+}
+
+/** `ath` claim value per RFC 9449: `base64url(SHA-256(accessToken))`. */
+function computeAth(accessToken: string): string {
+  return createHash('sha256').update(accessToken).digest('base64url');
+}
+
+/**
+ * Reads `client_id`, `redirect_uri`, and the FusionAuth origin off the
+ * `/oauth2/authorize` URL. Call this immediately after
+ * `quickstart.navToLogIn()` (before `authenticate()`), while `page.url()`
+ * still points at the authorize redirect.
+ */
+function captureSdkConfig(page: Page): DpopSdkConfig {
+  const authorizeUrl = new URL(page.url());
+  const clientId = authorizeUrl.searchParams.get('client_id');
+  const redirectUri = authorizeUrl.searchParams.get('redirect_uri');
+  if (!clientId || !redirectUri) {
+    throw new Error(
+      'Expected client_id and redirect_uri on the /oauth2/authorize URL. ' +
+        'Call captureSdkConfig() right after quickstart.navToLogIn().',
+    );
+  }
+  return { clientId, redirectUri, serverUrl: authorizeUrl.origin };
+}
+
+/**
+ * Injects a second, independent `SDKCore` instance into the page, built
+ * directly from the `@fusionauth-sdk/core` bundle
+ * (`packages/core/dist/index.js`) — no changes to the consuming quickstart
+ * application are required.
+ *
+ * This instance is *not* the one the quickstart's own React app is using.
+ * It works because DPoP key pairs (IndexedDB, keyed by `clientId`) and
+ * tokens (`localStorage`, keyed by `fusionauth-sdk:tokens:<clientId>`) are
+ * namespaced by `clientId`/origin rather than by JS object identity — so a
+ * fresh `SDKCore` constructed with the same `clientId`/`serverUrl` transparently
+ * reads the key pair and access token the already-logged-in quickstart
+ * session created, letting these tests call `dpopFetch()` / `getAccessToken()`
+ * directly.
+ *
+ * Requires `packages/core` to have been built (e.g. `yarn build:core`) so
+ * that `packages/core/dist/index.js` exists.
+ */
+async function injectDpopSdkCore(
+  page: Page,
+  config: DpopSdkConfig,
+): Promise<void> {
+  let bundleSource: string;
+  try {
+    bundleSource = fs.readFileSync(CORE_BUNDLE_PATH, 'utf-8');
+  } catch {
+    throw new Error(
+      `Could not read ${CORE_BUNDLE_PATH}. Build @fusionauth-sdk/core first ` +
+        '(e.g. `yarn build:core`).',
+    );
+  }
+
+  const exportMatch = bundleSource.match(/(\S+)\s+as\s+SDKCore/);
+  if (!exportMatch) {
+    throw new Error(
+      `Could not locate the SDKCore export in ${CORE_BUNDLE_PATH}.`,
+    );
+  }
+  const localName = exportMatch[1];
+
+  const script = `${bundleSource}
+window.__e2eSdkCore = new ${localName}({
+  clientId: ${JSON.stringify(config.clientId)},
+  serverUrl: ${JSON.stringify(config.serverUrl)},
+  redirectUri: ${JSON.stringify(config.redirectUri)},
+  useDpop: true,
+  dpopTokenStorage: 'localStorage',
+  onTokenExpiration: () => {},
+});`;
+
+  await page.addScriptTag({ content: script, type: 'module' });
+  await page.waitForFunction(() => (window as any).__e2eSdkCore !== undefined);
 }
 
 test.describe('DPoP Endpoint Tests', () => {
@@ -193,5 +301,142 @@ test.describe('DPoP Endpoint Tests', () => {
     expect(logoutUrl.searchParams.get('client_id')).toBeTruthy();
 
     expect(await readDpopTokens(page)).toBeNull();
+  });
+
+  test('dpopFetch() sends Authorization: DPoP and DPoP proof headers with a correct ath claim', async () => {
+    await quickstart.navToLogIn();
+    const sdkConfig = captureSdkConfig(page);
+    await quickstart.authenticate();
+
+    await injectDpopSdkCore(page, sdkConfig);
+
+    const accessToken = await page.evaluate(
+      () => (window as any).__e2eSdkCore.getAccessToken() as string | null,
+    );
+    expect(accessToken).toBeTruthy();
+
+    let capturedAuthHeader: string | undefined;
+    let capturedDpopHeader: string | undefined;
+
+    await page.route('https://api.example.com/data', route => {
+      const headers = route.request().headers();
+      capturedAuthHeader = headers['authorization'];
+      capturedDpopHeader = headers['dpop'];
+      route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ ok: true }),
+      });
+    });
+
+    const result = await page.evaluate(async () => {
+      const response = await (window as any).__e2eSdkCore.dpopFetch(
+        'https://api.example.com/data',
+        { method: 'GET' },
+      );
+      return { status: response.status, ok: response.ok };
+    });
+
+    expect(result.ok).toBe(true);
+    expect(capturedAuthHeader).toBe(`DPoP ${accessToken}`);
+    expect(capturedDpopHeader).toBeTruthy();
+    expect(capturedDpopHeader!.split('.').length).toBe(3);
+
+    const proofPayload = decodeJwtPayload(capturedDpopHeader!);
+    expect(proofPayload.ath).toBe(computeAth(accessToken!));
+    expect(proofPayload.htm).toBe('GET');
+    expect(new URL(proofPayload.htu as string).pathname).toBe('/data');
+
+    const accessTokenAfterFetch = await page.evaluate(
+      () => (window as any).__e2eSdkCore.getAccessToken() as string | null,
+    );
+    expect(accessTokenAfterFetch).toBe(accessToken);
+
+    await quickstart.logOut();
+  });
+
+  test('dpopFetch() retries exactly once with the server nonce after a 401 use_dpop_nonce challenge', async () => {
+    await quickstart.navToLogIn();
+    const sdkConfig = captureSdkConfig(page);
+    await quickstart.authenticate();
+
+    await injectDpopSdkCore(page, sdkConfig);
+
+    const serverNonce = 'e2e-test-nonce-abc123';
+    let requestCount = 0;
+    let retryDpopHeader: string | undefined;
+
+    await page.route('https://api.example.com/nonce-protected', route => {
+      requestCount += 1;
+      if (requestCount === 1) {
+        route.fulfill({
+          status: 401,
+          headers: {
+            'www-authenticate': 'DPoP error="use_dpop_nonce"',
+            'dpop-nonce': serverNonce,
+          },
+          body: '',
+        });
+        return;
+      }
+      retryDpopHeader = route.request().headers()['dpop'];
+      route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: '{}',
+      });
+    });
+
+    const result = await page.evaluate(async () => {
+      const response = await (window as any).__e2eSdkCore.dpopFetch(
+        'https://api.example.com/nonce-protected',
+        { method: 'GET' },
+      );
+      return { status: response.status };
+    });
+
+    expect(requestCount).toBe(2);
+    expect(result.status).toBe(200);
+    expect(retryDpopHeader).toBeTruthy();
+    expect(decodeJwtPayload(retryDpopHeader!).nonce).toBe(serverNonce);
+
+    await quickstart.logOut();
+  });
+
+  test('dpopFetch() does not retry a second time when the retry also returns a 401 use_dpop_nonce', async () => {
+    await quickstart.navToLogIn();
+    const sdkConfig = captureSdkConfig(page);
+    await quickstart.authenticate();
+
+    await injectDpopSdkCore(page, sdkConfig);
+
+    let requestCount = 0;
+
+    await page.route('https://api.example.com/always-nonce', route => {
+      requestCount += 1;
+      route.fulfill({
+        status: 401,
+        headers: {
+          'www-authenticate': 'DPoP error="use_dpop_nonce"',
+          'dpop-nonce': `e2e-test-nonce-${requestCount}`,
+        },
+        body: '',
+      });
+    });
+
+    const result = await page.evaluate(async () => {
+      const response = await (window as any).__e2eSdkCore.dpopFetch(
+        'https://api.example.com/always-nonce',
+        { method: 'GET' },
+      );
+      return { status: response.status };
+    });
+
+    // Exactly the initial request plus one retry - no further retries even
+    // though the retry itself also returned 401 use_dpop_nonce.
+    expect(requestCount).toBe(2);
+    expect(result.status).toBe(401);
+
+    await quickstart.logOut();
   });
 });
