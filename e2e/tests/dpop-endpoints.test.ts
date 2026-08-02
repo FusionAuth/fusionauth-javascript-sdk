@@ -36,6 +36,15 @@
  *     are namespaced by `clientId`/origin, not by JS object identity, so the
  *     injected instance transparently reuses the state the quickstart's own
  *     React app already created via a normal login.
+ *   - The nonce-retry tests mock `https://api.example.com`, a *different*
+ *     origin from the quickstart. Per the Fetch spec, the browser filters
+ *     `Response.headers` on cross-origin `cors`-mode requests down to the
+ *     CORS-safelisted set unless the response sends
+ *     `Access-Control-Expose-Headers`. `DPoPManager.fetch()` reads
+ *     `WWW-Authenticate` and `DPoP-Nonce` off the response to detect a nonce
+ *     challenge, so the mocked 401 responses below must expose both headers
+ *     (and set `Access-Control-Allow-Origin`) — otherwise the SDK can't see
+ *     them and silently skips the retry.
  */
 
 import { createHash } from 'node:crypto';
@@ -372,6 +381,8 @@ test.describe('DPoP Endpoint Tests', () => {
         route.fulfill({
           status: 401,
           headers: {
+            'access-control-allow-origin': '*',
+            'access-control-expose-headers': 'WWW-Authenticate, DPoP-Nonce',
             'www-authenticate': 'DPoP error="use_dpop_nonce"',
             'dpop-nonce': serverNonce,
           },
@@ -417,6 +428,8 @@ test.describe('DPoP Endpoint Tests', () => {
       route.fulfill({
         status: 401,
         headers: {
+          'access-control-allow-origin': '*',
+          'access-control-expose-headers': 'WWW-Authenticate, DPoP-Nonce',
           'www-authenticate': 'DPoP error="use_dpop_nonce"',
           'dpop-nonce': `e2e-test-nonce-${requestCount}`,
         },
