@@ -17,15 +17,15 @@
 
 #### Type parameters
 
-| Name | Type |
-| :------ | :------ |
-| `T` | `UserInfo` |
+| Name | Type       |
+| :--- | :--------- |
+| `T`  | `UserInfo` |
 
 #### Parameters
 
-| Name | Type |
-| :------ | :------ |
-| `props` | \{ `children?`: `ReactNode`  } & [`FusionAuthProviderConfig`](../interfaces/providers_FusionAuthProviderConfig.FusionAuthProviderConfig.md) |
+| Name    | Type                                                                                                                                       |
+| :------ | :----------------------------------------------------------------------------------------------------------------------------------------- |
+| `props` | \{ `children?`: `ReactNode` } & [`FusionAuthProviderConfig`](../interfaces/providers_FusionAuthProviderConfig.FusionAuthProviderConfig.md) |
 
 #### Returns
 
@@ -33,9 +33,9 @@
 
 #### Defined in
 
-[packages/sdk-react/src/components/providers/FusionAuthProvider.tsx:23](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/dba3da8fa07e64330f04ccfd6802d21dc1f1547a/packages/sdk-react/src/components/providers/FusionAuthProvider.tsx#L23)
+[packages/sdk-react/src/components/providers/FusionAuthProvider.tsx:23](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/2d9af72c9bed501cbc80b584411e66e73a4cc15c/packages/sdk-react/src/components/providers/FusionAuthProvider.tsx#L23)
 
-___
+---
 
 ### useFusionAuth
 
@@ -45,9 +45,9 @@ A hook that returns `FusionAuthProviderContext`
 
 #### Type parameters
 
-| Name | Type |
-| :------ | :------ |
-| `T` | `UserInfo` |
+| Name | Type       |
+| :--- | :--------- |
+| `T`  | `UserInfo` |
 
 #### Returns
 
@@ -55,4 +55,4 @@ A hook that returns `FusionAuthProviderContext`
 
 #### Defined in
 
-[packages/sdk-react/src/components/providers/FusionAuthProvider.tsx:155](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/dba3da8fa07e64330f04ccfd6802d21dc1f1547a/packages/sdk-react/src/components/providers/FusionAuthProvider.tsx#L155)
+[packages/sdk-react/src/components/providers/FusionAuthProvider.tsx:155](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/2d9af72c9bed501cbc80b584411e66e73a4cc15c/packages/sdk-react/src/components/providers/FusionAuthProvider.tsx#L155)
