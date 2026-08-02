@@ -27,7 +27,7 @@
     "composite": false,
     "allowImportingTsExtensions": false,
     "noEmit": false,
-    "types": ["jasmine"]
+    "types": ["vitest/globals", "node"]
   },
   "include": ["./**/*.ts"],
   "angularCompilerOptions": {
