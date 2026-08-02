@@ -1,6 +1,6 @@
 **@fusionauth/angular-sdk**
 
-***
+---
 
 # FusionauthAngularSdk
 

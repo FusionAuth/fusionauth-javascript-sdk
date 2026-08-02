@@ -6,7 +6,7 @@
 
 # Class: FusionAuthRegisterButtonComponent
 
-Defined in: [components/fusionauth-register.button/fusion-auth-register-button.component.ts:13](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/2d9af72c9bed501cbc80b584411e66e73a4cc15c/packages/sdk-angular/projects/fusionauth-angular-sdk/src/lib/components/fusionauth-register.button/fusion-auth-register-button.component.ts#L13)
+Defined in: [components/fusionauth-register.button/fusion-auth-register-button.component.ts:13](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/ee8adbc65b4bc7586f80efa86002158c90d78a7e/packages/sdk-angular/projects/fusionauth-angular-sdk/src/lib/components/fusionauth-register.button/fusion-auth-register-button.component.ts#L13)
 
 ## Constructors
 
@@ -16,7 +16,7 @@ Defined in: [components/fusionauth-register.button/fusion-auth-register-button.c
 new FusionAuthRegisterButtonComponent(fusionAuth): FusionAuthRegisterButtonComponent;
 ```
 
-Defined in: [components/fusionauth-register.button/fusion-auth-register-button.component.ts:16](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/2d9af72c9bed501cbc80b584411e66e73a4cc15c/packages/sdk-angular/projects/fusionauth-angular-sdk/src/lib/components/fusionauth-register.button/fusion-auth-register-button.component.ts#L16)
+Defined in: [components/fusionauth-register.button/fusion-auth-register-button.component.ts:16](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/ee8adbc65b4bc7586f80efa86002158c90d78a7e/packages/sdk-angular/projects/fusionauth-angular-sdk/src/lib/components/fusionauth-register.button/fusion-auth-register-button.component.ts#L16)
 
 #### Parameters
 
@@ -36,7 +36,7 @@ Defined in: [components/fusionauth-register.button/fusion-auth-register-button.c
 state: string | undefined;
 ```
 
-Defined in: [components/fusionauth-register.button/fusion-auth-register-button.component.ts:14](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/2d9af72c9bed501cbc80b584411e66e73a4cc15c/packages/sdk-angular/projects/fusionauth-angular-sdk/src/lib/components/fusionauth-register.button/fusion-auth-register-button.component.ts#L14)
+Defined in: [components/fusionauth-register.button/fusion-auth-register-button.component.ts:14](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/ee8adbc65b4bc7586f80efa86002158c90d78a7e/packages/sdk-angular/projects/fusionauth-angular-sdk/src/lib/components/fusionauth-register.button/fusion-auth-register-button.component.ts#L14)
 
 ## Methods
 
@@ -46,7 +46,7 @@ Defined in: [components/fusionauth-register.button/fusion-auth-register-button.c
 register(): void;
 ```
 
-Defined in: [components/fusionauth-register.button/fusion-auth-register-button.component.ts:18](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/2d9af72c9bed501cbc80b584411e66e73a4cc15c/packages/sdk-angular/projects/fusionauth-angular-sdk/src/lib/components/fusionauth-register.button/fusion-auth-register-button.component.ts#L18)
+Defined in: [components/fusionauth-register.button/fusion-auth-register-button.component.ts:18](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/ee8adbc65b4bc7586f80efa86002158c90d78a7e/packages/sdk-angular/projects/fusionauth-angular-sdk/src/lib/components/fusionauth-register.button/fusion-auth-register-button.component.ts#L18)
 
 #### Returns
 

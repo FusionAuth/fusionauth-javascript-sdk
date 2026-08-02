@@ -6,7 +6,7 @@
 
 # Class: FusionAuthAccountButtonComponent
 
-Defined in: [components/fusionauth-account.button/fusion-auth-account-button.component.ts:10](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/2d9af72c9bed501cbc80b584411e66e73a4cc15c/packages/sdk-angular/projects/fusionauth-angular-sdk/src/lib/components/fusionauth-account.button/fusion-auth-account-button.component.ts#L10)
+Defined in: [components/fusionauth-account.button/fusion-auth-account-button.component.ts:10](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/ee8adbc65b4bc7586f80efa86002158c90d78a7e/packages/sdk-angular/projects/fusionauth-angular-sdk/src/lib/components/fusionauth-account.button/fusion-auth-account-button.component.ts#L10)
 
 ## Constructors
 
@@ -16,7 +16,7 @@ Defined in: [components/fusionauth-account.button/fusion-auth-account-button.com
 new FusionAuthAccountButtonComponent(fusionAuth): FusionAuthAccountButtonComponent;
 ```
 
-Defined in: [components/fusionauth-account.button/fusion-auth-account-button.component.ts:11](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/2d9af72c9bed501cbc80b584411e66e73a4cc15c/packages/sdk-angular/projects/fusionauth-angular-sdk/src/lib/components/fusionauth-account.button/fusion-auth-account-button.component.ts#L11)
+Defined in: [components/fusionauth-account.button/fusion-auth-account-button.component.ts:11](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/ee8adbc65b4bc7586f80efa86002158c90d78a7e/packages/sdk-angular/projects/fusionauth-angular-sdk/src/lib/components/fusionauth-account.button/fusion-auth-account-button.component.ts#L11)
 
 #### Parameters
 
@@ -36,7 +36,7 @@ Defined in: [components/fusionauth-account.button/fusion-auth-account-button.com
 manageAccount(): void;
 ```
 
-Defined in: [components/fusionauth-account.button/fusion-auth-account-button.component.ts:13](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/2d9af72c9bed501cbc80b584411e66e73a4cc15c/packages/sdk-angular/projects/fusionauth-angular-sdk/src/lib/components/fusionauth-account.button/fusion-auth-account-button.component.ts#L13)
+Defined in: [components/fusionauth-account.button/fusion-auth-account-button.component.ts:13](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/ee8adbc65b4bc7586f80efa86002158c90d78a7e/packages/sdk-angular/projects/fusionauth-angular-sdk/src/lib/components/fusionauth-account.button/fusion-auth-account-button.component.ts#L13)
 
 #### Returns
 

@@ -11,12 +11,12 @@ An SDK for using FusionAuth in React applications.
   - [Configuration](#configuration)
     - [Configuration with NextJS](#configuration-with-nextjs)
 - [Usage](#usage)
-	- [useFusionAuth](#usefusionauth)
-    - [State Parameter](#state-parameter)
-	- [Protecting content](#protecting-content)
-	- [UI Components](#ui-components)
-	- [DPoP Mode](#dpop-mode)
-		- [Resource Server Guidance](#resource-server-guidance)
+  - [useFusionAuth](#usefusionauth)
+  - [State Parameter](#state-parameter)
+  - [Protecting content](#protecting-content)
+  - [UI Components](#ui-components)
+  - [DPoP Mode](#dpop-mode)
+    - [Resource Server Guidance](#resource-server-guidance)
 - [Known issues](#known-issues)
 - [Documentation](#documentation)
 - [Formatting](#formatting)
@@ -43,18 +43,19 @@ then log in. After that, they are sent back to your React application.
 Once authentication succeeds, the following secure, HTTP-only cookies
 will be set:
 
--   `app.at` - an OAuth [Access
-    Token](https://fusionauth.io/docs/v1/tech/oauth/tokens#access-token)
+- `app.at` - an OAuth [Access
+  Token](https://fusionauth.io/docs/v1/tech/oauth/tokens#access-token)
 
--   `app.rt` - a [Refresh
-    Token](https://fusionauth.io/docs/v1/tech/oauth/tokens#refresh-token)
-    used to obtain a new `app.at`. This cookie will only be set if
-    refresh tokens are enabled on your FusionAuth instance.
+- `app.rt` - a [Refresh
+  Token](https://fusionauth.io/docs/v1/tech/oauth/tokens#refresh-token)
+  used to obtain a new `app.at`. This cookie will only be set if
+  refresh tokens are enabled on your FusionAuth instance.
 
 The access token can be presented to APIs to authorize the request and
 the refresh token can be used to get a new access token.
 
 There are 2 ways to interact with this SDK:
+
 1. By hosting your own server that performs the OAuth token exchange and meets the [server code requirements for FusionAuth Web SDKs](https://github.com/FusionAuth/fusionauth-javascript-sdk-express#server-code-requirements).
 2. By using the server hosted on your FusionAuth instance, i.e., not writing your own server code.
 
@@ -115,7 +116,7 @@ ReactDOM.createRoot(document.getElementById("my-app")).render(
 To configure the SDK with Next, install [`next-client-cookies`](https://github.com/moshest/next-client-cookies?tab=readme-ov-file#install) and pass `useCookies` into the config object as `nextCookieAdapter`.
 
 ```jsx
-'use client'
+'use client';
 
 import { useCookies } from 'next-client-cookies';
 
@@ -147,11 +148,11 @@ function MyComponent() {
     isFetchingUserInfo,
     startLogin,
     startRegister,
-    userInfo
-  } = useFusionAuth()
+    userInfo,
+  } = useFusionAuth();
 
   if (isFetchingUserInfo) {
-    return <p>Loading...</p>
+    return <p>Loading...</p>;
   }
 
   if (!isLoggedIn) {
@@ -165,7 +166,7 @@ function MyComponent() {
   }
 
   if (userInfo?.given_name) {
-    return <p>Welcome {userInfo.given_name}!</p>
+    return <p>Welcome {userInfo.given_name}!</p>;
   }
 }
 ```
@@ -189,9 +190,10 @@ const UserNameDisplay = () => {
   return (
     <>
       <RequireAuth>
-        <p>User: {userInfo.given_name}</p> // Only displays if user is authenticated
+        <p>User: {userInfo.given_name}</p> // Only displays if user is
+        authenticated
       </RequireAuth>
-      
+
       <Unauthenticated>
         <p>Please log in to view this page</p>
       </Unauthenticated>
@@ -201,7 +203,8 @@ const UserNameDisplay = () => {
 
 const AdminPanel = () => (
   <RequireAuth withRole="admin">
-    <button>Delete User</button> // Only displays if user is authenticated and has 'admin' role
+    <button>Delete User</button> // Only displays if user is authenticated and
+    has 'admin' role
   </RequireAuth>
 );
 ```
@@ -214,7 +217,7 @@ This SDK offers 3 pre-built UI components.
 import {
   FusionAuthLoginButton,
   FusionAuthLogoutButton,
-  FusionAuthRegisterButton
+  FusionAuthRegisterButton,
 } from '@fusionauth/react-sdk';
 
 export const LoginPage = () => (
@@ -253,11 +256,17 @@ When `useDpop: true`, `useFusionAuth()` additionally returns `dpopFetch`, `gener
 const { dpopFetch, generateProof, getAccessToken } = useFusionAuth();
 
 // Recommended — handles attaching DPoP headers (and nonce retries) automatically.
-const response = await dpopFetch('https://api.example.com/data', { method: 'GET' });
+const response = await dpopFetch('https://api.example.com/data', {
+  method: 'GET',
+});
 
 // Advanced — for axios or other HTTP libraries that can't use dpopFetch.
 const accessToken = getAccessToken();
-const proof = await generateProof('https://api.example.com/data', 'GET', accessToken);
+const proof = await generateProof(
+  'https://api.example.com/data',
+  'GET',
+  accessToken,
+);
 // axios.get('https://api.example.com/data', {
 //   headers: { Authorization: `DPoP ${accessToken}`, DPoP: proof }
 // });
@@ -291,8 +300,8 @@ end::forDocSite[]
 
 There are several linting packages run when you push to a branch. One is `prettier`. If this fails, you can fix the files from the command line:
 
-* npm run install
-* npm run prettier -- -w /path/to/file
+- npm run install
+- npm run prettier -- -w /path/to/file
 
 Doing this will overwrite your file, but fix prettier's objections.
 

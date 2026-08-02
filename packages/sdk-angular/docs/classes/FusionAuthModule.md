@@ -6,7 +6,7 @@
 
 # Class: FusionAuthModule
 
-Defined in: [fusion-auth.module.ts:25](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/2d9af72c9bed501cbc80b584411e66e73a4cc15c/packages/sdk-angular/projects/fusionauth-angular-sdk/src/lib/fusion-auth.module.ts#L25)
+Defined in: [fusion-auth.module.ts:25](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/ee8adbc65b4bc7586f80efa86002158c90d78a7e/packages/sdk-angular/projects/fusionauth-angular-sdk/src/lib/fusion-auth.module.ts#L25)
 
 ## Constructors
 
@@ -28,7 +28,7 @@ new FusionAuthModule(): FusionAuthModule;
 static forRoot(fusionAuthConfig): ModuleWithProviders<FusionAuthModule>;
 ```
 
-Defined in: [fusion-auth.module.ts:26](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/2d9af72c9bed501cbc80b584411e66e73a4cc15c/packages/sdk-angular/projects/fusionauth-angular-sdk/src/lib/fusion-auth.module.ts#L26)
+Defined in: [fusion-auth.module.ts:26](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/ee8adbc65b4bc7586f80efa86002158c90d78a7e/packages/sdk-angular/projects/fusionauth-angular-sdk/src/lib/fusion-auth.module.ts#L26)
 
 #### Parameters
 
