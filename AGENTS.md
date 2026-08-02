@@ -44,7 +44,7 @@ Yarn workspace monorepo:
 - ESLint config: root `.eslintrc.json` (`@typescript-eslint`, warns on unused
   vars, `prefer-const`).
 - Prettier: root `.prettierrc` (single quotes, semi, trailing commas, 80 print
-  width). Run `npx prettier --check <paths>` / `--write` before committing.
+  width). Run `npm run prettier -- -w /path/to/file <paths>` / `--write` before committing.
 
 ## Code Conventions
 
