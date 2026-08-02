@@ -244,7 +244,7 @@ describe('createFusionAuth', () => {
       expect(fusionAuth.getAccessToken?.()).toBeNull();
     });
 
-    it('isLoggedIn flips to true once the post-redirect DPoP token exchange settles', async () => {
+    it('isLoggedIn flips to true once the post-redirect DPoP token exchange completes', async () => {
       vi.spyOn(DPoPManager.prototype, 'getOrCreateKeyPair').mockResolvedValue(
         {} as any,
       );
@@ -322,7 +322,7 @@ describe('createFusionAuth', () => {
       expect(isLoggedInDuringOnRedirect).toBe(true);
     });
 
-    it('shouldAutoFetchUserInfo fetches userInfo once isLoggedIn flips to true after the DPoP redirect settles (not just at construction)', async () => {
+    it('shouldAutoFetchUserInfo fetches userInfo once isLoggedIn flips to true after the DPoP redirect completes (not just at construction)', async () => {
       vi.spyOn(DPoPManager.prototype, 'getOrCreateKeyPair').mockResolvedValue(
         {} as any,
       );
@@ -368,7 +368,7 @@ describe('createFusionAuth', () => {
       });
 
       // userInfo only becomes available asynchronously, well after
-      // construction — it is not fetched until the DPoP redirect settles.
+      // construction — it is not fetched until the DPoP redirect completes.
       await vi.waitFor(() => {
         expect(fusionAuth.userInfo.value).toEqual({
           email: 'user@example.com',

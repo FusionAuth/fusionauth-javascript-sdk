@@ -27,24 +27,7 @@
  *     Allowed origins, and add `DPoP` and `Authorization` to Allowed
  *     headers. Without this, the userinfo request's CORS preflight fails
  *     with "No 'Access-Control-Allow-Origin' header is present"
- *   - `packages/core` must be built (`yarn build:core`) before running the
- *     resource-access/nonce-retry tests below — they inject a second
- *     `SDKCore` instance straight from `packages/core/dist/index.js` (see
- *     `injectDpopSdkCore()`). This requires no changes to the quickstart
- *     application: DPoP key pairs (IndexedDB, keyed by `clientId`) and
- *     tokens (`localStorage`, keyed by `fusionauth-sdk:tokens:<clientId>`)
- *     are namespaced by `clientId`/origin, not by JS object identity, so the
- *     injected instance transparently reuses the state the quickstart's own
- *     React app already created via a normal login.
- *   - The nonce-retry tests mock `https://api.example.com`, a *different*
- *     origin from the quickstart. Per the Fetch spec, the browser filters
- *     `Response.headers` on cross-origin `cors`-mode requests down to the
- *     CORS-safelisted set unless the response sends
- *     `Access-Control-Expose-Headers`. `DPoPManager.fetch()` reads
- *     `WWW-Authenticate` and `DPoP-Nonce` off the response to detect a nonce
- *     challenge, so the mocked 401 responses below must expose both headers
- *     (and set `Access-Control-Allow-Origin`) — otherwise the SDK can't see
- *     them and silently skips the retry.
+
  */
 
 import { createHash } from 'node:crypto';
@@ -98,7 +81,6 @@ async function readDpopTokens(page: Page): Promise<DPoPTokens | null> {
   return raw ? JSON.parse(raw) : null;
 }
 
-/** Decodes the payload segment of a JWT (no signature verification). */
 function decodeJwtPayload(jwt: string): Record<string, unknown> {
   const payload = jwt.split('.')[1];
   return JSON.parse(Buffer.from(payload, 'base64url').toString('utf-8'));

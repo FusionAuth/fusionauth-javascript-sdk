@@ -254,9 +254,6 @@ export class SDKCore {
     return response;
   }
 
-  /**
-   * Performs the DPoP mode refresh token grant.
-   */
   private async refreshDpopToken(): Promise<Response> {
     const refreshToken = this.dpopManager!.getRefreshToken();
     if (!refreshToken) {
