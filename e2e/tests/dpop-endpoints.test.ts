@@ -156,15 +156,6 @@ window.__e2eSdkCore = new ${localName}({
  * Answers a CORS preflight `OPTIONS` request directly and returns `true`,
  * or returns `false` for any other method so the caller can run its real
  * request logic.
- *
- * `dpopFetch()` sends `Authorization`/`DPoP` headers, which are not
- * CORS-safelisted, so cross-origin requests to the mocked
- * `https://api.example.com` routes below trigger a browser preflight
- * `OPTIONS` request before the real `GET`. Since `page.route()` matches by
- * URL regardless of method, the preflight would otherwise hit the same
- * handler as the real request — inflating request counters and, if
- * answered with the real handler's status code (e.g. `401`), failing the
- * preflight outright and blocking the real request from ever being sent.
  */
 function handleCorsPreflight(route: Route): boolean {
   if (route.request().method() !== 'OPTIONS') {
