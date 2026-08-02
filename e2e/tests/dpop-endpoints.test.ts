@@ -34,7 +34,7 @@ import { createHash } from 'node:crypto';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 
-import { Page, test, BrowserContext, expect } from '@playwright/test';
+import { Page, Route, test, BrowserContext, expect } from '@playwright/test';
 import { quickstartPage } from '../pages/common.page';
 
 interface DPoPTokens {
@@ -112,9 +112,9 @@ function captureSdkConfig(page: Page): DpopSdkConfig {
 
 /**
  * Injects a second, independent `SDKCore` instance into the page.
- * The reason is dropFetch and getAcessToken are only available on
- * the SDKCore instance as there's no UI interaction in the dropFetch
- * tests.
+ * This is needed because `dpopFetch()` and `getAccessToken()` are only
+ * available on the SDKCore instance, and none of these tests drive them
+ * through UI interaction.
  */
 async function injectDpopSdkCore(
   page: Page,
@@ -150,6 +150,35 @@ window.__e2eSdkCore = new ${localName}({
 
   await page.addScriptTag({ content: script, type: 'module' });
   await page.waitForFunction(() => (window as any).__e2eSdkCore !== undefined);
+}
+
+/**
+ * Answers a CORS preflight `OPTIONS` request directly and returns `true`,
+ * or returns `false` for any other method so the caller can run its real
+ * request logic.
+ *
+ * `dpopFetch()` sends `Authorization`/`DPoP` headers, which are not
+ * CORS-safelisted, so cross-origin requests to the mocked
+ * `https://api.example.com` routes below trigger a browser preflight
+ * `OPTIONS` request before the real `GET`. Since `page.route()` matches by
+ * URL regardless of method, the preflight would otherwise hit the same
+ * handler as the real request — inflating request counters and, if
+ * answered with the real handler's status code (e.g. `401`), failing the
+ * preflight outright and blocking the real request from ever being sent.
+ */
+function handleCorsPreflight(route: Route): boolean {
+  if (route.request().method() !== 'OPTIONS') {
+    return false;
+  }
+  route.fulfill({
+    status: 204,
+    headers: {
+      'access-control-allow-origin': '*',
+      'access-control-allow-methods': 'GET, POST, OPTIONS',
+      'access-control-allow-headers': 'Authorization, DPoP',
+    },
+  });
+  return true;
 }
 
 test.describe('DPoP Endpoint Tests', () => {
@@ -298,6 +327,8 @@ test.describe('DPoP Endpoint Tests', () => {
     let capturedDpopHeader: string | undefined;
 
     await page.route('https://api.example.com/data', route => {
+      if (handleCorsPreflight(route)) return;
+
       const headers = route.request().headers();
       capturedAuthHeader = headers['authorization'];
       capturedDpopHeader = headers['dpop'];
@@ -346,6 +377,8 @@ test.describe('DPoP Endpoint Tests', () => {
     let retryDpopHeader: string | undefined;
 
     await page.route('https://api.example.com/nonce-protected', route => {
+      if (handleCorsPreflight(route)) return;
+
       requestCount += 1;
       if (requestCount === 1) {
         route.fulfill({
@@ -394,6 +427,8 @@ test.describe('DPoP Endpoint Tests', () => {
     let requestCount = 0;
 
     await page.route('https://api.example.com/always-nonce', route => {
+      if (handleCorsPreflight(route)) return;
+
       requestCount += 1;
       route.fulfill({
         status: 401,
