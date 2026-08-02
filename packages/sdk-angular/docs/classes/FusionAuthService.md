@@ -1,164 +1,212 @@
-[@fusionauth/angular-sdk](../README.md) / [Exports](../modules.md) / FusionAuthService
+[**@fusionauth/angular-sdk**](../README.md)
+
+***
+
+[@fusionauth/angular-sdk](../globals.md) / FusionAuthService
 
 # Class: FusionAuthService\<T\>
 
+Defined in: [fusion-auth.service.ts:24](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/dba3da8fa07e64330f04ccfd6802d21dc1f1547a/packages/sdk-angular/projects/fusionauth-angular-sdk/src/lib/fusion-auth.service.ts#L24)
+
 Service class to use with FusionAuth backend endpoints.
 
-## Type parameters
+## Type Parameters
 
-| Name | Type                                    |
-| :--- | :-------------------------------------- |
-| `T`  | [`UserInfo`](../interfaces/UserInfo.md) |
+### T
 
-## Table of contents
-
-### Constructors
-
-- [constructor](FusionAuthService.md#constructor)
-
-### Properties
-
-- [autoRefreshTimer](FusionAuthService.md#autorefreshtimer)
-- [core](FusionAuthService.md#core)
-- [isLoggedIn$](FusionAuthService.md#isloggedin$)
-- [isLoggedInSubject](FusionAuthService.md#isloggedinsubject)
-
-### Methods
-
-- [getUserInfo](FusionAuthService.md#getuserinfo)
-- [getUserInfoObservable](FusionAuthService.md#getuserinfoobservable)
-- [initAutoRefresh](FusionAuthService.md#initautorefresh)
-- [isLoggedIn](FusionAuthService.md#isloggedin)
-- [logout](FusionAuthService.md#logout)
-- [manageAccount](FusionAuthService.md#manageaccount)
-- [refreshToken](FusionAuthService.md#refreshtoken)
-- [startLogin](FusionAuthService.md#startlogin)
-- [startRegistration](FusionAuthService.md#startregistration)
+`T` = [`UserInfo`](../interfaces/UserInfo.md)
 
 ## Constructors
 
-### constructor
+### Constructor
 
-• **new FusionAuthService**\<`T`\>(`config`, `platformId`): [`FusionAuthService`](FusionAuthService.md)\<`T`\>
+> **new FusionAuthService**\<`T`\>(`config`, `platformId`, `ngZone`, `appRef`): `FusionAuthService`\<`T`\>
 
-#### Type parameters
-
-| Name | Type                                    |
-| :--- | :-------------------------------------- |
-| `T`  | [`UserInfo`](../interfaces/UserInfo.md) |
+Defined in: [fusion-auth.service.ts:29](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/dba3da8fa07e64330f04ccfd6802d21dc1f1547a/packages/sdk-angular/projects/fusionauth-angular-sdk/src/lib/fusion-auth.service.ts#L29)
 
 #### Parameters
 
-| Name         | Type                                                    |
-| :----------- | :------------------------------------------------------ |
-| `config`     | [`FusionAuthConfig`](../interfaces/FusionAuthConfig.md) |
-| `platformId` | `Object`                                                |
+##### config
+
+[`FusionAuthConfig`](../interfaces/FusionAuthConfig.md)
+
+##### platformId
+
+`Object`
+
+##### ngZone
+
+`NgZone`
+
+##### appRef
+
+`ApplicationRef`
 
 #### Returns
 
-[`FusionAuthService`](FusionAuthService.md)\<`T`\>
-
-#### Defined in
-
-[lib/fusion-auth.service.ts:21](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/80c01c9ccb450a2187bc0d2cc65fa8c9c38cfabe/packages/sdk-angular/projects/fusionauth-angular-sdk/src/lib/fusion-auth.service.ts#L21)
+`FusionAuthService`\<`T`\>
 
 ## Properties
 
-### autoRefreshTimer
-
-• `Private` `Optional` **autoRefreshTimer**: `Timeout`
-
-#### Defined in
-
-[lib/fusion-auth.service.ts:18](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/80c01c9ccb450a2187bc0d2cc65fa8c9c38cfabe/packages/sdk-angular/projects/fusionauth-angular-sdk/src/lib/fusion-auth.service.ts#L18)
-
----
-
-### core
-
-• `Private` **core**: `SDKCore`
-
-#### Defined in
-
-[lib/fusion-auth.service.ts:17](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/80c01c9ccb450a2187bc0d2cc65fa8c9c38cfabe/packages/sdk-angular/projects/fusionauth-angular-sdk/src/lib/fusion-auth.service.ts#L17)
-
----
-
 ### isLoggedIn$
 
-• **isLoggedIn$**: `Observable`\<`boolean`\>
+> **isLoggedIn$**: `Observable`\<`boolean`\>
+
+Defined in: [fusion-auth.service.ts:68](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/dba3da8fa07e64330f04ccfd6802d21dc1f1547a/packages/sdk-angular/projects/fusionauth-angular-sdk/src/lib/fusion-auth.service.ts#L68)
 
 An observable representing whether the user is logged in.
 
-#### Defined in
+***
 
-[lib/fusion-auth.service.ts:44](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/80c01c9ccb450a2187bc0d2cc65fa8c9c38cfabe/packages/sdk-angular/projects/fusionauth-angular-sdk/src/lib/fusion-auth.service.ts#L44)
+### isLoggedInSignal
 
----
+> **isLoggedInSignal**: `Signal`\<`boolean`\>
 
-### isLoggedInSubject
+Defined in: [fusion-auth.service.ts:73](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/dba3da8fa07e64330f04ccfd6802d21dc1f1547a/packages/sdk-angular/projects/fusionauth-angular-sdk/src/lib/fusion-auth.service.ts#L73)
 
-• `Private` **isLoggedInSubject**: `BehaviorSubject`\<`boolean`\>
-
-#### Defined in
-
-[lib/fusion-auth.service.ts:19](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/80c01c9ccb450a2187bc0d2cc65fa8c9c38cfabe/packages/sdk-angular/projects/fusionauth-angular-sdk/src/lib/fusion-auth.service.ts#L19)
+A Signal representing whether the user is logged in.
 
 ## Methods
 
-### getUserInfo
+### dpopFetch()
 
-▸ **getUserInfo**\<`T`\>(): `Promise`\<`T`\>
+> **dpopFetch**(`input`, `init?`): `Promise`\<`Response`\>
+
+Defined in: [fusion-auth.service.ts:177](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/dba3da8fa07e64330f04ccfd6802d21dc1f1547a/packages/sdk-angular/projects/fusionauth-angular-sdk/src/lib/fusion-auth.service.ts#L177)
+
+DPoP mode `fetch()` wrapper that automatically attaches DPoP proof
+headers.
+
+#### Parameters
+
+##### input
+
+`URL` \| `RequestInfo`
+
+##### init?
+
+`RequestInit`
+
+#### Returns
+
+`Promise`\<`Response`\>
+
+#### Throws
+
+if called when `useDpop` is not enabled.
+
+***
+
+### generateProof()
+
+> **generateProof**(`htu`, `htm`, `accessToken?`, `nonce?`): `Promise`\<`string`\>
+
+Defined in: [fusion-auth.service.ts:189](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/dba3da8fa07e64330f04ccfd6802d21dc1f1547a/packages/sdk-angular/projects/fusionauth-angular-sdk/src/lib/fusion-auth.service.ts#L189)
+
+Returns a signed DPoP proof JWT for use with axios or other
+HTTP libraries that can't use [dpopFetch](#dpopfetch).
+
+#### Parameters
+
+##### htu
+
+`string`
+
+##### htm
+
+`string`
+
+##### accessToken?
+
+`string`
+
+##### nonce?
+
+`string`
+
+#### Returns
+
+`Promise`\<`string`\>
+
+#### Throws
+
+if called when `useDpop` is not enabled.
+
+***
+
+### getAccessToken()
+
+> **getAccessToken**(): `string` \| `null`
+
+Defined in: [fusion-auth.service.ts:202](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/dba3da8fa07e64330f04ccfd6802d21dc1f1547a/packages/sdk-angular/projects/fusionauth-angular-sdk/src/lib/fusion-auth.service.ts#L202)
+
+Returns the stored DPoP access token, or `null` if not logged in.
+
+#### Returns
+
+`string` \| `null`
+
+#### Throws
+
+if called when `useDpop` is not enabled.
+
+***
+
+### getUserInfo()
+
+> **getUserInfo**\<`T`\>(): `Promise`\<`T`\>
+
+Defined in: [fusion-auth.service.ts:131](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/dba3da8fa07e64330f04ccfd6802d21dc1f1547a/packages/sdk-angular/projects/fusionauth-angular-sdk/src/lib/fusion-auth.service.ts#L131)
 
 Fetches userInfo from the 'me' endpoint.
 
-#### Type parameters
+#### Type Parameters
 
-| Name |
-| :--- |
-| `T`  |
+##### T
+
+`T`
 
 #### Returns
 
 `Promise`\<`T`\>
 
-**`Throws`**
+#### Throws
 
 - if an error occurred while fetching.
 
-#### Defined in
+***
 
-[lib/fusion-auth.service.ts:102](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/80c01c9ccb450a2187bc0d2cc65fa8c9c38cfabe/packages/sdk-angular/projects/fusionauth-angular-sdk/src/lib/fusion-auth.service.ts#L102)
+### getUserInfoObservable()
 
----
+> **getUserInfoObservable**(`callbacks?`): `Observable`\<`T`\>
 
-### getUserInfoObservable
-
-▸ **getUserInfoObservable**(`callbacks?`): `Observable`\<`T`\>
+Defined in: [fusion-auth.service.ts:103](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/dba3da8fa07e64330f04ccfd6802d21dc1f1547a/packages/sdk-angular/projects/fusionauth-angular-sdk/src/lib/fusion-auth.service.ts#L103)
 
 Returns an observable request that fetches userInfo, and catches error.
 
 #### Parameters
 
-| Name                 | Type         |
-| :------------------- | :----------- |
-| `callbacks?`         | `Object`     |
-| `callbacks.onBegin?` | () => `void` |
-| `callbacks.onDone?`  | () => `void` |
+##### callbacks?
+
+###### onBegin?
+
+() => `void`
+
+###### onDone?
+
+() => `void`
 
 #### Returns
 
 `Observable`\<`T`\>
 
-#### Defined in
+***
 
-[lib/fusion-auth.service.ts:74](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/80c01c9ccb450a2187bc0d2cc65fa8c9c38cfabe/packages/sdk-angular/projects/fusionauth-angular-sdk/src/lib/fusion-auth.service.ts#L74)
+### initAutoRefresh()
 
----
+> **initAutoRefresh**(): `void`
 
-### initAutoRefresh
-
-▸ **initAutoRefresh**(): `void`
+Defined in: [fusion-auth.service.ts:92](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/dba3da8fa07e64330f04ccfd6802d21dc1f1547a/packages/sdk-angular/projects/fusionauth-angular-sdk/src/lib/fusion-auth.service.ts#L92)
 
 Initializes automatic access token refreshing.
 This is handled automatically if the SDK is configured with `shouldAutoRefresh`.
@@ -167,15 +215,13 @@ This is handled automatically if the SDK is configured with `shouldAutoRefresh`.
 
 `void`
 
-#### Defined in
+***
 
-[lib/fusion-auth.service.ts:63](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/80c01c9ccb450a2187bc0d2cc65fa8c9c38cfabe/packages/sdk-angular/projects/fusionauth-angular-sdk/src/lib/fusion-auth.service.ts#L63)
+### isLoggedIn()
 
----
+> **isLoggedIn**(): `boolean`
 
-### isLoggedIn
-
-▸ **isLoggedIn**(): `boolean`
+Defined in: [fusion-auth.service.ts:76](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/dba3da8fa07e64330f04ccfd6802d21dc1f1547a/packages/sdk-angular/projects/fusionauth-angular-sdk/src/lib/fusion-auth.service.ts#L76)
 
 A function that returns whether the user is logged in. This returned value is non-observable.
 
@@ -183,15 +229,13 @@ A function that returns whether the user is logged in. This returned value is no
 
 `boolean`
 
-#### Defined in
+***
 
-[lib/fusion-auth.service.ts:47](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/80c01c9ccb450a2187bc0d2cc65fa8c9c38cfabe/packages/sdk-angular/projects/fusionauth-angular-sdk/src/lib/fusion-auth.service.ts#L47)
+### logout()
 
----
+> **logout**(): `void`
 
-### logout
-
-▸ **logout**(): `void`
+Defined in: [fusion-auth.service.ts:160](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/dba3da8fa07e64330f04ccfd6802d21dc1f1547a/packages/sdk-angular/projects/fusionauth-angular-sdk/src/lib/fusion-auth.service.ts#L160)
 
 Initiates logout flow.
 
@@ -199,15 +243,13 @@ Initiates logout flow.
 
 `void`
 
-#### Defined in
+***
 
-[lib/fusion-auth.service.ts:125](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/80c01c9ccb450a2187bc0d2cc65fa8c9c38cfabe/packages/sdk-angular/projects/fusionauth-angular-sdk/src/lib/fusion-auth.service.ts#L125)
+### manageAccount()
 
----
+> **manageAccount**(): `void`
 
-### manageAccount
-
-▸ **manageAccount**(): `void`
+Defined in: [fusion-auth.service.ts:168](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/dba3da8fa07e64330f04ccfd6802d21dc1f1547a/packages/sdk-angular/projects/fusionauth-angular-sdk/src/lib/fusion-auth.service.ts#L168)
 
 Redirects to [self service account management](https://fusionauth.io/docs/lifecycle/manage-users/account-management/)
 Self service account management is only available in FusionAuth paid plans.
@@ -216,15 +258,13 @@ Self service account management is only available in FusionAuth paid plans.
 
 `void`
 
-#### Defined in
+***
 
-[lib/fusion-auth.service.ts:133](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/80c01c9ccb450a2187bc0d2cc65fa8c9c38cfabe/packages/sdk-angular/projects/fusionauth-angular-sdk/src/lib/fusion-auth.service.ts#L133)
+### refreshToken()
 
----
+> **refreshToken**(): `Promise`\<`Response`\>
 
-### refreshToken
-
-▸ **refreshToken**(): `Promise`\<`Response`\>
+Defined in: [fusion-auth.service.ts:84](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/dba3da8fa07e64330f04ccfd6802d21dc1f1547a/packages/sdk-angular/projects/fusionauth-angular-sdk/src/lib/fusion-auth.service.ts#L84)
 
 Refreshes the access token a single time.
 Automatic token refreshing can be enabled if the SDK is configured with `shouldAutoRefresh`.
@@ -233,50 +273,46 @@ Automatic token refreshing can be enabled if the SDK is configured with `shouldA
 
 `Promise`\<`Response`\>
 
-#### Defined in
+***
 
-[lib/fusion-auth.service.ts:55](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/80c01c9ccb450a2187bc0d2cc65fa8c9c38cfabe/packages/sdk-angular/projects/fusionauth-angular-sdk/src/lib/fusion-auth.service.ts#L55)
+### startLogin()
 
----
+> **startLogin**(`state?`): `void`
 
-### startLogin
-
-▸ **startLogin**(`state?`): `void`
+Defined in: [fusion-auth.service.ts:145](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/dba3da8fa07e64330f04ccfd6802d21dc1f1547a/packages/sdk-angular/projects/fusionauth-angular-sdk/src/lib/fusion-auth.service.ts#L145)
 
 Initiates login flow.
 
 #### Parameters
 
-| Name     | Type     | Description                                                |
-| :------- | :------- | :--------------------------------------------------------- |
-| `state?` | `string` | Optional value to be echoed back to the SDK upon redirect. |
+##### state?
+
+`string`
+
+Optional value to be echoed back to the SDK upon redirect.
 
 #### Returns
 
 `void`
 
-#### Defined in
+***
 
-[lib/fusion-auth.service.ts:110](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/80c01c9ccb450a2187bc0d2cc65fa8c9c38cfabe/packages/sdk-angular/projects/fusionauth-angular-sdk/src/lib/fusion-auth.service.ts#L110)
+### startRegistration()
 
----
+> **startRegistration**(`state?`): `void`
 
-### startRegistration
-
-▸ **startRegistration**(`state?`): `void`
+Defined in: [fusion-auth.service.ts:153](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/dba3da8fa07e64330f04ccfd6802d21dc1f1547a/packages/sdk-angular/projects/fusionauth-angular-sdk/src/lib/fusion-auth.service.ts#L153)
 
 Initiates register flow.
 
 #### Parameters
 
-| Name     | Type     | Description                                                |
-| :------- | :------- | :--------------------------------------------------------- |
-| `state?` | `string` | Optional value to be echoed back to the SDK upon redirect. |
+##### state?
+
+`string`
+
+Optional value to be echoed back to the SDK upon redirect.
 
 #### Returns
 
 `void`
-
-#### Defined in
-
-[lib/fusion-auth.service.ts:118](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/80c01c9ccb450a2187bc0d2cc65fa8c9c38cfabe/packages/sdk-angular/projects/fusionauth-angular-sdk/src/lib/fusion-auth.service.ts#L118)

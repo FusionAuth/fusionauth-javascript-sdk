@@ -18,8 +18,8 @@ Only renders children when user is authenticated.
 
 #### Parameters
 
-| Name    | Type               |
-| :------ | :----------------- |
+| Name | Type |
+| :------ | :------ |
 | `props` | `RequireAuthProps` |
 
 #### Returns
@@ -28,4 +28,4 @@ Only renders children when user is authenticated.
 
 #### Defined in
 
-[packages/sdk-react/src/components/ui/RequireAuth/index.tsx:10](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/63efa2d5360c2b7e1392ffa730dac8f5a0bc8e19/packages/sdk-react/src/components/ui/RequireAuth/index.tsx#L10)
+[packages/sdk-react/src/components/ui/RequireAuth/index.tsx:10](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/dba3da8fa07e64330f04ccfd6802d21dc1f1547a/packages/sdk-react/src/components/ui/RequireAuth/index.tsx#L10)

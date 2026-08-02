@@ -6,16 +6,18 @@ An SDK for using FusionAuth in Vue applications.
 
 - [Overview](#overview)
 - [Getting Started](#getting-started)
-- [Installation](#installation)
+  - [Quickstart](#quickstart)
+  - [Installation](#installation)
 - [Usage](#usage)
   - [Configuring the SDK](#configuring-the-sdk)
     - [Configuring with Nuxt](#configuring-with-nuxt)
   - [useFusionAuth Composable](#usefusionauth-composable)
     - [State parameter](#state-parameter)
+    - [DPoP Mode](#dpop-mode)
+      - [Resource Server Guidance](#resource-server-guidance)
   - [UI Components](#ui-components)
     - [Protecting Content](#protecting-content)
     - [Pre-built buttons](#pre-built-buttons)
-- [Quickstart](#quickstart)
 - [Documentation](#documentation)
 - [Known Issues](#known-issues)
 - [Releases](#releases)
@@ -63,6 +65,12 @@ compliant identity server.
 
 ## Getting Started
 
+If you are new to Vue development, you may want to start with the Quickstart guide. If you are already familiar with Vue development, skip to the Installation section.
+
+### Quickstart
+
+See the [FusionAuth Vue Quickstart](https://fusionauth.io/docs/quickstarts/quickstart-javascript-vue-web) for a full tutorial on using FusionAuth and Vue.
+
 ### Installation
 
 NPM:
@@ -94,6 +102,7 @@ const config: FusionAuthConfig = {
   shouldAutoFetchUserInfo: true, // Automatically fetch userInfo when logged in. Defaults to false.
   shouldAutoRefresh: true, // Enables automatic token refresh. Defaults to false.
   onRedirect: (state?: string) => { }, // Optional callback invoked upon redirect back from login or register.
+  // useDpop: true, // Opt-in to DPoP mode. See "DPoP Mode" below. Defaults to false.
 }
 
 const app = createApp(App);
@@ -188,6 +197,58 @@ const welcomeMessage = computed(() => {
 
 The `login` and `register` functions accept an optional string parameter: `state`, which will be passed back to the optional `onRedirect` callback specified on your `FusionAuthConfig`. Though you may pass any value you would like for the state parameter, it is often used to indicate which page the user was on before redirecting to login or registration, so that the user can be returned to that location after a successful authentication.
 
+#### DPoP Mode
+
+By default, the SDK calls a Hosted Backend that stores tokens in HttpOnly cookies (`useDpop: false`, the default). In DPoP mode, the SDK instead calls FusionAuth endpoints directly and binds tokens to a private key generated in the browser. Enable it by setting `useDpop: true` on `FusionAuthConfig`:
+
+```typescript
+const config: FusionAuthConfig = {
+  clientId: "",
+  redirectUri: "",
+  serverUrl: "",
+  useDpop: true, // Opt-in to DPoP mode.
+  dpopTokenStorage: 'localStorage', // 'localStorage' (default, persists across reloads) or 'memory'.
+}
+```
+
+When `useDpop: true`, `useFusionAuth()` additionally returns `dpopFetch`, `generateProof`, and `getAccessToken`. These are `undefined` when `useDpop` is `false` or not set.
+
+```html
+<script setup lang="ts">
+import { useFusionAuth } from "@fusionauth/vue-sdk";
+
+const { dpopFetch, generateProof, getAccessToken } = useFusionAuth();
+
+const response = await dpopFetch('https://api.example.com/data', { method: 'GET' });
+
+const accessToken = getAccessToken();
+const proof = await generateProof('https://api.example.com/data', 'GET', accessToken);
+// axios.get('https://api.example.com/data', {
+//   headers: { Authorization: `DPoP ${accessToken}`, DPoP: proof }
+// });
+</script>
+```
+
+In DPoP mode, the login/register redirect round trip finishes asynchronously (there's no Hosted Backend to set cookies before the app reloads). `onRedirect` fires only after `isLoggedIn` and tokens are fully updated, so it's a reliable place to hook in post-login navigation:
+
+```typescript
+const config: FusionAuthConfig = {
+  // ...
+  useDpop: true,
+  onRedirect: () => router.push('/account'),
+}
+```
+
+##### Resource Server Guidance
+
+If you're building a resource server that validates FusionAuth-issued DPoP tokens (this guidance applies regardless of which SDK, if any, the resource server itself uses):
+
+- This SDK does not implement `jti` replay prevention — tracking which proof JTIs have already been seen, and rejecting duplicates, is the resource server's responsibility.
+  - Single-instance deployments: an in-memory `Map` with TTL-based eviction is sufficient.
+  - Horizontally scaled deployments: a distributed store (e.g. Redis) is required, since replay state must be shared across instances.
+- Validate the proof's `htu` claim against the request's actual URL. If the resource server sits behind a reverse proxy, ensure it's configured to trust the proxy and expose the public-facing URL (not an internal one) for this comparison.
+- The `Authorization` header uses the `DPoP` scheme, not `Bearer` — resource servers must accept `Authorization: DPoP <token>`.
+
 ### UI Components
 
 #### Protecting Content
@@ -231,10 +292,6 @@ is.
 ```
 
 With the CSS variables, you can customize the buttons to match your app’s style.
-
-## Quickstart
-
-See the [FusionAuth Vue Quickstart](https://fusionauth.io/docs/quickstarts/quickstart-javascript-vue-web) for a full tutorial on using FusionAuth and Vue.
 
 ## Documentation
 

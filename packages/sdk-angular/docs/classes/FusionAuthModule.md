@@ -1,43 +1,37 @@
-[@fusionauth/angular-sdk](../README.md) / [Exports](../modules.md) / FusionAuthModule
+[**@fusionauth/angular-sdk**](../README.md)
+
+***
+
+[@fusionauth/angular-sdk](../globals.md) / FusionAuthModule
 
 # Class: FusionAuthModule
 
-## Table of contents
-
-### Constructors
-
-- [constructor](FusionAuthModule.md#constructor)
-
-### Methods
-
-- [forRoot](FusionAuthModule.md#forroot)
+Defined in: [fusion-auth.module.ts:25](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/dba3da8fa07e64330f04ccfd6802d21dc1f1547a/packages/sdk-angular/projects/fusionauth-angular-sdk/src/lib/fusion-auth.module.ts#L25)
 
 ## Constructors
 
-### constructor
+### Constructor
 
-• **new FusionAuthModule**(): [`FusionAuthModule`](FusionAuthModule.md)
+> **new FusionAuthModule**(): `FusionAuthModule`
 
 #### Returns
 
-[`FusionAuthModule`](FusionAuthModule.md)
+`FusionAuthModule`
 
 ## Methods
 
-### forRoot
+### forRoot()
 
-▸ **forRoot**(`fusionAuthConfig`): `ModuleWithProviders`\<[`FusionAuthModule`](FusionAuthModule.md)\>
+> `static` **forRoot**(`fusionAuthConfig`): `ModuleWithProviders`\<`FusionAuthModule`\>
+
+Defined in: [fusion-auth.module.ts:26](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/dba3da8fa07e64330f04ccfd6802d21dc1f1547a/packages/sdk-angular/projects/fusionauth-angular-sdk/src/lib/fusion-auth.module.ts#L26)
 
 #### Parameters
 
-| Name               | Type                                                    |
-| :----------------- | :------------------------------------------------------ |
-| `fusionAuthConfig` | [`FusionAuthConfig`](../interfaces/FusionAuthConfig.md) |
+##### fusionAuthConfig
+
+[`FusionAuthConfig`](../interfaces/FusionAuthConfig.md)
 
 #### Returns
 
-`ModuleWithProviders`\<[`FusionAuthModule`](FusionAuthModule.md)\>
-
-#### Defined in
-
-[lib/fusion-auth.module.ts:26](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/80c01c9ccb450a2187bc0d2cc65fa8c9c38cfabe/packages/sdk-angular/projects/fusionauth-angular-sdk/src/lib/fusion-auth.module.ts#L26)
+`ModuleWithProviders`\<`FusionAuthModule`\>

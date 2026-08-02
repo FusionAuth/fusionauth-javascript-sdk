@@ -15,6 +15,8 @@ An SDK for using FusionAuth in React applications.
     - [State Parameter](#state-parameter)
 	- [Protecting content](#protecting-content)
 	- [UI Components](#ui-components)
+	- [DPoP Mode](#dpop-mode)
+		- [Resource Server Guidance](#resource-server-guidance)
 - [Known issues](#known-issues)
 - [Documentation](#documentation)
 - [Formatting](#formatting)
@@ -98,6 +100,7 @@ const config: FusionAuthProviderConfig = {
   shouldAutoFetchUserInfo: true, // Automatically fetch userInfo when logged in. Defaults to false.
   shouldAutoRefresh: true, // Enables automatic token refresh. Defaults to false.
   onRedirect: (state?: string) => { }, // Optional callback invoked upon redirect back from login or register.
+  // useDpop: true, // Opt-in to DPoP mode. See "DPoP Mode" below. Defaults to false.
 };
 
 ReactDOM.createRoot(document.getElementById("my-app")).render(
@@ -229,6 +232,46 @@ export const AccountPage = () => (
   </>
 );
 ```
+
+### DPoP Mode
+
+By default, the SDK calls a Hosted Backend that stores tokens in HttpOnly cookies (`useDpop: false`, the default). In DPoP mode, the SDK instead calls FusionAuth endpoints directly and binds tokens to a private key generated in the browser, per [RFC 9449](https://datatracker.ietf.org/doc/html/rfc9449). Enable it by setting `useDpop: true` on `FusionAuthProviderConfig`:
+
+```jsx
+const config: FusionAuthProviderConfig = {
+  clientId: "",
+  redirectUri: "",
+  serverUrl: "",
+  useDpop: true, // Opt-in to DPoP mode.
+  dpopTokenStorage: 'localStorage', // 'localStorage' (default, persists across reloads) or 'memory'.
+};
+```
+
+When `useDpop: true`, `useFusionAuth()` additionally returns `dpopFetch`, `generateProof`, and `getAccessToken`. These are `undefined` when `useDpop` is `false` or not set.
+
+```jsx
+const { dpopFetch, generateProof, getAccessToken } = useFusionAuth();
+
+// Recommended — handles attaching DPoP headers (and nonce retries) automatically.
+const response = await dpopFetch('https://api.example.com/data', { method: 'GET' });
+
+// Advanced — for axios or other HTTP libraries that can't use dpopFetch.
+const accessToken = getAccessToken();
+const proof = await generateProof('https://api.example.com/data', 'GET', accessToken);
+// axios.get('https://api.example.com/data', {
+//   headers: { Authorization: `DPoP ${accessToken}`, DPoP: proof }
+// });
+```
+
+#### Resource Server Guidance
+
+If you're building a resource server that validates FusionAuth-issued DPoP tokens (this guidance applies regardless of which SDK, if any, the resource server itself uses):
+
+- This SDK does not implement `jti` replay prevention — tracking which proof JTIs have already been seen, and rejecting duplicates, is the resource server's responsibility.
+  - Single-instance deployments: an in-memory `Map` with TTL-based eviction is sufficient.
+  - Horizontally scaled deployments: a distributed store (e.g. Redis) is required, since replay state must be shared across instances.
+- Validate the proof's `htu` claim against the request's actual URL. If the resource server sits behind a reverse proxy, ensure it's configured to trust the proxy and expose the public-facing URL (not an internal one) for this comparison.
+- The `Authorization` header uses the `DPoP` scheme, not `Bearer` — resource servers must accept `Authorization: DPoP <token>`.
 
 ### Known Issues
 

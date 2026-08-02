@@ -8,16 +8,19 @@ The context provided by FusionAuth React SDK
 
 ## Type parameters
 
-| Name | Type       |
-| :--- | :--------- |
-| `T`  | `UserInfo` |
+| Name | Type |
+| :------ | :------ |
+| `T` | `UserInfo` |
 
 ## Table of contents
 
 ### Properties
 
+- [dpopFetch](providers_FusionAuthProviderContext.FusionAuthProviderContext.md#dpopfetch)
 - [error](providers_FusionAuthProviderContext.FusionAuthProviderContext.md#error)
 - [fetchUserInfo](providers_FusionAuthProviderContext.FusionAuthProviderContext.md#fetchuserinfo)
+- [generateProof](providers_FusionAuthProviderContext.FusionAuthProviderContext.md#generateproof)
+- [getAccessToken](providers_FusionAuthProviderContext.FusionAuthProviderContext.md#getaccesstoken)
 - [initAutoRefresh](providers_FusionAuthProviderContext.FusionAuthProviderContext.md#initautorefresh)
 - [isFetchingUserInfo](providers_FusionAuthProviderContext.FusionAuthProviderContext.md#isfetchinguserinfo)
 - [isLoggedIn](providers_FusionAuthProviderContext.FusionAuthProviderContext.md#isloggedin)
@@ -30,17 +33,45 @@ The context provided by FusionAuth React SDK
 
 ## Properties
 
+### dpopFetch
+
+• `Optional` **dpopFetch**: (`input`: `RequestInfo` \| `URL`, `init?`: `RequestInit`) => `Promise`\<`Response`\>
+
+Fetch wrapper that automatically attaches DPoP proof headers.
+Present only when `useDpop: true`.
+
+#### Type declaration
+
+▸ (`input`, `init?`): `Promise`\<`Response`\>
+
+##### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `input` | `RequestInfo` \| `URL` |
+| `init?` | `RequestInit` |
+
+##### Returns
+
+`Promise`\<`Response`\>
+
+#### Defined in
+
+[packages/sdk-react/src/components/providers/FusionAuthProviderContext.ts:70](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/dba3da8fa07e64330f04ccfd6802d21dc1f1547a/packages/sdk-react/src/components/providers/FusionAuthProviderContext.ts#L70)
+
+___
+
 ### error
 
-• **error**: `null` \| `Error`
+• **error**: ``null`` \| `Error`
 
 Error occurred while fetching userInfo.
 
 #### Defined in
 
-[packages/sdk-react/src/components/providers/FusionAuthProviderContext.ts:29](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/63efa2d5360c2b7e1392ffa730dac8f5a0bc8e19/packages/sdk-react/src/components/providers/FusionAuthProviderContext.ts#L29)
+[packages/sdk-react/src/components/providers/FusionAuthProviderContext.ts:29](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/dba3da8fa07e64330f04ccfd6802d21dc1f1547a/packages/sdk-react/src/components/providers/FusionAuthProviderContext.ts#L29)
 
----
+___
 
 ### fetchUserInfo
 
@@ -59,9 +90,61 @@ This is handled automatically if the SDK is configured with `shouldAutoFetchUser
 
 #### Defined in
 
-[packages/sdk-react/src/components/providers/FusionAuthProviderContext.ts:19](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/63efa2d5360c2b7e1392ffa730dac8f5a0bc8e19/packages/sdk-react/src/components/providers/FusionAuthProviderContext.ts#L19)
+[packages/sdk-react/src/components/providers/FusionAuthProviderContext.ts:19](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/dba3da8fa07e64330f04ccfd6802d21dc1f1547a/packages/sdk-react/src/components/providers/FusionAuthProviderContext.ts#L19)
 
----
+___
+
+### generateProof
+
+• `Optional` **generateProof**: (`htu`: `string`, `htm`: `string`, `accessToken?`: `string`, `nonce?`: `string`) => `Promise`\<`string`\>
+
+Returns a signed DPoP proof JWT for use with axios or other
+HTTP libraries. Present only when `useDpop: true`.
+
+#### Type declaration
+
+▸ (`htu`, `htm`, `accessToken?`, `nonce?`): `Promise`\<`string`\>
+
+##### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `htu` | `string` |
+| `htm` | `string` |
+| `accessToken?` | `string` |
+| `nonce?` | `string` |
+
+##### Returns
+
+`Promise`\<`string`\>
+
+#### Defined in
+
+[packages/sdk-react/src/components/providers/FusionAuthProviderContext.ts:79](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/dba3da8fa07e64330f04ccfd6802d21dc1f1547a/packages/sdk-react/src/components/providers/FusionAuthProviderContext.ts#L79)
+
+___
+
+### getAccessToken
+
+• `Optional` **getAccessToken**: () => ``null`` \| `string`
+
+Returns the stored DPoP access token, or `null` if not logged in.
+Throws a descriptive error when `useDpop: false`.
+Present only when `useDpop: true`.
+
+#### Type declaration
+
+▸ (): ``null`` \| `string`
+
+##### Returns
+
+``null`` \| `string`
+
+#### Defined in
+
+[packages/sdk-react/src/components/providers/FusionAuthProviderContext.ts:91](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/dba3da8fa07e64330f04ccfd6802d21dc1f1547a/packages/sdk-react/src/components/providers/FusionAuthProviderContext.ts#L91)
+
+___
 
 ### initAutoRefresh
 
@@ -80,9 +163,9 @@ This is handled automatically if the SDK is configured with `shouldAutoRefresh`.
 
 #### Defined in
 
-[packages/sdk-react/src/components/providers/FusionAuthProviderContext.ts:64](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/63efa2d5360c2b7e1392ffa730dac8f5a0bc8e19/packages/sdk-react/src/components/providers/FusionAuthProviderContext.ts#L64)
+[packages/sdk-react/src/components/providers/FusionAuthProviderContext.ts:64](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/dba3da8fa07e64330f04ccfd6802d21dc1f1547a/packages/sdk-react/src/components/providers/FusionAuthProviderContext.ts#L64)
 
----
+___
 
 ### isFetchingUserInfo
 
@@ -92,9 +175,9 @@ Indicates that the fetchUserInfo call is unresolved.
 
 #### Defined in
 
-[packages/sdk-react/src/components/providers/FusionAuthProviderContext.ts:24](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/63efa2d5360c2b7e1392ffa730dac8f5a0bc8e19/packages/sdk-react/src/components/providers/FusionAuthProviderContext.ts#L24)
+[packages/sdk-react/src/components/providers/FusionAuthProviderContext.ts:24](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/dba3da8fa07e64330f04ccfd6802d21dc1f1547a/packages/sdk-react/src/components/providers/FusionAuthProviderContext.ts#L24)
 
----
+___
 
 ### isLoggedIn
 
@@ -104,9 +187,9 @@ Whether the user is logged in.
 
 #### Defined in
 
-[packages/sdk-react/src/components/providers/FusionAuthProviderContext.ts:8](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/63efa2d5360c2b7e1392ffa730dac8f5a0bc8e19/packages/sdk-react/src/components/providers/FusionAuthProviderContext.ts#L8)
+[packages/sdk-react/src/components/providers/FusionAuthProviderContext.ts:8](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/dba3da8fa07e64330f04ccfd6802d21dc1f1547a/packages/sdk-react/src/components/providers/FusionAuthProviderContext.ts#L8)
 
----
+___
 
 ### manageAccount
 
@@ -125,9 +208,9 @@ Self service account management is only available in FusionAuth paid plans.
 
 #### Defined in
 
-[packages/sdk-react/src/components/providers/FusionAuthProviderContext.ts:52](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/63efa2d5360c2b7e1392ffa730dac8f5a0bc8e19/packages/sdk-react/src/components/providers/FusionAuthProviderContext.ts#L52)
+[packages/sdk-react/src/components/providers/FusionAuthProviderContext.ts:52](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/dba3da8fa07e64330f04ccfd6802d21dc1f1547a/packages/sdk-react/src/components/providers/FusionAuthProviderContext.ts#L52)
 
----
+___
 
 ### refreshToken
 
@@ -146,9 +229,9 @@ This is handled automatically if the SDK is configured with `shouldAutoRefresh`.
 
 #### Defined in
 
-[packages/sdk-react/src/components/providers/FusionAuthProviderContext.ts:58](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/63efa2d5360c2b7e1392ffa730dac8f5a0bc8e19/packages/sdk-react/src/components/providers/FusionAuthProviderContext.ts#L58)
+[packages/sdk-react/src/components/providers/FusionAuthProviderContext.ts:58](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/dba3da8fa07e64330f04ccfd6802d21dc1f1547a/packages/sdk-react/src/components/providers/FusionAuthProviderContext.ts#L58)
 
----
+___
 
 ### startLogin
 
@@ -162,8 +245,8 @@ Initiates login flow.
 
 ##### Parameters
 
-| Name     | Type     | Description                                                |
-| :------- | :------- | :--------------------------------------------------------- |
+| Name | Type | Description |
+| :------ | :------ | :------ |
 | `state?` | `string` | Optional value to be echoed back to the SDK upon redirect. |
 
 ##### Returns
@@ -172,9 +255,9 @@ Initiates login flow.
 
 #### Defined in
 
-[packages/sdk-react/src/components/providers/FusionAuthProviderContext.ts:35](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/63efa2d5360c2b7e1392ffa730dac8f5a0bc8e19/packages/sdk-react/src/components/providers/FusionAuthProviderContext.ts#L35)
+[packages/sdk-react/src/components/providers/FusionAuthProviderContext.ts:35](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/dba3da8fa07e64330f04ccfd6802d21dc1f1547a/packages/sdk-react/src/components/providers/FusionAuthProviderContext.ts#L35)
 
----
+___
 
 ### startLogout
 
@@ -192,9 +275,9 @@ Initiates logout flow.
 
 #### Defined in
 
-[packages/sdk-react/src/components/providers/FusionAuthProviderContext.ts:46](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/63efa2d5360c2b7e1392ffa730dac8f5a0bc8e19/packages/sdk-react/src/components/providers/FusionAuthProviderContext.ts#L46)
+[packages/sdk-react/src/components/providers/FusionAuthProviderContext.ts:46](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/dba3da8fa07e64330f04ccfd6802d21dc1f1547a/packages/sdk-react/src/components/providers/FusionAuthProviderContext.ts#L46)
 
----
+___
 
 ### startRegister
 
@@ -208,8 +291,8 @@ Initiates register flow.
 
 ##### Parameters
 
-| Name     | Type     | Description                                                |
-| :------- | :------- | :--------------------------------------------------------- |
+| Name | Type | Description |
+| :------ | :------ | :------ |
 | `state?` | `string` | Optional value to be echoed back to the SDK upon redirect. |
 
 ##### Returns
@@ -218,16 +301,16 @@ Initiates register flow.
 
 #### Defined in
 
-[packages/sdk-react/src/components/providers/FusionAuthProviderContext.ts:41](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/63efa2d5360c2b7e1392ffa730dac8f5a0bc8e19/packages/sdk-react/src/components/providers/FusionAuthProviderContext.ts#L41)
+[packages/sdk-react/src/components/providers/FusionAuthProviderContext.ts:41](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/dba3da8fa07e64330f04ccfd6802d21dc1f1547a/packages/sdk-react/src/components/providers/FusionAuthProviderContext.ts#L41)
 
----
+___
 
 ### userInfo
 
-• **userInfo**: `null` \| `T`
+• **userInfo**: ``null`` \| `T`
 
 Data fetched from the configured 'me' endpoint.
 
 #### Defined in
 
-[packages/sdk-react/src/components/providers/FusionAuthProviderContext.ts:13](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/63efa2d5360c2b7e1392ffa730dac8f5a0bc8e19/packages/sdk-react/src/components/providers/FusionAuthProviderContext.ts#L13)
+[packages/sdk-react/src/components/providers/FusionAuthProviderContext.ts:13](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/dba3da8fa07e64330f04ccfd6802d21dc1f1547a/packages/sdk-react/src/components/providers/FusionAuthProviderContext.ts#L13)

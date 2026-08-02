@@ -38,31 +38,31 @@
 
 Renames and re-exports [FusionAuthLoginButton](modules/FusionAuthLoginButton.md)
 
----
+___
 
 ### FusionAuthLogoutButton
 
 Renames and re-exports [FusionAuthLoginButton](modules/FusionAuthLoginButton.md)
 
----
+___
 
 ### FusionAuthRegisterButton
 
 Renames and re-exports [FusionAuthLoginButton](modules/FusionAuthLoginButton.md)
 
----
+___
 
 ### RequireAnonymous
 
 Renames and re-exports [FusionAuthLoginButton](modules/FusionAuthLoginButton.md)
 
----
+___
 
 ### RequireAuth
 
 Renames and re-exports [FusionAuthLoginButton](modules/FusionAuthLoginButton.md)
 
----
+___
 
 ### fusionAuthKey
 
@@ -70,9 +70,9 @@ Renames and re-exports [FusionAuthLoginButton](modules/FusionAuthLoginButton.md)
 
 #### Defined in
 
-[src/injectionSymbols.ts:1](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/02b46e2174ba0f4804f6b5ef004ac88414902cc3/packages/sdk-vue/src/injectionSymbols.ts#L1)
+[packages/sdk-vue/src/injectionSymbols.ts:1](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/dba3da8fa07e64330f04ccfd6802d21dc1f1547a/packages/sdk-vue/src/injectionSymbols.ts#L1)
 
----
+___
 
 ### createFusionAuth
 
@@ -80,14 +80,14 @@ Renames and re-exports [FusionAuthLoginButton](modules/FusionAuthLoginButton.md)
 
 #### Type parameters
 
-| Name | Type                                 |
-| :--- | :----------------------------------- |
-| `T`  | [`UserInfo`](interfaces/UserInfo.md) |
+| Name | Type |
+| :------ | :------ |
+| `T` | [`UserInfo`](interfaces/UserInfo.md) |
 
 #### Parameters
 
-| Name     | Type                                                 |
-| :------- | :--------------------------------------------------- |
+| Name | Type |
+| :------ | :------ |
 | `config` | [`FusionAuthConfig`](interfaces/FusionAuthConfig.md) |
 
 #### Returns
@@ -96,9 +96,9 @@ Renames and re-exports [FusionAuthLoginButton](modules/FusionAuthLoginButton.md)
 
 #### Defined in
 
-[src/createFusionAuth/createFusionAuth.ts:7](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/02b46e2174ba0f4804f6b5ef004ac88414902cc3/packages/sdk-vue/src/createFusionAuth/createFusionAuth.ts#L7)
+[packages/sdk-vue/src/createFusionAuth/createFusionAuth.ts:7](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/dba3da8fa07e64330f04ccfd6802d21dc1f1547a/packages/sdk-vue/src/createFusionAuth/createFusionAuth.ts#L7)
 
----
+___
 
 ### useFusionAuth
 
@@ -106,9 +106,9 @@ Renames and re-exports [FusionAuthLoginButton](modules/FusionAuthLoginButton.md)
 
 #### Type parameters
 
-| Name | Type                                 |
-| :--- | :----------------------------------- |
-| `T`  | [`UserInfo`](interfaces/UserInfo.md) |
+| Name | Type |
+| :------ | :------ |
+| `T` | [`UserInfo`](interfaces/UserInfo.md) |
 
 #### Returns
 
@@ -116,7 +116,7 @@ Renames and re-exports [FusionAuthLoginButton](modules/FusionAuthLoginButton.md)
 
 #### Defined in
 
-[src/composables/useFusionAuth.ts:5](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/02b46e2174ba0f4804f6b5ef004ac88414902cc3/packages/sdk-vue/src/composables/useFusionAuth.ts#L5)
+[packages/sdk-vue/src/composables/useFusionAuth.ts:5](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/dba3da8fa07e64330f04ccfd6802d21dc1f1547a/packages/sdk-vue/src/composables/useFusionAuth.ts#L5)
 
 ## Plugin
 
@@ -140,10 +140,10 @@ Will throw an error if the required options are missing.
 
 #### Type declaration
 
-| Name      | Type                                                                                                                           |
-| :-------- | :----------------------------------------------------------------------------------------------------------------------------- |
+| Name | Type |
+| :------ | :------ |
 | `install` | (`app`: `App`\<`any`\>, `options`: [`FusionAuthConfig`](interfaces/FusionAuthConfig.md) \| `FusionAuthInstantiated`) => `void` |
 
 #### Defined in
 
-[src/FusionAuthVuePlugin.ts:17](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/02b46e2174ba0f4804f6b5ef004ac88414902cc3/packages/sdk-vue/src/FusionAuthVuePlugin.ts#L17)
+[packages/sdk-vue/src/FusionAuthVuePlugin.ts:17](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/dba3da8fa07e64330f04ccfd6802d21dc1f1547a/packages/sdk-vue/src/FusionAuthVuePlugin.ts#L17)

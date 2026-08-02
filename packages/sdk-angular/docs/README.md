@@ -1,4 +1,6 @@
-@fusionauth/angular-sdk / [Exports](modules.md)
+**@fusionauth/angular-sdk**
+
+***
 
 # FusionauthAngularSdk
 

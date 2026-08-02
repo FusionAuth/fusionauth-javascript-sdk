@@ -14,6 +14,7 @@ An SDK for using FusionAuth in React applications.
 	- [Protecting content](#protecting-content)
 	- [UI Components](#ui-components)
 	- [DPoP Mode](#dpop-mode)
+		- [Resource Server Guidance](#resource-server-guidance)
 - [Known issues](#known-issues)
 - [Documentation](#documentation)
 - [Formatting](#formatting)
@@ -259,6 +260,16 @@ const proof = await generateProof('https://api.example.com/data', 'GET', accessT
 //   headers: { Authorization: `DPoP ${accessToken}`, DPoP: proof }
 // });
 ```
+
+#### Resource Server Guidance
+
+If you're building a resource server that validates FusionAuth-issued DPoP tokens (this guidance applies regardless of which SDK, if any, the resource server itself uses):
+
+- This SDK does not implement `jti` replay prevention — tracking which proof JTIs have already been seen, and rejecting duplicates, is the resource server's responsibility.
+  - Single-instance deployments: an in-memory `Map` with TTL-based eviction is sufficient.
+  - Horizontally scaled deployments: a distributed store (e.g. Redis) is required, since replay state must be shared across instances.
+- Validate the proof's `htu` claim against the request's actual URL. If the resource server sits behind a reverse proxy, ensure it's configured to trust the proxy and expose the public-facing URL (not an internal one) for this comparison.
+- The `Authorization` header uses the `DPoP` scheme, not `Bearer` — resource servers must accept `Authorization: DPoP <token>`.
 
 ### Known Issues
 
