@@ -10,8 +10,11 @@
  *
  * Run with:
  *   SERVER_COMMAND="your-dpop-quickstart-start-command" PORT=your-port-number \
- *     npx playwright test e2e/tests/dpop-endpoints.test.ts \
- *     --config playwright.dpop-endpoints.config.ts
+ *     yarn test:e2e:dpop-endpoints
+ *
+ *   (builds @fusionauth-sdk/core first; `packages/core/dist/index.js` must
+ *   exist for injectDpopSdkCore() below. Running via `npx playwright test`
+ *   directly requires `yarn build:core` beforehand.)
  *
  * Prerequisites:
  *   - A consuming quickstart application (e.g. fusionauth-quickstart-javascript-react-web)
