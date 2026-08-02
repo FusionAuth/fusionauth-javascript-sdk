@@ -1,10 +1,10 @@
-[@fusionauth/angular-sdk](README.md) / Exports
+[**@fusionauth/angular-sdk**](README.md)
+
+***
 
 # @fusionauth/angular-sdk
 
-## Table of contents
-
-### Classes
+## Classes
 
 - [FusionAuthAccountButtonComponent](classes/FusionAuthAccountButtonComponent.md)
 - [FusionAuthLoginButtonComponent](classes/FusionAuthLoginButtonComponent.md)
@@ -13,7 +13,7 @@
 - [FusionAuthRegisterButtonComponent](classes/FusionAuthRegisterButtonComponent.md)
 - [FusionAuthService](classes/FusionAuthService.md)
 
-### Interfaces
+## Interfaces
 
 - [FusionAuthConfig](interfaces/FusionAuthConfig.md)
 - [UserInfo](interfaces/UserInfo.md)

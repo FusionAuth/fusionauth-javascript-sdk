@@ -1,72 +1,47 @@
-[@fusionauth/angular-sdk](../README.md) / [Exports](../modules.md) / FusionAuthLoginButtonComponent
+[**@fusionauth/angular-sdk**](../README.md)
+
+***
+
+[@fusionauth/angular-sdk](../globals.md) / FusionAuthLoginButtonComponent
 
 # Class: FusionAuthLoginButtonComponent
 
-## Table of contents
-
-### Constructors
-
-- [constructor](FusionAuthLoginButtonComponent.md#constructor)
-
-### Properties
-
-- [fusionAuth](FusionAuthLoginButtonComponent.md#fusionauth)
-- [state](FusionAuthLoginButtonComponent.md#state)
-
-### Methods
-
-- [login](FusionAuthLoginButtonComponent.md#login)
+Defined in: [components/fusionauth-login.button/fusion-auth-login-button.component.ts:10](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/dba3da8fa07e64330f04ccfd6802d21dc1f1547a/packages/sdk-angular/projects/fusionauth-angular-sdk/src/lib/components/fusionauth-login.button/fusion-auth-login-button.component.ts#L10)
 
 ## Constructors
 
-### constructor
+### Constructor
 
-• **new FusionAuthLoginButtonComponent**(`fusionAuth`): [`FusionAuthLoginButtonComponent`](FusionAuthLoginButtonComponent.md)
+> **new FusionAuthLoginButtonComponent**(`fusionAuth`): `FusionAuthLoginButtonComponent`
+
+Defined in: [components/fusionauth-login.button/fusion-auth-login-button.component.ts:13](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/dba3da8fa07e64330f04ccfd6802d21dc1f1547a/packages/sdk-angular/projects/fusionauth-angular-sdk/src/lib/components/fusionauth-login.button/fusion-auth-login-button.component.ts#L13)
 
 #### Parameters
 
-| Name         | Type                                                                                   |
-| :----------- | :------------------------------------------------------------------------------------- |
-| `fusionAuth` | [`FusionAuthService`](FusionAuthService.md)\<[`UserInfo`](../interfaces/UserInfo.md)\> |
+##### fusionAuth
+
+[`FusionAuthService`](FusionAuthService.md)
 
 #### Returns
 
-[`FusionAuthLoginButtonComponent`](FusionAuthLoginButtonComponent.md)
-
-#### Defined in
-
-[lib/components/fusionauth-login.button/fusion-auth-login-button.component.ts:12](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/80c01c9ccb450a2187bc0d2cc65fa8c9c38cfabe/packages/sdk-angular/projects/fusionauth-angular-sdk/src/lib/components/fusionauth-login.button/fusion-auth-login-button.component.ts#L12)
+`FusionAuthLoginButtonComponent`
 
 ## Properties
 
-### fusionAuth
-
-• `Private` **fusionAuth**: [`FusionAuthService`](FusionAuthService.md)\<[`UserInfo`](../interfaces/UserInfo.md)\>
-
-#### Defined in
-
-[lib/components/fusionauth-login.button/fusion-auth-login-button.component.ts:12](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/80c01c9ccb450a2187bc0d2cc65fa8c9c38cfabe/packages/sdk-angular/projects/fusionauth-angular-sdk/src/lib/components/fusionauth-login.button/fusion-auth-login-button.component.ts#L12)
-
----
-
 ### state
 
-• **state**: `undefined` \| `string`
+> **state**: `string` \| `undefined`
 
-#### Defined in
-
-[lib/components/fusionauth-login.button/fusion-auth-login-button.component.ts:10](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/80c01c9ccb450a2187bc0d2cc65fa8c9c38cfabe/packages/sdk-angular/projects/fusionauth-angular-sdk/src/lib/components/fusionauth-login.button/fusion-auth-login-button.component.ts#L10)
+Defined in: [components/fusionauth-login.button/fusion-auth-login-button.component.ts:11](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/dba3da8fa07e64330f04ccfd6802d21dc1f1547a/packages/sdk-angular/projects/fusionauth-angular-sdk/src/lib/components/fusionauth-login.button/fusion-auth-login-button.component.ts#L11)
 
 ## Methods
 
-### login
+### login()
 
-▸ **login**(): `void`
+> **login**(): `void`
+
+Defined in: [components/fusionauth-login.button/fusion-auth-login-button.component.ts:15](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/dba3da8fa07e64330f04ccfd6802d21dc1f1547a/packages/sdk-angular/projects/fusionauth-angular-sdk/src/lib/components/fusionauth-login.button/fusion-auth-login-button.component.ts#L15)
 
 #### Returns
 
 `void`
-
-#### Defined in
-
-[lib/components/fusionauth-login.button/fusion-auth-login-button.component.ts:14](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/80c01c9ccb450a2187bc0d2cc65fa8c9c38cfabe/packages/sdk-angular/projects/fusionauth-angular-sdk/src/lib/components/fusionauth-login.button/fusion-auth-login-button.component.ts#L14)

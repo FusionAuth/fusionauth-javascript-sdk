@@ -1,173 +1,129 @@
-[@fusionauth/angular-sdk](../README.md) / [Exports](../modules.md) / UserInfo
+[**@fusionauth/angular-sdk**](../README.md)
+
+***
+
+[@fusionauth/angular-sdk](../globals.md) / UserInfo
 
 # Interface: UserInfo
 
-## Table of contents
-
-### Properties
-
-- [applicationId](UserInfo.md#applicationid)
-- [birthdate](UserInfo.md#birthdate)
-- [email](UserInfo.md#email)
-- [email_verified](UserInfo.md#email_verified)
-- [family_name](UserInfo.md#family_name)
-- [given_name](UserInfo.md#given_name)
-- [middle_name](UserInfo.md#middle_name)
-- [name](UserInfo.md#name)
-- [phone_number](UserInfo.md#phone_number)
-- [picture](UserInfo.md#picture)
-- [preferred_username](UserInfo.md#preferred_username)
-- [roles](UserInfo.md#roles)
-- [sid](UserInfo.md#sid)
-- [sub](UserInfo.md#sub)
-- [tid](UserInfo.md#tid)
+Defined in: [types.ts:89](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/dba3da8fa07e64330f04ccfd6802d21dc1f1547a/packages/sdk-angular/projects/fusionauth-angular-sdk/src/lib/types.ts#L89)
 
 ## Properties
 
-### applicationId
+### applicationId?
 
-• `Optional` **applicationId**: `string`
+> `optional` **applicationId?**: `string`
 
-#### Defined in
+Defined in: [types.ts:90](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/dba3da8fa07e64330f04ccfd6802d21dc1f1547a/packages/sdk-angular/projects/fusionauth-angular-sdk/src/lib/types.ts#L90)
 
-[lib/types.ts:77](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/80c01c9ccb450a2187bc0d2cc65fa8c9c38cfabe/packages/sdk-angular/projects/fusionauth-angular-sdk/src/lib/types.ts#L77)
+***
 
----
+### birthdate?
 
-### birthdate
+> `optional` **birthdate?**: `string`
 
-• `Optional` **birthdate**: `string`
+Defined in: [types.ts:91](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/dba3da8fa07e64330f04ccfd6802d21dc1f1547a/packages/sdk-angular/projects/fusionauth-angular-sdk/src/lib/types.ts#L91)
 
-#### Defined in
+***
 
-[lib/types.ts:78](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/80c01c9ccb450a2187bc0d2cc65fa8c9c38cfabe/packages/sdk-angular/projects/fusionauth-angular-sdk/src/lib/types.ts#L78)
+### email?
 
----
+> `optional` **email?**: `string`
 
-### email
+Defined in: [types.ts:92](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/dba3da8fa07e64330f04ccfd6802d21dc1f1547a/packages/sdk-angular/projects/fusionauth-angular-sdk/src/lib/types.ts#L92)
 
-• `Optional` **email**: `string`
+***
 
-#### Defined in
+### email\_verified?
 
-[lib/types.ts:79](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/80c01c9ccb450a2187bc0d2cc65fa8c9c38cfabe/packages/sdk-angular/projects/fusionauth-angular-sdk/src/lib/types.ts#L79)
+> `optional` **email\_verified?**: `boolean`
 
----
+Defined in: [types.ts:93](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/dba3da8fa07e64330f04ccfd6802d21dc1f1547a/packages/sdk-angular/projects/fusionauth-angular-sdk/src/lib/types.ts#L93)
 
-### email_verified
+***
 
-• `Optional` **email_verified**: `boolean`
+### family\_name?
 
-#### Defined in
+> `optional` **family\_name?**: `string`
 
-[lib/types.ts:80](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/80c01c9ccb450a2187bc0d2cc65fa8c9c38cfabe/packages/sdk-angular/projects/fusionauth-angular-sdk/src/lib/types.ts#L80)
+Defined in: [types.ts:94](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/dba3da8fa07e64330f04ccfd6802d21dc1f1547a/packages/sdk-angular/projects/fusionauth-angular-sdk/src/lib/types.ts#L94)
 
----
+***
 
-### family_name
+### given\_name?
 
-• `Optional` **family_name**: `string`
+> `optional` **given\_name?**: `string`
 
-#### Defined in
+Defined in: [types.ts:95](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/dba3da8fa07e64330f04ccfd6802d21dc1f1547a/packages/sdk-angular/projects/fusionauth-angular-sdk/src/lib/types.ts#L95)
 
-[lib/types.ts:81](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/80c01c9ccb450a2187bc0d2cc65fa8c9c38cfabe/packages/sdk-angular/projects/fusionauth-angular-sdk/src/lib/types.ts#L81)
+***
 
----
+### middle\_name?
 
-### given_name
+> `optional` **middle\_name?**: `string`
 
-• `Optional` **given_name**: `string`
+Defined in: [types.ts:96](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/dba3da8fa07e64330f04ccfd6802d21dc1f1547a/packages/sdk-angular/projects/fusionauth-angular-sdk/src/lib/types.ts#L96)
 
-#### Defined in
+***
 
-[lib/types.ts:82](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/80c01c9ccb450a2187bc0d2cc65fa8c9c38cfabe/packages/sdk-angular/projects/fusionauth-angular-sdk/src/lib/types.ts#L82)
+### name?
 
----
+> `optional` **name?**: `string`
 
-### middle_name
+Defined in: [types.ts:97](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/dba3da8fa07e64330f04ccfd6802d21dc1f1547a/packages/sdk-angular/projects/fusionauth-angular-sdk/src/lib/types.ts#L97)
 
-• `Optional` **middle_name**: `string`
+***
 
-#### Defined in
+### phone\_number?
 
-[lib/types.ts:83](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/80c01c9ccb450a2187bc0d2cc65fa8c9c38cfabe/packages/sdk-angular/projects/fusionauth-angular-sdk/src/lib/types.ts#L83)
+> `optional` **phone\_number?**: `string`
 
----
+Defined in: [types.ts:98](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/dba3da8fa07e64330f04ccfd6802d21dc1f1547a/packages/sdk-angular/projects/fusionauth-angular-sdk/src/lib/types.ts#L98)
 
-### name
+***
 
-• `Optional` **name**: `string`
+### picture?
 
-#### Defined in
+> `optional` **picture?**: `string`
 
-[lib/types.ts:84](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/80c01c9ccb450a2187bc0d2cc65fa8c9c38cfabe/packages/sdk-angular/projects/fusionauth-angular-sdk/src/lib/types.ts#L84)
+Defined in: [types.ts:99](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/dba3da8fa07e64330f04ccfd6802d21dc1f1547a/packages/sdk-angular/projects/fusionauth-angular-sdk/src/lib/types.ts#L99)
 
----
+***
 
-### phone_number
+### preferred\_username?
 
-• `Optional` **phone_number**: `string`
+> `optional` **preferred\_username?**: `string`
 
-#### Defined in
+Defined in: [types.ts:100](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/dba3da8fa07e64330f04ccfd6802d21dc1f1547a/packages/sdk-angular/projects/fusionauth-angular-sdk/src/lib/types.ts#L100)
 
-[lib/types.ts:85](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/80c01c9ccb450a2187bc0d2cc65fa8c9c38cfabe/packages/sdk-angular/projects/fusionauth-angular-sdk/src/lib/types.ts#L85)
+***
 
----
+### roles?
 
-### picture
+> `optional` **roles?**: `any`[]
 
-• `Optional` **picture**: `string`
+Defined in: [types.ts:101](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/dba3da8fa07e64330f04ccfd6802d21dc1f1547a/packages/sdk-angular/projects/fusionauth-angular-sdk/src/lib/types.ts#L101)
 
-#### Defined in
+***
 
-[lib/types.ts:86](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/80c01c9ccb450a2187bc0d2cc65fa8c9c38cfabe/packages/sdk-angular/projects/fusionauth-angular-sdk/src/lib/types.ts#L86)
+### sid?
 
----
+> `optional` **sid?**: `string`
 
-### preferred_username
+Defined in: [types.ts:102](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/dba3da8fa07e64330f04ccfd6802d21dc1f1547a/packages/sdk-angular/projects/fusionauth-angular-sdk/src/lib/types.ts#L102)
 
-• `Optional` **preferred_username**: `string`
+***
 
-#### Defined in
+### sub?
 
-[lib/types.ts:87](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/80c01c9ccb450a2187bc0d2cc65fa8c9c38cfabe/packages/sdk-angular/projects/fusionauth-angular-sdk/src/lib/types.ts#L87)
+> `optional` **sub?**: `string`
 
----
+Defined in: [types.ts:103](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/dba3da8fa07e64330f04ccfd6802d21dc1f1547a/packages/sdk-angular/projects/fusionauth-angular-sdk/src/lib/types.ts#L103)
 
-### roles
+***
 
-• `Optional` **roles**: `any`[]
+### tid?
 
-#### Defined in
+> `optional` **tid?**: `string`
 
-[lib/types.ts:88](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/80c01c9ccb450a2187bc0d2cc65fa8c9c38cfabe/packages/sdk-angular/projects/fusionauth-angular-sdk/src/lib/types.ts#L88)
-
----
-
-### sid
-
-• `Optional` **sid**: `string`
-
-#### Defined in
-
-[lib/types.ts:89](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/80c01c9ccb450a2187bc0d2cc65fa8c9c38cfabe/packages/sdk-angular/projects/fusionauth-angular-sdk/src/lib/types.ts#L89)
-
----
-
-### sub
-
-• `Optional` **sub**: `string`
-
-#### Defined in
-
-[lib/types.ts:90](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/80c01c9ccb450a2187bc0d2cc65fa8c9c38cfabe/packages/sdk-angular/projects/fusionauth-angular-sdk/src/lib/types.ts#L90)
-
----
-
-### tid
-
-• `Optional` **tid**: `string`
-
-#### Defined in
-
-[lib/types.ts:91](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/80c01c9ccb450a2187bc0d2cc65fa8c9c38cfabe/packages/sdk-angular/projects/fusionauth-angular-sdk/src/lib/types.ts#L91)
+Defined in: [types.ts:104](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/dba3da8fa07e64330f04ccfd6802d21dc1f1547a/packages/sdk-angular/projects/fusionauth-angular-sdk/src/lib/types.ts#L104)
