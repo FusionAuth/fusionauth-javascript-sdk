@@ -111,22 +111,10 @@ function captureSdkConfig(page: Page): DpopSdkConfig {
 }
 
 /**
- * Injects a second, independent `SDKCore` instance into the page, built
- * directly from the `@fusionauth-sdk/core` bundle
- * (`packages/core/dist/index.js`) — no changes to the consuming quickstart
- * application are required.
- *
- * This instance is *not* the one the quickstart's own React app is using.
- * It works because DPoP key pairs (IndexedDB, keyed by `clientId`) and
- * tokens (`localStorage`, keyed by `fusionauth-sdk:tokens:<clientId>`) are
- * namespaced by `clientId`/origin rather than by JS object identity — so a
- * fresh `SDKCore` constructed with the same `clientId`/`serverUrl` transparently
- * reads the key pair and access token the already-logged-in quickstart
- * session created, letting these tests call `dpopFetch()` / `getAccessToken()`
- * directly.
- *
- * Requires `packages/core` to have been built (e.g. `yarn build:core`) so
- * that `packages/core/dist/index.js` exists.
+ * Injects a second, independent `SDKCore` instance into the page.
+ * The reason is dropFetch and getAcessToken are only available on
+ * the SDKCore instance as there's no UI interaction in the dropFetch
+ * tests.
  */
 async function injectDpopSdkCore(
   page: Page,
