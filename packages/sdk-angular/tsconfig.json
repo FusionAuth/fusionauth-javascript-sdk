@@ -39,6 +39,7 @@
   "typedocOptions": {
     "plugin": ["typedoc-plugin-markdown"],
     "entryPoints": ["projects/fusionauth-angular-sdk/src/public-api.ts"],
-    "out": "docs"
+    "out": "docs",
+    "useCodeBlocks": true
   }
 }

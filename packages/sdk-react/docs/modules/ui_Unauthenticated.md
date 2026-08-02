@@ -18,9 +18,9 @@ Only renders children when user is unauthenticated.
 
 #### Parameters
 
-| Name | Type |
-| :------ | :------ |
-| `props` | `Object` |
+| Name              | Type        |
+| :---------------- | :---------- |
+| `props`           | `Object`    |
 | `props.children?` | `ReactNode` |
 
 #### Returns
@@ -29,4 +29,4 @@ Only renders children when user is unauthenticated.
 
 #### Defined in
 
-[packages/sdk-react/src/components/ui/Unauthenticated/index.tsx:5](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/dba3da8fa07e64330f04ccfd6802d21dc1f1547a/packages/sdk-react/src/components/ui/Unauthenticated/index.tsx#L5)
+[packages/sdk-react/src/components/ui/Unauthenticated/index.tsx:5](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/2d9af72c9bed501cbc80b584411e66e73a4cc15c/packages/sdk-react/src/components/ui/Unauthenticated/index.tsx#L5)

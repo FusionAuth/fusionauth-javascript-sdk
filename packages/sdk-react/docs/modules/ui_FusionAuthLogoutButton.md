@@ -18,8 +18,8 @@ Calls the `startLogout` method from `FusionAuthProviderContext`.
 
 #### Parameters
 
-| Name | Type |
-| :------ | :------ |
+| Name    | Type                          |
+| :------ | :---------------------------- |
 | `props` | `FusionAuthLogoutButtonProps` |
 
 #### Returns
@@ -28,4 +28,4 @@ Calls the `startLogout` method from `FusionAuthProviderContext`.
 
 #### Defined in
 
-[packages/sdk-react/src/components/ui/FusionAuthLogoutButton/index.tsx:13](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/dba3da8fa07e64330f04ccfd6802d21dc1f1547a/packages/sdk-react/src/components/ui/FusionAuthLogoutButton/index.tsx#L13)
+[packages/sdk-react/src/components/ui/FusionAuthLogoutButton/index.tsx:13](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/2d9af72c9bed501cbc80b584411e66e73a4cc15c/packages/sdk-react/src/components/ui/FusionAuthLogoutButton/index.tsx#L13)
