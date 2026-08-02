@@ -29,4 +29,4 @@ Only renders children when user is unauthenticated.
 
 #### Defined in
 
-[packages/sdk-react/src/components/ui/Unauthenticated/index.tsx:5](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/2d9af72c9bed501cbc80b584411e66e73a4cc15c/packages/sdk-react/src/components/ui/Unauthenticated/index.tsx#L5)
+[packages/sdk-react/src/components/ui/Unauthenticated/index.tsx:5](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/ee8adbc65b4bc7586f80efa86002158c90d78a7e/packages/sdk-react/src/components/ui/Unauthenticated/index.tsx#L5)

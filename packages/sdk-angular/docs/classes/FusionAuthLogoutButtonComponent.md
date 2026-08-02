@@ -6,7 +6,7 @@
 
 # Class: FusionAuthLogoutButtonComponent
 
-Defined in: [components/fusionauth-logout.button/fusion-auth-logout-button.component.ts:13](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/2d9af72c9bed501cbc80b584411e66e73a4cc15c/packages/sdk-angular/projects/fusionauth-angular-sdk/src/lib/components/fusionauth-logout.button/fusion-auth-logout-button.component.ts#L13)
+Defined in: [components/fusionauth-logout.button/fusion-auth-logout-button.component.ts:13](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/ee8adbc65b4bc7586f80efa86002158c90d78a7e/packages/sdk-angular/projects/fusionauth-angular-sdk/src/lib/components/fusionauth-logout.button/fusion-auth-logout-button.component.ts#L13)
 
 ## Constructors
 
@@ -16,7 +16,7 @@ Defined in: [components/fusionauth-logout.button/fusion-auth-logout-button.compo
 new FusionAuthLogoutButtonComponent(fusionAuth): FusionAuthLogoutButtonComponent;
 ```
 
-Defined in: [components/fusionauth-logout.button/fusion-auth-logout-button.component.ts:14](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/2d9af72c9bed501cbc80b584411e66e73a4cc15c/packages/sdk-angular/projects/fusionauth-angular-sdk/src/lib/components/fusionauth-logout.button/fusion-auth-logout-button.component.ts#L14)
+Defined in: [components/fusionauth-logout.button/fusion-auth-logout-button.component.ts:14](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/ee8adbc65b4bc7586f80efa86002158c90d78a7e/packages/sdk-angular/projects/fusionauth-angular-sdk/src/lib/components/fusionauth-logout.button/fusion-auth-logout-button.component.ts#L14)
 
 #### Parameters
 
@@ -36,7 +36,7 @@ Defined in: [components/fusionauth-logout.button/fusion-auth-logout-button.compo
 logout(): void;
 ```
 
-Defined in: [components/fusionauth-logout.button/fusion-auth-logout-button.component.ts:16](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/2d9af72c9bed501cbc80b584411e66e73a4cc15c/packages/sdk-angular/projects/fusionauth-angular-sdk/src/lib/components/fusionauth-logout.button/fusion-auth-logout-button.component.ts#L16)
+Defined in: [components/fusionauth-logout.button/fusion-auth-logout-button.component.ts:16](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/ee8adbc65b4bc7586f80efa86002158c90d78a7e/packages/sdk-angular/projects/fusionauth-angular-sdk/src/lib/components/fusionauth-logout.button/fusion-auth-logout-button.component.ts#L16)
 
 #### Returns
 

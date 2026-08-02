@@ -6,7 +6,7 @@
 
 # Class: FusionAuthLoginButtonComponent
 
-Defined in: [components/fusionauth-login.button/fusion-auth-login-button.component.ts:10](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/2d9af72c9bed501cbc80b584411e66e73a4cc15c/packages/sdk-angular/projects/fusionauth-angular-sdk/src/lib/components/fusionauth-login.button/fusion-auth-login-button.component.ts#L10)
+Defined in: [components/fusionauth-login.button/fusion-auth-login-button.component.ts:10](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/ee8adbc65b4bc7586f80efa86002158c90d78a7e/packages/sdk-angular/projects/fusionauth-angular-sdk/src/lib/components/fusionauth-login.button/fusion-auth-login-button.component.ts#L10)
 
 ## Constructors
 
@@ -16,7 +16,7 @@ Defined in: [components/fusionauth-login.button/fusion-auth-login-button.compone
 new FusionAuthLoginButtonComponent(fusionAuth): FusionAuthLoginButtonComponent;
 ```
 
-Defined in: [components/fusionauth-login.button/fusion-auth-login-button.component.ts:13](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/2d9af72c9bed501cbc80b584411e66e73a4cc15c/packages/sdk-angular/projects/fusionauth-angular-sdk/src/lib/components/fusionauth-login.button/fusion-auth-login-button.component.ts#L13)
+Defined in: [components/fusionauth-login.button/fusion-auth-login-button.component.ts:13](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/ee8adbc65b4bc7586f80efa86002158c90d78a7e/packages/sdk-angular/projects/fusionauth-angular-sdk/src/lib/components/fusionauth-login.button/fusion-auth-login-button.component.ts#L13)
 
 #### Parameters
 
@@ -36,7 +36,7 @@ Defined in: [components/fusionauth-login.button/fusion-auth-login-button.compone
 state: string | undefined;
 ```
 
-Defined in: [components/fusionauth-login.button/fusion-auth-login-button.component.ts:11](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/2d9af72c9bed501cbc80b584411e66e73a4cc15c/packages/sdk-angular/projects/fusionauth-angular-sdk/src/lib/components/fusionauth-login.button/fusion-auth-login-button.component.ts#L11)
+Defined in: [components/fusionauth-login.button/fusion-auth-login-button.component.ts:11](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/ee8adbc65b4bc7586f80efa86002158c90d78a7e/packages/sdk-angular/projects/fusionauth-angular-sdk/src/lib/components/fusionauth-login.button/fusion-auth-login-button.component.ts#L11)
 
 ## Methods
 
@@ -46,7 +46,7 @@ Defined in: [components/fusionauth-login.button/fusion-auth-login-button.compone
 login(): void;
 ```
 
-Defined in: [components/fusionauth-login.button/fusion-auth-login-button.component.ts:15](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/2d9af72c9bed501cbc80b584411e66e73a4cc15c/packages/sdk-angular/projects/fusionauth-angular-sdk/src/lib/components/fusionauth-login.button/fusion-auth-login-button.component.ts#L15)
+Defined in: [components/fusionauth-login.button/fusion-auth-login-button.component.ts:15](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/ee8adbc65b4bc7586f80efa86002158c90d78a7e/packages/sdk-angular/projects/fusionauth-angular-sdk/src/lib/components/fusionauth-login.button/fusion-auth-login-button.component.ts#L15)
 
 #### Returns
 

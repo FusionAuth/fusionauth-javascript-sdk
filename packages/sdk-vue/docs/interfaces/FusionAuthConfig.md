@@ -37,7 +37,7 @@ The number of seconds before the access token expiry when the auto refresh funct
 
 #### Defined in
 
-[packages/sdk-vue/src/types.ts:44](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/2d9af72c9bed501cbc80b584411e66e73a4cc15c/packages/sdk-vue/src/types.ts#L44)
+[packages/sdk-vue/src/types.ts:44](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/ee8adbc65b4bc7586f80efa86002158c90d78a7e/packages/sdk-vue/src/types.ts#L44)
 
 ---
 
@@ -49,7 +49,7 @@ The client id of the application.
 
 #### Defined in
 
-[packages/sdk-vue/src/types.ts:15](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/2d9af72c9bed501cbc80b584411e66e73a4cc15c/packages/sdk-vue/src/types.ts#L15)
+[packages/sdk-vue/src/types.ts:15](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/ee8adbc65b4bc7586f80efa86002158c90d78a7e/packages/sdk-vue/src/types.ts#L15)
 
 ---
 
@@ -62,7 +62,7 @@ Defaults to `'localStorage'`.
 
 #### Defined in
 
-[packages/sdk-vue/src/types.ts:94](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/2d9af72c9bed501cbc80b584411e66e73a4cc15c/packages/sdk-vue/src/types.ts#L94)
+[packages/sdk-vue/src/types.ts:94](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/ee8adbc65b4bc7586f80efa86002158c90d78a7e/packages/sdk-vue/src/types.ts#L94)
 
 ---
 
@@ -74,7 +74,7 @@ The path to the login endpoint.
 
 #### Defined in
 
-[packages/sdk-vue/src/types.ts:65](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/2d9af72c9bed501cbc80b584411e66e73a4cc15c/packages/sdk-vue/src/types.ts#L65)
+[packages/sdk-vue/src/types.ts:65](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/ee8adbc65b4bc7586f80efa86002158c90d78a7e/packages/sdk-vue/src/types.ts#L65)
 
 ---
 
@@ -86,7 +86,7 @@ The path to the logout endpoint.
 
 #### Defined in
 
-[packages/sdk-vue/src/types.ts:69](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/2d9af72c9bed501cbc80b584411e66e73a4cc15c/packages/sdk-vue/src/types.ts#L69)
+[packages/sdk-vue/src/types.ts:69](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/ee8adbc65b4bc7586f80efa86002158c90d78a7e/packages/sdk-vue/src/types.ts#L69)
 
 ---
 
@@ -98,7 +98,7 @@ The path to the me endpoint.
 
 #### Defined in
 
-[packages/sdk-vue/src/types.ts:81](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/2d9af72c9bed501cbc80b584411e66e73a4cc15c/packages/sdk-vue/src/types.ts#L81)
+[packages/sdk-vue/src/types.ts:81](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/ee8adbc65b4bc7586f80efa86002158c90d78a7e/packages/sdk-vue/src/types.ts#L81)
 
 ---
 
@@ -151,7 +151,7 @@ This is needed for the Vue SDK to support Nuxt/SSR.
 
 #### Defined in
 
-[packages/sdk-vue/src/types.ts:60](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/2d9af72c9bed501cbc80b584411e66e73a4cc15c/packages/sdk-vue/src/types.ts#L60)
+[packages/sdk-vue/src/types.ts:60](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/ee8adbc65b4bc7586f80efa86002158c90d78a7e/packages/sdk-vue/src/types.ts#L60)
 
 ---
 
@@ -177,7 +177,7 @@ Callback to be invoked if a request to refresh the access token fails during aut
 
 #### Defined in
 
-[packages/sdk-vue/src/types.ts:54](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/2d9af72c9bed501cbc80b584411e66e73a4cc15c/packages/sdk-vue/src/types.ts#L54)
+[packages/sdk-vue/src/types.ts:54](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/ee8adbc65b4bc7586f80efa86002158c90d78a7e/packages/sdk-vue/src/types.ts#L54)
 
 ---
 
@@ -203,7 +203,7 @@ Callback function to be invoked with the `state` value upon redirect from login 
 
 #### Defined in
 
-[packages/sdk-vue/src/types.ts:49](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/2d9af72c9bed501cbc80b584411e66e73a4cc15c/packages/sdk-vue/src/types.ts#L49)
+[packages/sdk-vue/src/types.ts:49](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/ee8adbc65b4bc7586f80efa86002158c90d78a7e/packages/sdk-vue/src/types.ts#L49)
 
 ---
 
@@ -215,7 +215,7 @@ The redirect URI for post-logout. Defaults the provided `redirectUri`.
 
 #### Defined in
 
-[packages/sdk-vue/src/types.ts:24](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/2d9af72c9bed501cbc80b584411e66e73a4cc15c/packages/sdk-vue/src/types.ts#L24)
+[packages/sdk-vue/src/types.ts:24](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/ee8adbc65b4bc7586f80efa86002158c90d78a7e/packages/sdk-vue/src/types.ts#L24)
 
 ---
 
@@ -227,7 +227,7 @@ The redirect URI of the application.
 
 #### Defined in
 
-[packages/sdk-vue/src/types.ts:19](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/2d9af72c9bed501cbc80b584411e66e73a4cc15c/packages/sdk-vue/src/types.ts#L19)
+[packages/sdk-vue/src/types.ts:19](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/ee8adbc65b4bc7586f80efa86002158c90d78a7e/packages/sdk-vue/src/types.ts#L19)
 
 ---
 
@@ -239,7 +239,7 @@ The path to the register endpoint.
 
 #### Defined in
 
-[packages/sdk-vue/src/types.ts:73](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/2d9af72c9bed501cbc80b584411e66e73a4cc15c/packages/sdk-vue/src/types.ts#L73)
+[packages/sdk-vue/src/types.ts:73](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/ee8adbc65b4bc7586f80efa86002158c90d78a7e/packages/sdk-vue/src/types.ts#L73)
 
 ---
 
@@ -251,7 +251,7 @@ The OAuth2 scope parameter passed to the `/oauth2/authorize` endpoint. If not sp
 
 #### Defined in
 
-[packages/sdk-vue/src/types.ts:29](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/2d9af72c9bed501cbc80b584411e66e73a4cc15c/packages/sdk-vue/src/types.ts#L29)
+[packages/sdk-vue/src/types.ts:29](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/ee8adbc65b4bc7586f80efa86002158c90d78a7e/packages/sdk-vue/src/types.ts#L29)
 
 ---
 
@@ -263,7 +263,7 @@ The URL of the FusionAuth server.
 
 #### Defined in
 
-[packages/sdk-vue/src/types.ts:11](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/2d9af72c9bed501cbc80b584411e66e73a4cc15c/packages/sdk-vue/src/types.ts#L11)
+[packages/sdk-vue/src/types.ts:11](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/ee8adbc65b4bc7586f80efa86002158c90d78a7e/packages/sdk-vue/src/types.ts#L11)
 
 ---
 
@@ -275,7 +275,7 @@ Enables the SDK to automatically handle fetching user info when logged in. Defau
 
 #### Defined in
 
-[packages/sdk-vue/src/types.ts:39](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/2d9af72c9bed501cbc80b584411e66e73a4cc15c/packages/sdk-vue/src/types.ts#L39)
+[packages/sdk-vue/src/types.ts:39](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/ee8adbc65b4bc7586f80efa86002158c90d78a7e/packages/sdk-vue/src/types.ts#L39)
 
 ---
 
@@ -287,7 +287,7 @@ Enables automatic token refreshing. Defaults to false.
 
 #### Defined in
 
-[packages/sdk-vue/src/types.ts:34](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/2d9af72c9bed501cbc80b584411e66e73a4cc15c/packages/sdk-vue/src/types.ts#L34)
+[packages/sdk-vue/src/types.ts:34](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/ee8adbc65b4bc7586f80efa86002158c90d78a7e/packages/sdk-vue/src/types.ts#L34)
 
 ---
 
@@ -299,7 +299,7 @@ The path to the token refresh endpoint.
 
 #### Defined in
 
-[packages/sdk-vue/src/types.ts:77](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/2d9af72c9bed501cbc80b584411e66e73a4cc15c/packages/sdk-vue/src/types.ts#L77)
+[packages/sdk-vue/src/types.ts:77](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/ee8adbc65b4bc7586f80efa86002158c90d78a7e/packages/sdk-vue/src/types.ts#L77)
 
 ---
 
@@ -313,4 +313,4 @@ relying on the Hosted Backend's HttpOnly cookies. Defaults to `false`.
 
 #### Defined in
 
-[packages/sdk-vue/src/types.ts:88](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/2d9af72c9bed501cbc80b584411e66e73a4cc15c/packages/sdk-vue/src/types.ts#L88)
+[packages/sdk-vue/src/types.ts:88](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/ee8adbc65b4bc7586f80efa86002158c90d78a7e/packages/sdk-vue/src/types.ts#L88)

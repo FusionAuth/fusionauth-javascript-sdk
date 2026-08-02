@@ -43,18 +43,19 @@ then log in. After that, they are sent back to your Vue application.
 Once authentication succeeds, the following secure, HTTP-only cookies
 will be set:
 
--   `app.at` - an OAuth [Access
-    Token](https://fusionauth.io/docs/v1/tech/oauth/tokens#access-token)
+- `app.at` - an OAuth [Access
+  Token](https://fusionauth.io/docs/v1/tech/oauth/tokens#access-token)
 
--   `app.rt` - a [Refresh
-    Token](https://fusionauth.io/docs/v1/tech/oauth/tokens#refresh-token)
-    used to obtain a new `app.at`. This cookie will only be set if
-    refresh tokens are enabled on your FusionAuth instance.
+- `app.rt` - a [Refresh
+  Token](https://fusionauth.io/docs/v1/tech/oauth/tokens#refresh-token)
+  used to obtain a new `app.at`. This cookie will only be set if
+  refresh tokens are enabled on your FusionAuth instance.
 
 The access token can be presented to APIs to authorize the request and
 the refresh token can be used to get a new access token.
 
 There are 2 ways to interact with this SDK:
+
 1. By hosting your own server that performs the OAuth token exchange and meets the [server code requirements for FusionAuth Web SDKs](https://github.com/FusionAuth/fusionauth-javascript-sdk-express#server-code-requirements).
 2. By using the server hosted on your FusionAuth instance, i.e., not writing your own server code.
 
@@ -93,22 +94,24 @@ Configure and initialize the `FusionAuthVuePlugin` when you create your Vue app:
 
 ```typescript
 import { createApp } from 'vue';
-import FusionAuthVuePlugin, { type FusionAuthConfig } from '@fusionauth/vue-sdk';
+import FusionAuthVuePlugin, {
+  type FusionAuthConfig,
+} from '@fusionauth/vue-sdk';
 
 const config: FusionAuthConfig = {
-  clientId: "", // Your app's FusionAuth client id
-  serverUrl: "", // The url of the server that performs the token exchange
-  redirectUri: "", // The URI that the user is directed to after the login/register/logout action
+  clientId: '', // Your app's FusionAuth client id
+  serverUrl: '', // The url of the server that performs the token exchange
+  redirectUri: '', // The URI that the user is directed to after the login/register/logout action
   shouldAutoFetchUserInfo: true, // Automatically fetch userInfo when logged in. Defaults to false.
   shouldAutoRefresh: true, // Enables automatic token refresh. Defaults to false.
-  onRedirect: (state?: string) => { }, // Optional callback invoked upon redirect back from login or register.
+  onRedirect: (state?: string) => {}, // Optional callback invoked upon redirect back from login or register.
   // useDpop: true, // Opt-in to DPoP mode. See "DPoP Mode" below. Defaults to false.
-}
+};
 
 const app = createApp(App);
 
 app.use(FusionAuthVuePlugin, config);
-app.mount('#app')
+app.mount('#app');
 ```
 
 If you want to use the pre-styled buttons, don't forget to import the css file:
@@ -139,13 +142,13 @@ Using `createFusionAuth`, the SDK can be configured more flexibly.
 ```typescript
 export default defineNuxtPlugin({
   setup(nuxtApp) {
-    const fusionauth = createFusionAuth(config);   
-    nuxtApp.vueApp.use(FusionAuthVuePlugin, { instance: fusionauth })
+    const fusionauth = createFusionAuth(config);
+    nuxtApp.vueApp.use(FusionAuthVuePlugin, { instance: fusionauth });
     return {
-      provide: { fusionauth }
+      provide: { fusionauth },
     };
   },
-})
+});
 ```
 
 ### `useFusionAuth` composable
@@ -155,33 +158,23 @@ View the [full API documentation](https://github.com/FusionAuth/fusionauth-javas
 
 ```html
 <script setup lang="ts">
-import { computed } from 'vue';
-import { useFusionAuth } from "@fusionauth/vue-sdk";
+  import { computed } from 'vue';
+  import { useFusionAuth } from '@fusionauth/vue-sdk';
 
-const {
-  isLoggedIn,
-  userInfo,
-  isFetchingUserInfo,
-  login,
-  register,
-  logout
-} = useFusionAuth();
+  const { isLoggedIn, userInfo, isFetchingUserInfo, login, register, logout } =
+    useFusionAuth();
 
-const welcomeMessage = computed(() => {
-  const name = userInfo.value?.given_name
-  return name 
-    ? 'Welcome!'
-    : `Welcome ${userInfo.value.given_name}!`;
-});
+  const welcomeMessage = computed(() => {
+    const name = userInfo.value?.given_name;
+    return name ? 'Welcome!' : `Welcome ${userInfo.value.given_name}!`;
+  });
 </script>
 
 <template>
   <p>{{ welcomeMessage }}</p>
 
   <div v-if="isLoggedIn">
-    <p v-if="isFetchingUserInfo">
-      Loading...
-    </p>
+    <p v-if="isFetchingUserInfo">Loading...</p>
     <button @click="logout()">Logout</button>
   </div>
 
@@ -203,29 +196,35 @@ By default, the SDK calls a Hosted Backend that stores tokens in HttpOnly cookie
 
 ```typescript
 const config: FusionAuthConfig = {
-  clientId: "",
-  redirectUri: "",
-  serverUrl: "",
+  clientId: '',
+  redirectUri: '',
+  serverUrl: '',
   useDpop: true, // Opt-in to DPoP mode.
   dpopTokenStorage: 'localStorage', // 'localStorage' (default, persists across reloads) or 'memory'.
-}
+};
 ```
 
 When `useDpop: true`, `useFusionAuth()` additionally returns `dpopFetch`, `generateProof`, and `getAccessToken`. These are `undefined` when `useDpop` is `false` or not set.
 
 ```html
 <script setup lang="ts">
-import { useFusionAuth } from "@fusionauth/vue-sdk";
+  import { useFusionAuth } from '@fusionauth/vue-sdk';
 
-const { dpopFetch, generateProof, getAccessToken } = useFusionAuth();
+  const { dpopFetch, generateProof, getAccessToken } = useFusionAuth();
 
-const response = await dpopFetch('https://api.example.com/data', { method: 'GET' });
+  const response = await dpopFetch('https://api.example.com/data', {
+    method: 'GET',
+  });
 
-const accessToken = getAccessToken();
-const proof = await generateProof('https://api.example.com/data', 'GET', accessToken);
-// axios.get('https://api.example.com/data', {
-//   headers: { Authorization: `DPoP ${accessToken}`, DPoP: proof }
-// });
+  const accessToken = getAccessToken();
+  const proof = await generateProof(
+    'https://api.example.com/data',
+    'GET',
+    accessToken,
+  );
+  // axios.get('https://api.example.com/data', {
+  //   headers: { Authorization: `DPoP ${accessToken}`, DPoP: proof }
+  // });
 </script>
 ```
 
@@ -236,7 +235,7 @@ const config: FusionAuthConfig = {
   // ...
   useDpop: true,
   onRedirect: () => router.push('/account'),
-}
+};
 ```
 
 ##### Resource Server Guidance
@@ -313,23 +312,23 @@ You may prefer to invoke `initAutoRefresh` from the [`app:beforeMount` hook](htt
 
 ```typescript
 defineNuxtPlugin({
-  setup: (nuxtApp) => {
+  setup: nuxtApp => {
     const fusionauth = createFusionAuth({
       ...config,
       shouldAutoRefresh: false, // is false by default
-    });   
-    nuxtApp.vueApp.use(FusionAuthVuePlugin, { instance: fusionauth })
+    });
+    nuxtApp.vueApp.use(FusionAuthVuePlugin, { instance: fusionauth });
     return {
-      provide: { fusionauth }
+      provide: { fusionauth },
     };
   },
   hooks: {
-    "app:beforeMount"() {
+    'app:beforeMount'() {
       const { $fusionauth } = useNuxtApp();
       $fusionauth.initAutoRefresh();
     },
-  }
-})
+  },
+});
 ```
 
 ## Releases

@@ -6,7 +6,7 @@
 
 # Interface: FusionAuthConfig
 
-Defined in: [types.ts:4](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/2d9af72c9bed501cbc80b584411e66e73a4cc15c/packages/sdk-angular/projects/fusionauth-angular-sdk/src/lib/types.ts#L4)
+Defined in: [types.ts:4](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/ee8adbc65b4bc7586f80efa86002158c90d78a7e/packages/sdk-angular/projects/fusionauth-angular-sdk/src/lib/types.ts#L4)
 
 Config for FusionAuth Angular SDK
 
@@ -18,7 +18,7 @@ Config for FusionAuth Angular SDK
 optional autoRefreshSecondsBeforeExpiry?: number;
 ```
 
-Defined in: [types.ts:38](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/2d9af72c9bed501cbc80b584411e66e73a4cc15c/packages/sdk-angular/projects/fusionauth-angular-sdk/src/lib/types.ts#L38)
+Defined in: [types.ts:38](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/ee8adbc65b4bc7586f80efa86002158c90d78a7e/packages/sdk-angular/projects/fusionauth-angular-sdk/src/lib/types.ts#L38)
 
 The number of seconds before the access token expiry when the auto refresh functionality kicks in if enabled. Default is 10.
 
@@ -30,7 +30,7 @@ The number of seconds before the access token expiry when the auto refresh funct
 clientId: string;
 ```
 
-Defined in: [types.ts:13](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/2d9af72c9bed501cbc80b584411e66e73a4cc15c/packages/sdk-angular/projects/fusionauth-angular-sdk/src/lib/types.ts#L13)
+Defined in: [types.ts:13](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/ee8adbc65b4bc7586f80efa86002158c90d78a7e/packages/sdk-angular/projects/fusionauth-angular-sdk/src/lib/types.ts#L13)
 
 The client id of the application.
 
@@ -42,7 +42,7 @@ The client id of the application.
 optional dpopTokenStorage?: "localStorage" | "memory";
 ```
 
-Defined in: [types.ts:86](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/2d9af72c9bed501cbc80b584411e66e73a4cc15c/packages/sdk-angular/projects/fusionauth-angular-sdk/src/lib/types.ts#L86)
+Defined in: [types.ts:86](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/ee8adbc65b4bc7586f80efa86002158c90d78a7e/packages/sdk-angular/projects/fusionauth-angular-sdk/src/lib/types.ts#L86)
 
 Token storage location in DPoP mode. Only meaningful when `useDpop: true`.
 Defaults to `'localStorage'`.
@@ -55,7 +55,7 @@ Defaults to `'localStorage'`.
 optional loginPath?: string;
 ```
 
-Defined in: [types.ts:53](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/2d9af72c9bed501cbc80b584411e66e73a4cc15c/packages/sdk-angular/projects/fusionauth-angular-sdk/src/lib/types.ts#L53)
+Defined in: [types.ts:53](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/ee8adbc65b4bc7586f80efa86002158c90d78a7e/packages/sdk-angular/projects/fusionauth-angular-sdk/src/lib/types.ts#L53)
 
 The path to the login endpoint.
 
@@ -67,7 +67,7 @@ The path to the login endpoint.
 optional logoutPath?: string;
 ```
 
-Defined in: [types.ts:63](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/2d9af72c9bed501cbc80b584411e66e73a4cc15c/packages/sdk-angular/projects/fusionauth-angular-sdk/src/lib/types.ts#L63)
+Defined in: [types.ts:63](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/ee8adbc65b4bc7586f80efa86002158c90d78a7e/packages/sdk-angular/projects/fusionauth-angular-sdk/src/lib/types.ts#L63)
 
 The path to the logout endpoint.
 
@@ -79,7 +79,7 @@ The path to the logout endpoint.
 optional mePath?: string;
 ```
 
-Defined in: [types.ts:73](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/2d9af72c9bed501cbc80b584411e66e73a4cc15c/packages/sdk-angular/projects/fusionauth-angular-sdk/src/lib/types.ts#L73)
+Defined in: [types.ts:73](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/ee8adbc65b4bc7586f80efa86002158c90d78a7e/packages/sdk-angular/projects/fusionauth-angular-sdk/src/lib/types.ts#L73)
 
 The path to the me endpoint.
 
@@ -91,7 +91,7 @@ The path to the me endpoint.
 optional onAutoRefreshFailure?: (error) => void;
 ```
 
-Defined in: [types.ts:48](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/2d9af72c9bed501cbc80b584411e66e73a4cc15c/packages/sdk-angular/projects/fusionauth-angular-sdk/src/lib/types.ts#L48)
+Defined in: [types.ts:48](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/ee8adbc65b4bc7586f80efa86002158c90d78a7e/packages/sdk-angular/projects/fusionauth-angular-sdk/src/lib/types.ts#L48)
 
 Callback to be invoked if a request to refresh the access token fails during autorefresh.
 
@@ -113,7 +113,7 @@ Callback to be invoked if a request to refresh the access token fails during aut
 optional onRedirect?: (state?) => void;
 ```
 
-Defined in: [types.ts:43](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/2d9af72c9bed501cbc80b584411e66e73a4cc15c/packages/sdk-angular/projects/fusionauth-angular-sdk/src/lib/types.ts#L43)
+Defined in: [types.ts:43](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/ee8adbc65b4bc7586f80efa86002158c90d78a7e/packages/sdk-angular/projects/fusionauth-angular-sdk/src/lib/types.ts#L43)
 
 Callback function to be invoked with the `state` value upon redirect from login or register.
 
@@ -135,7 +135,7 @@ Callback function to be invoked with the `state` value upon redirect from login 
 optional postLogoutRedirectUri?: string;
 ```
 
-Defined in: [types.ts:23](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/2d9af72c9bed501cbc80b584411e66e73a4cc15c/packages/sdk-angular/projects/fusionauth-angular-sdk/src/lib/types.ts#L23)
+Defined in: [types.ts:23](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/ee8adbc65b4bc7586f80efa86002158c90d78a7e/packages/sdk-angular/projects/fusionauth-angular-sdk/src/lib/types.ts#L23)
 
 The redirect URI for post-logout. Defaults the provided `redirectUri`.
 
@@ -147,7 +147,7 @@ The redirect URI for post-logout. Defaults the provided `redirectUri`.
 redirectUri: string;
 ```
 
-Defined in: [types.ts:18](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/2d9af72c9bed501cbc80b584411e66e73a4cc15c/packages/sdk-angular/projects/fusionauth-angular-sdk/src/lib/types.ts#L18)
+Defined in: [types.ts:18](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/ee8adbc65b4bc7586f80efa86002158c90d78a7e/packages/sdk-angular/projects/fusionauth-angular-sdk/src/lib/types.ts#L18)
 
 The redirect URI of the application.
 
@@ -159,7 +159,7 @@ The redirect URI of the application.
 optional registerPath?: string;
 ```
 
-Defined in: [types.ts:58](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/2d9af72c9bed501cbc80b584411e66e73a4cc15c/packages/sdk-angular/projects/fusionauth-angular-sdk/src/lib/types.ts#L58)
+Defined in: [types.ts:58](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/ee8adbc65b4bc7586f80efa86002158c90d78a7e/packages/sdk-angular/projects/fusionauth-angular-sdk/src/lib/types.ts#L58)
 
 The path to the register endpoint.
 
@@ -171,7 +171,7 @@ The path to the register endpoint.
 optional scope?: string;
 ```
 
-Defined in: [types.ts:28](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/2d9af72c9bed501cbc80b584411e66e73a4cc15c/packages/sdk-angular/projects/fusionauth-angular-sdk/src/lib/types.ts#L28)
+Defined in: [types.ts:28](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/ee8adbc65b4bc7586f80efa86002158c90d78a7e/packages/sdk-angular/projects/fusionauth-angular-sdk/src/lib/types.ts#L28)
 
 The OAuth2 scope parameter passed to the `/oauth2/authorize` endpoint. If not specified fusionauth will default this to `openid offline_access`.
 
@@ -183,7 +183,7 @@ The OAuth2 scope parameter passed to the `/oauth2/authorize` endpoint. If not sp
 serverUrl: string;
 ```
 
-Defined in: [types.ts:8](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/2d9af72c9bed501cbc80b584411e66e73a4cc15c/packages/sdk-angular/projects/fusionauth-angular-sdk/src/lib/types.ts#L8)
+Defined in: [types.ts:8](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/ee8adbc65b4bc7586f80efa86002158c90d78a7e/packages/sdk-angular/projects/fusionauth-angular-sdk/src/lib/types.ts#L8)
 
 The URL of the server that performs the token exchange.
 
@@ -195,7 +195,7 @@ The URL of the server that performs the token exchange.
 optional shouldAutoRefresh?: boolean;
 ```
 
-Defined in: [types.ts:33](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/2d9af72c9bed501cbc80b584411e66e73a4cc15c/packages/sdk-angular/projects/fusionauth-angular-sdk/src/lib/types.ts#L33)
+Defined in: [types.ts:33](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/ee8adbc65b4bc7586f80efa86002158c90d78a7e/packages/sdk-angular/projects/fusionauth-angular-sdk/src/lib/types.ts#L33)
 
 Enables automatic token refreshing. Defaults to false.
 
@@ -207,7 +207,7 @@ Enables automatic token refreshing. Defaults to false.
 optional tokenRefreshPath?: string;
 ```
 
-Defined in: [types.ts:68](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/2d9af72c9bed501cbc80b584411e66e73a4cc15c/packages/sdk-angular/projects/fusionauth-angular-sdk/src/lib/types.ts#L68)
+Defined in: [types.ts:68](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/ee8adbc65b4bc7586f80efa86002158c90d78a7e/packages/sdk-angular/projects/fusionauth-angular-sdk/src/lib/types.ts#L68)
 
 The path to the token refresh endpoint.
 
@@ -219,7 +219,7 @@ The path to the token refresh endpoint.
 optional useDpop?: boolean;
 ```
 
-Defined in: [types.ts:80](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/2d9af72c9bed501cbc80b584411e66e73a4cc15c/packages/sdk-angular/projects/fusionauth-angular-sdk/src/lib/types.ts#L80)
+Defined in: [types.ts:80](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/ee8adbc65b4bc7586f80efa86002158c90d78a7e/packages/sdk-angular/projects/fusionauth-angular-sdk/src/lib/types.ts#L80)
 
 Opt-in to DPoP mode. When `true`, the SDK calls FusionAuth endpoints
 directly and stores tokens in JavaScript-accessible storage instead of
