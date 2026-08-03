@@ -49,7 +49,7 @@
     "test:sdk-react": "yarn workspace @fusionauth/react-sdk test",
     "test:sdk-vue": "yarn workspace @fusionauth/vue-sdk test",
     "test:e2e": "yarn playwright test",
-    "test:e2e:dpop-endpoints": "yarn playwright test --config playwright.dpop-endpoints.config.ts",
+    "test:e2e:dpop-endpoints": "yarn build:core && yarn playwright test --config playwright.dpop-endpoints.config.ts",
     "lint:fix": "eslint . --ext .ts,.tsx --fix",
     "lint:check": "eslint . --ext .ts,.tsx --max-warnings 0",
     "format:fix": "prettier --write .",
