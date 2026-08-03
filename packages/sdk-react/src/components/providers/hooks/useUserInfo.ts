@@ -5,6 +5,7 @@ import { SDKCore } from '@fusionauth-sdk/core';
 export function useUserInfo<T>(
   core: SDKCore,
   shouldAutoFetchUserInfo: boolean,
+  isLoggedIn: boolean,
 ) {
   const [isFetchingUserInfo, setIsFetchingUserInfo] = useState(false);
   const [userInfo, setUserInfo] = useState<T | null>(null);
@@ -28,17 +29,19 @@ export function useUserInfo<T>(
   const didAttemptAutoFetch = useRef(false);
 
   const handleAutoFetch = useCallback(() => {
-    if (!shouldAutoFetchUserInfo || didAttemptAutoFetch.current) {
+    if (
+      !shouldAutoFetchUserInfo ||
+      didAttemptAutoFetch.current ||
+      !isLoggedIn
+    ) {
       return;
     }
 
     // ensures this effect does not run multiple times if we fail to fetch the user
     didAttemptAutoFetch.current = true;
 
-    if (core.isLoggedIn) {
-      fetchUserInfo();
-    }
-  }, [core, fetchUserInfo, shouldAutoFetchUserInfo]);
+    fetchUserInfo();
+  }, [fetchUserInfo, shouldAutoFetchUserInfo, isLoggedIn]);
 
   useEffect(() => {
     handleAutoFetch();

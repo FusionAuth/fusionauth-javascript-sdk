@@ -67,6 +67,16 @@ export class UrlHelper {
     });
   }
 
+  /**
+   * Builds the direct `/oauth2/logout` URL used in DPoP mode.
+   */
+  getOAuth2LogoutUrl(): URL {
+    return this.generateUrl('/oauth2/logout', {
+      client_id: this.clientId,
+      post_logout_redirect_uri: this.postLogoutRedirectUri || this.redirectUri,
+    });
+  }
+
   getAccountManagementUrl(): URL {
     return this.generateUrl('/account/', {
       client_id: this.clientId,
@@ -96,13 +106,17 @@ export class UrlHelper {
 
   /**
    * Builds the direct `/oauth2/token` URL used in DPoP mode for the
-   * authorization code exchange and refresh token grant. Targets FusionAuth
-   * directly (not Hosted Backend Mode). Request parameters are sent in
-   * the POST body (form-urlencoded), not the query string, so no params are
-   * appended here.
+   * authorization code exchange and refresh token grant.
    */
   getTokenUrl(): URL {
     return this.generateUrl('/oauth2/token');
+  }
+
+  /**
+   * Builds the direct `/oauth2/userinfo` URL used in DPoP mode.
+   */
+  getUserInfoUrl(): URL {
+    return this.generateUrl('/oauth2/userinfo');
   }
 
   private generateUrl(path: string, params?: UrlHelperQueryParams): URL {

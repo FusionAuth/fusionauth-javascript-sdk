@@ -4,6 +4,7 @@ import {
   useMemo,
   useState,
   useRef,
+  useCallback,
 } from 'react';
 
 import { SDKConfig, SDKCore } from '@fusionauth-sdk/core';
@@ -14,6 +15,7 @@ import {
   useRedirecting,
   useUserInfo,
   useCookieAdapter,
+  useDpop,
 } from './hooks';
 import { FusionAuthContext, UserInfo as DefaultUserInfo } from './Context';
 import { FusionAuthProviderContext } from './FusionAuthProviderContext';
@@ -41,6 +43,8 @@ function FusionAuthProvider<T = DefaultUserInfo>(
         mePath: props.mePath,
         accessTokenExpireCookieName: props.accessTokenExpireCookieName,
         onAutoRefreshFailure: props.onAutoRefreshFailure,
+        useDpop: props.useDpop,
+        dpopTokenStorage: props.dpopTokenStorage,
       }),
       [
         props.serverUrl,
@@ -60,6 +64,8 @@ function FusionAuthProvider<T = DefaultUserInfo>(
         props.mePath,
         props.accessTokenExpireCookieName,
         props.onAutoRefreshFailure,
+        props.useDpop,
+        props.dpopTokenStorage,
       ],
     );
 
@@ -96,17 +102,27 @@ function FusionAuthProvider<T = DefaultUserInfo>(
 
   const [isLoggedIn, setIsLoggedIn] = useState(core.isLoggedIn);
 
+  const syncIsLoggedIn = useCallback(() => {
+    setIsLoggedIn(core.isLoggedIn);
+  }, [core]);
+
   const { manageAccount, startLogin, startLogout, startRegister } =
-    useRedirecting(core, config.onRedirect);
+    useRedirecting(core, config.onRedirect, syncIsLoggedIn);
 
   const { isFetchingUserInfo, userInfo, fetchUserInfo, error } = useUserInfo<T>(
     core,
     config.shouldAutoFetchUserInfo ?? false,
+    isLoggedIn,
   );
 
   const { refreshToken, initAutoRefresh } = useTokenRefresh(
     core,
     config.shouldAutoRefresh ?? false,
+  );
+
+  const { dpopFetch, generateProof, getAccessToken } = useDpop(
+    core,
+    config.useDpop ?? false,
   );
 
   const providerValue: FusionAuthProviderContext<T> = {
@@ -121,6 +137,9 @@ function FusionAuthProvider<T = DefaultUserInfo>(
     initAutoRefresh,
     fetchUserInfo,
     manageAccount,
+    dpopFetch,
+    generateProof,
+    getAccessToken,
   };
 
   return (

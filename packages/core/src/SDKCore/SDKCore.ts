@@ -15,6 +15,7 @@ export class SDKCore {
   private refreshTokenTimeout?: NodeJS.Timeout;
   private isDisposed = false;
   private dpopManager?: DPoPManager;
+  private postRedirectPromise?: Promise<void>;
 
   constructor(config: SDKConfig) {
     this.config = config;
@@ -102,6 +103,9 @@ export class SDKCore {
    * In hosted backend mode, the flow is synchronous.
    */
   startLogout(): void {
+    clearTimeout(this.tokenExpirationTimeout);
+    this.stopAutoRefresh();
+
     if (this.dpopManager) {
       this.startDpopLogout().catch(error => {
         console.error('FusionAuth SDK: startLogout failed', error);
@@ -120,7 +124,7 @@ export class SDKCore {
     try {
       await this.dpopManager!.clear();
     } finally {
-      window.location.assign(this.urlHelper.getLogoutUrl());
+      window.location.assign(this.urlHelper.getOAuth2LogoutUrl());
     }
   }
 
@@ -144,7 +148,50 @@ export class SDKCore {
     return this.dpopManager.getAccessToken();
   }
 
-  async fetchUserInfo<T = UserInfo>() {
+  /**
+   * DPoP-aware `fetch()` wrapper. Automatically attaches `Authorization: DPoP
+   * <token>` and `DPoP: <proof>` headers to the outgoing request.
+   *
+   * @throws {Error} if called in hosted backend mode (`useDpop: false`).
+   */
+  async dpopFetch(
+    input: RequestInfo | URL,
+    init?: RequestInit,
+  ): Promise<Response> {
+    if (!this.dpopManager) {
+      throw new Error(
+        'dpopFetch() is only available in DPoP mode. In hosted backend mode, use fetch() with credentials: "include" instead.',
+      );
+    }
+    return this.dpopManager.fetch(input, init);
+  }
+
+  /**
+   * Generates a signed DPoP proof JWT for the given request, for use cases
+   *  (e.g. axios or other HTTP libraries) that can't use
+   * {@link dpopFetch}).
+   *
+   * @throws {Error} if called in hosted backend mode (`useDpop: false`).
+   */
+  async generateProof(
+    htu: string,
+    htm: string,
+    accessToken?: string,
+    nonce?: string,
+  ): Promise<string> {
+    if (!this.dpopManager) {
+      throw new Error(
+        'generateProof() is only available in DPoP mode. In hosted backend mode, tokens are stored in HttpOnly cookies and DPoP proofs are not applicable.',
+      );
+    }
+    return this.dpopManager.generateProof(htu, htm, accessToken, nonce);
+  }
+
+  async fetchUserInfo<T = UserInfo>(): Promise<T> {
+    if (this.dpopManager) {
+      return this.fetchDpopUserInfo<T>();
+    }
+
     const userInfoResponse = await fetch(this.urlHelper.getMeUrl(), {
       credentials: 'include',
     });
@@ -157,6 +204,27 @@ export class SDKCore {
 
     const userInfo: T = await userInfoResponse.json();
     return userInfo;
+  }
+
+  private async fetchDpopUserInfo<T>(): Promise<T> {
+    const accessToken = this.dpopManager!.getAccessToken();
+    if (!accessToken) {
+      throw new Error(
+        'No access token available. Have you called startLogin()?',
+      );
+    }
+
+    const userInfoResponse = await this.dpopManager!.fetch(
+      this.urlHelper.getUserInfoUrl(),
+    );
+
+    if (!userInfoResponse.ok) {
+      throw new Error(
+        `Unable to fetch userInfo. Request failed with status code ${userInfoResponse?.status}`,
+      );
+    }
+
+    return (await userInfoResponse.json()) as T;
   }
 
   async refreshToken(): Promise<Response> {
@@ -181,8 +249,6 @@ export class SDKCore {
       throw new Error(JSON.stringify(errorDetails));
     }
 
-    // a successful request means that app_exp was bumped into the future.
-    // reschedule the access token expiration event.
     this.scheduleTokenExpiration();
 
     return response;
@@ -292,21 +358,30 @@ export class SDKCore {
    * kicking off an async chain, otherwise continue using Hosted
    * Backend Mode.
    */
-  handlePostRedirect(callback?: (state?: string) => void): void {
+  handlePostRedirect(callback?: (state?: string) => void): Promise<void> {
+    if (this.postRedirectPromise) {
+      return this.postRedirectPromise;
+    }
+
     if (this.dpopManager) {
-      this.handleDpopPostRedirect(callback).catch(error => {
-        if (this.config.onLoginFailure) {
-          this.config.onLoginFailure(error as Error);
-        } else {
-          console.error('FusionAuth SDK: handlePostRedirect failed', error);
-        }
-      });
-      return;
+      this.postRedirectPromise = this.handleDpopPostRedirect(callback).catch(
+        error => {
+          if (this.config.onLoginFailure) {
+            this.config.onLoginFailure(error as Error);
+          } else {
+            console.error('FusionAuth SDK: handlePostRedirect failed', error);
+          }
+        },
+      );
+      return this.postRedirectPromise;
     }
 
     if (this.isLoggedIn) {
       this.redirectHelper.handlePostRedirect(callback);
     }
+
+    this.postRedirectPromise = Promise.resolve();
+    return this.postRedirectPromise;
   }
 
   /**

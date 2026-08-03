@@ -96,4 +96,17 @@ export interface FusionAuthProviderConfig {
    * Only set this if you are hosting server that uses a custom name for the 'app.at_exp' cookie.
    */
   accessTokenExpireCookieName?: string;
+
+  /**
+   * Opt-in to DPoP mode. When `true`, the SDK calls FusionAuth endpoints
+   * directly and stores tokens in JavaScript-accessible storage instead of
+   * relying on the Hosted Backend's HttpOnly cookies. Defaults to `false`.
+   */
+  useDpop?: boolean;
+
+  /**
+   * Token storage location in DPoP mode. Only meaningful when `useDpop: true`.
+   * Defaults to `'localStorage'`.
+   */
+  dpopTokenStorage?: 'localStorage' | 'memory';
 }

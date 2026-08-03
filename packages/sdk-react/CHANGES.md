@@ -1,5 +1,9 @@
 FusionAuth React SDK Changes
 
+Changes in 2.7.0
+
+- Added support for DPoP mode. Configure with `useDpop: true` and `dpopTokenStorage`. `useFusionAuth()` now exposes `dpopFetch`, `generateProof`, and `getAccessToken` when DPoP mode is enabled.
+
 Changes in 2.6.0
 
 - Upgrade to React 19. The SDK is now built and tested against React 19 (^19.2.0) while maintaining compatibility with React 18.2+.

@@ -290,6 +290,31 @@ describe('SDKCore', () => {
       );
     });
 
+    it('startLogout() in DPoP mode clears DPoPManager state and redirects to /oauth2/logout directly', async () => {
+      vi.spyOn(DPoPManager.prototype, 'getOrCreateKeyPair').mockResolvedValue(
+        {} as any,
+      );
+      const clearSpy = vi
+        .spyOn(DPoPManager.prototype, 'clear')
+        .mockResolvedValue(undefined);
+      const location = mockWindowLocation(vi);
+
+      const core = new SDKCore(dpopConfig);
+      core.startLogout();
+      await vi.waitFor(() => expect(location.assign).toHaveBeenCalledOnce());
+
+      expect(clearSpy).toHaveBeenCalledOnce();
+
+      const assignedUrl = new URL(
+        String((location.assign as ReturnType<typeof vi.fn>).mock.calls[0][0]),
+      );
+
+      expect(assignedUrl.pathname).toBe('/oauth2/logout');
+      expect(assignedUrl.searchParams.get('client_id')).toBe(
+        dpopConfig.clientId,
+      );
+    });
+
     it('getAccessToken() returns the stored access token when useDpop: true', () => {
       vi.spyOn(DPoPManager.prototype, 'getOrCreateKeyPair').mockResolvedValue(
         {} as any,
@@ -322,6 +347,126 @@ describe('SDKCore', () => {
       expect(() => core.getAccessToken()).toThrow(
         'getAccessToken() is only available in DPoP mode. In hosted backend mode, tokens are stored in HttpOnly cookies and are not accessible to JavaScript.',
       );
+    });
+
+    it('dpopFetch() delegates to DPoPManager.fetch() when useDpop: true', async () => {
+      vi.spyOn(DPoPManager.prototype, 'getOrCreateKeyPair').mockResolvedValue(
+        {} as any,
+      );
+      const mockResponse = new Response(null, { status: 200 });
+      const fetchSpy = vi
+        .spyOn(DPoPManager.prototype, 'fetch')
+        .mockResolvedValue(mockResponse);
+
+      const core = new SDKCore(dpopConfig);
+      const init = { method: 'GET' };
+      const response = await core.dpopFetch(
+        'https://api.example.com/data',
+        init,
+      );
+
+      expect(fetchSpy).toHaveBeenCalledWith(
+        'https://api.example.com/data',
+        init,
+      );
+      expect(response).toBe(mockResponse);
+    });
+
+    it('dpopFetch() throws when useDpop: false', async () => {
+      const core = new SDKCore(config); // no useDpop
+
+      await expect(
+        core.dpopFetch('https://api.example.com/data'),
+      ).rejects.toThrow(
+        'dpopFetch() is only available in DPoP mode. In hosted backend mode, use fetch() with credentials: "include" instead.',
+      );
+    });
+
+    it('generateProof() delegates to DPoPManager.generateProof() when useDpop: true', async () => {
+      vi.spyOn(DPoPManager.prototype, 'getOrCreateKeyPair').mockResolvedValue(
+        {} as any,
+      );
+      const generateProofSpy = vi
+        .spyOn(DPoPManager.prototype, 'generateProof')
+        .mockResolvedValue('mock-dpop-proof-jwt');
+
+      const core = new SDKCore(dpopConfig);
+      const proof = await core.generateProof(
+        'https://api.example.com/data',
+        'POST',
+        'mock-access-token',
+        'mock-nonce',
+      );
+
+      expect(generateProofSpy).toHaveBeenCalledWith(
+        'https://api.example.com/data',
+        'POST',
+        'mock-access-token',
+        'mock-nonce',
+      );
+      expect(proof).toBe('mock-dpop-proof-jwt');
+    });
+
+    it('generateProof() throws when useDpop: false', async () => {
+      const core = new SDKCore(config); // no useDpop
+
+      await expect(
+        core.generateProof('https://api.example.com/data', 'POST'),
+      ).rejects.toThrow(
+        'generateProof() is only available in DPoP mode. In hosted backend mode, tokens are stored in HttpOnly cookies and DPoP proofs are not applicable.',
+      );
+    });
+
+    describe('fetchUserInfo() in DPoP mode', () => {
+      function seedAccessToken(
+        core: SDKCore,
+        accessToken = 'mock-access-token',
+      ) {
+        const dpopManager = (core as any).dpopManager as DPoPManager;
+        dpopManager.setTokens({
+          accessToken,
+          refreshToken: undefined,
+          expiresAt: Date.now() + 60_000,
+          tokenType: 'DPoP',
+        });
+      }
+
+      it('calls DPoPManager.fetch() targeting /oauth2/userinfo and returns the claims', async () => {
+        vi.spyOn(DPoPManager.prototype, 'getOrCreateKeyPair').mockResolvedValue(
+          {} as any,
+        );
+        const core = new SDKCore(dpopConfig);
+        seedAccessToken(core);
+
+        const userInfoClaims = { sub: 'mock-sub', email: 'user@example.com' };
+        const fetchSpy = vi
+          .spyOn(DPoPManager.prototype, 'fetch')
+          .mockResolvedValue(
+            new Response(JSON.stringify(userInfoClaims), { status: 200 }),
+          );
+
+        const userInfo = await core.fetchUserInfo();
+
+        expect(fetchSpy).toHaveBeenCalledOnce();
+        const requestedUrl = fetchSpy.mock.calls[0]?.[0];
+        expect(new URL(String(requestedUrl)).pathname).toBe('/oauth2/userinfo');
+        expect(userInfo).toEqual(userInfoClaims);
+      });
+
+      it('hosted backend mode fetchUserInfo() is unaffected', async () => {
+        vi.spyOn(window, 'fetch').mockResolvedValue(
+          new Response(JSON.stringify({ sub: 'mock-sub' }), { status: 200 }),
+        );
+
+        const core = new SDKCore(config); // no useDpop
+        const userInfo = await core.fetchUserInfo();
+
+        expect(userInfo).toEqual({ sub: 'mock-sub' });
+        expect(window.fetch).toHaveBeenCalledWith(
+          expect.objectContaining({ pathname: '/app/me/' }),
+          { credentials: 'include' },
+        );
+      });
     });
 
     describe('handlePostRedirect() in DPoP mode', () => {
@@ -446,6 +591,26 @@ describe('SDKCore', () => {
         );
 
         expect(core.isLoggedIn).toBe(true);
+      });
+
+      it('does not exchange the code twice when called concurrently)', async () => {
+        mockDpopLoginDependencies();
+        vi.spyOn(DPoPManager.prototype, 'generateProof').mockResolvedValue(
+          MOCK_PROOF,
+        );
+
+        const core = new SDKCore(dpopConfig);
+        await primePendingRedirect(core);
+        const fetchMock = mockTokenResponse();
+
+        const first = core.handlePostRedirect();
+        const second = core.handlePostRedirect();
+
+        expect(second).toBe(first);
+
+        await Promise.all([first, second]);
+
+        expect(fetchMock).toHaveBeenCalledOnce();
       });
 
       it('invokes the callback with the state persisted by startLogin() and cleans up the redirect marker', async () => {

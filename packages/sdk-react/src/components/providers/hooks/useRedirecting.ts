@@ -4,6 +4,7 @@ import { SDKCore } from '@fusionauth-sdk/core';
 export function useRedirecting(
   core: SDKCore,
   onRedirect?: (state?: string) => void,
+  onPostRedirectSettled?: () => void,
 ) {
   const manageAccount = useCallback(() => core.manageAccount(), [core]);
   const startLogin = useCallback(
@@ -17,8 +18,10 @@ export function useRedirecting(
   const startLogout = useCallback(() => core.startLogout(), [core]);
 
   useEffect(() => {
-    core.handlePostRedirect(onRedirect);
-  }, [core, onRedirect]);
+    core.handlePostRedirect(onRedirect).then(() => {
+      onPostRedirectSettled?.();
+    });
+  }, [core, onRedirect, onPostRedirectSettled]);
 
   return {
     manageAccount,

@@ -197,6 +197,39 @@ describe('UrlHelper', () => {
       expect(tokenUrl.search).toBe('');
     });
   });
+
+  describe('getOAuth2LogoutUrl', () => {
+    it('targets the FusionAuth /oauth2/logout endpoint directly', () => {
+      const logoutUrl = urlHelper.getOAuth2LogoutUrl();
+      expect(logoutUrl.origin).toBe(config.serverUrl);
+      expect(logoutUrl.pathname).toBe('/oauth2/logout');
+      expect(logoutUrl.searchParams.get('client_id')).toBe(config.clientId);
+      expect(logoutUrl.searchParams.get('post_logout_redirect_uri')).toBe(
+        config.postLogoutRedirectUri,
+      );
+    });
+
+    it('defaults post_logout_redirect_uri to redirectUri when not configured', () => {
+      const urlHelperWithoutPostLogoutRedirectUri = new UrlHelper({
+        serverUrl: 'http://my-server',
+        clientId: 'abc123',
+        redirectUri: 'http://my-client',
+      });
+      const logoutUrl =
+        urlHelperWithoutPostLogoutRedirectUri.getOAuth2LogoutUrl();
+      expect(logoutUrl.searchParams.get('post_logout_redirect_uri')).toBe(
+        'http://my-client',
+      );
+    });
+  });
+
+  describe('getUserInfoUrl', () => {
+    it('targets the FusionAuth /oauth2/userinfo endpoint directly', () => {
+      const userInfoUrl = urlHelper.getUserInfoUrl();
+      expect(userInfoUrl.origin).toBe(config.serverUrl);
+      expect(userInfoUrl.pathname).toBe('/oauth2/userinfo');
+    });
+  });
 });
 
 function getAllUrls(urlHelper: UrlHelper) {

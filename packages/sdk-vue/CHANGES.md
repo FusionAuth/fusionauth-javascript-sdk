@@ -1,5 +1,9 @@
 fusionauth-vue-sdk Changes
 
+Changes in 1.4.0
+
+- Added support for DPoP mode. Configure with `useDpop: true` and `dpopTokenStorage`. `useFusionAuth()` now exposes `dpopFetch`, `generateProof`, and `getAccessToken` when DPoP mode is enabled.
+
 Changes in 1.3.0
 
 - Upgraded to Vue 3.5.38. The minimum supported Vue peer dependency is now `>=3.5.0`.

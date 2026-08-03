@@ -63,15 +63,54 @@ export const createFusionAuth = <T = UserInfo>(
     core.manageAccount();
   }
 
-  if (config.shouldAutoFetchUserInfo && core.isLoggedIn === true) {
+  async function dpopFetch(input: RequestInfo | URL, init?: RequestInit) {
+    return core.dpopFetch(input, init);
+  }
+
+  async function generateProof(
+    htu: string,
+    htm: string,
+    accessToken?: string,
+    nonce?: string,
+  ) {
+    return core.generateProof(htu, htm, accessToken, nonce);
+  }
+
+  function getAccessToken() {
+    return core.getAccessToken();
+  }
+
+  let didAttemptAutoFetch = false;
+
+  function syncIsLoggedIn() {
+    isLoggedIn.value = core.isLoggedIn;
+  }
+
+  function maybeAutoFetchUserInfo() {
+    if (
+      !config.shouldAutoFetchUserInfo ||
+      didAttemptAutoFetch ||
+      !core.isLoggedIn
+    ) {
+      return;
+    }
+
+    // ensures this does not run multiple times if we fail to fetch the user
+    didAttemptAutoFetch = true;
     getUserInfo();
   }
+
+  maybeAutoFetchUserInfo();
 
   if (config.shouldAutoRefresh && core.isLoggedIn === true) {
     core.initAutoRefresh();
   }
 
-  core.handlePostRedirect(config.onRedirect);
+  core.handlePostRedirect(state => {
+    syncIsLoggedIn();
+    maybeAutoFetchUserInfo();
+    config.onRedirect?.(state);
+  });
 
   return {
     isLoggedIn,
@@ -85,5 +124,8 @@ export const createFusionAuth = <T = UserInfo>(
     manageAccount,
     refreshToken,
     initAutoRefresh,
+    dpopFetch: config.useDpop ? dpopFetch : undefined,
+    generateProof: config.useDpop ? generateProof : undefined,
+    getAccessToken: config.useDpop ? getAccessToken : undefined,
   };
 };
