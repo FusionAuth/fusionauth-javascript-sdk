@@ -4,7 +4,7 @@ import type { KeyPair } from 'dpop';
 import { DPoPStorage } from './DPoPStorage';
 import { DPoPTokenStore, DPoPTokens } from './DPoPTokenStore';
 
-/** Duck-types `Request` instead of `instanceof Request`, so cross-realm or polyfilled `Request`-like objects are still recognised. */
+/** Duck-types `Request` instead of `instanceof Request` */
 function isRequestLike(input: unknown): input is Request {
   return (
     typeof input === 'object' &&
@@ -251,7 +251,7 @@ export class DPoPManager {
     return globalThis.fetch(input, { ...init, headers });
   }
 
-  /** Returns `true` when the response signals a DPoP nonce retry is warranted: a `WWW-Authenticate: use_dpop_nonce` challenge with a `DPoP-Nonce` header to retry with. */
+  /** Returns `true` when the response signals a DPoP nonce retry is warranted */
   private _isUseNonceError(response: Response): boolean {
     const wwwAuth = response.headers.get('WWW-Authenticate') ?? '';
     return (

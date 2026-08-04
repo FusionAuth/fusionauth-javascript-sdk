@@ -386,7 +386,7 @@ export class SDKCore {
     }
 
     // CSRF protection: the `state` echoed back on the redirect must match
-    // what was persisted before redirecting. See RFC 6749 section 10.12.
+    // what was persisted before redirecting.
     const returnedState =
       new URLSearchParams(window.location.search).get('state') ?? undefined;
     if (returnedState !== this.redirectHelper.getState()) {
@@ -441,9 +441,7 @@ export class SDKCore {
   }
 
   /**
-   * Validates a `/oauth2/token` response and maps it to `DPoPTokens`.
-   * `fallbackRefreshToken` is used when the response omits `refresh_token`
-   * (some grants, e.g. refresh, may not rotate it).
+   * Validates a `/oauth2/token` response
    */
   private toDpopTokens(
     tokenResponse: {
