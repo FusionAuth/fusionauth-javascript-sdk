@@ -18,9 +18,10 @@ export function useRedirecting(
   const startLogout = useCallback(() => core.startLogout(), [core]);
 
   useEffect(() => {
-    core.handlePostRedirect(onRedirect).then(() => {
+    (async () => {
+      await core.handlePostRedirect(onRedirect);
       onPostRedirectSettled?.();
-    });
+    })();
   }, [core, onRedirect, onPostRedirectSettled]);
 
   return {

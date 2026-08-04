@@ -57,6 +57,11 @@ export class FusionAuthService<T = UserInfo> {
     }
   }
 
+  // Re-enters the Angular zone (SDKCore's DPoP key storage uses IndexedDB,
+  // whose callbacks zone.js does not patch) and forces a tick so the host
+  // app picks up the change even when bootstrapped zoneless. In a zone-full
+  // app, ngZone.run() alone would already schedule a tick, so this tick()
+  // is a harmless extra pass — kept for zoneless compatibility.
   private runInZoneAndTick(fn: () => void): void {
     this.ngZone.run(fn);
     if (!this.appRef.destroyed) {
@@ -129,13 +134,12 @@ export class FusionAuthService<T = UserInfo> {
    * @throws {Error} - if an error occurred while fetching.
    */
   async getUserInfo<T>(): Promise<T> {
-    return this.core.fetchUserInfo<T>().then(userInfo => {
-      let result!: T;
-      this.runInZoneAndTick(() => {
-        result = userInfo;
-      });
-      return result;
+    const userInfo = await this.core.fetchUserInfo<T>();
+    let result!: T;
+    this.runInZoneAndTick(() => {
+      result = userInfo;
     });
+    return result;
   }
 
   /**
