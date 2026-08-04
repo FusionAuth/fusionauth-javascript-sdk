@@ -4,6 +4,12 @@
 
 import { defineConfig, devices } from '@playwright/test';
 
+if (!process.env.PORT || !process.env.SERVER_COMMAND) {
+  throw new Error(
+    'playwright.dpop-endpoints.config.ts requires PORT and SERVER_COMMAND environment variables.',
+  );
+}
+
 export default defineConfig({
   testDir: './e2e',
   testMatch: '**/dpop-endpoints.test.ts',
