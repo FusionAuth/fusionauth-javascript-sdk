@@ -185,6 +185,35 @@ describe('UrlHelper', () => {
     });
   });
 
+  describe('getOAuth2RegisterUrl', () => {
+    it('includes all required params', () => {
+      const registerUrl = urlHelper.getOAuth2RegisterUrl();
+      expect(registerUrl.origin).toBe(config.serverUrl);
+      expect(registerUrl.pathname).toBe('/oauth2/register');
+      expect(registerUrl.searchParams.get('response_type')).toBe('code');
+      expect(registerUrl.searchParams.get('client_id')).toBe(config.clientId);
+      expect(registerUrl.searchParams.get('redirect_uri')).toBe(
+        config.redirectUri,
+      );
+      expect(registerUrl.searchParams.get('scope')).toBe(config.scope);
+    });
+
+    it('omits state when not provided', () => {
+      const registerUrl = urlHelper.getOAuth2RegisterUrl();
+      expect(registerUrl.searchParams.get('state')).toBeNull();
+    });
+
+    it('appends state when provided', () => {
+      const registerUrl = urlHelper.getOAuth2RegisterUrl('my-state');
+      expect(registerUrl.searchParams.get('state')).toBe('my-state');
+    });
+
+    it('does not affect the hosted backend getRegisterUrl()', () => {
+      const registerUrl = urlHelper.getRegisterUrl();
+      expect(registerUrl.pathname).toBe('/app/register/');
+    });
+  });
+
   describe('getTokenUrl', () => {
     it('targets the FusionAuth /oauth2/token endpoint directly', () => {
       const tokenUrl = urlHelper.getTokenUrl();

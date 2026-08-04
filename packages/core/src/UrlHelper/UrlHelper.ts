@@ -113,6 +113,21 @@ export class UrlHelper {
   }
 
   /**
+   * Builds the direct `/oauth2/register` URL used in DPoP mode.
+   *
+   * @param state  Optional OAuth2 `state` parameter.
+   */
+  getOAuth2RegisterUrl(state?: string): URL {
+    return this.generateUrl('/oauth2/register', {
+      client_id: this.clientId,
+      redirect_uri: this.redirectUri,
+      response_type: 'code',
+      scope: this.scope,
+      state,
+    });
+  }
+
+  /**
    * Builds the direct `/oauth2/userinfo` URL used in DPoP mode.
    */
   getUserInfoUrl(): URL {
