@@ -72,7 +72,9 @@ export class FusionAuthService<T = UserInfo> {
    * Automatic token refreshing can be enabled if the SDK is configured with `shouldAutoRefresh`.
    */
   async refreshToken(): Promise<Response> {
-    return await this.core.refreshToken();
+    const response = await this.core.refreshToken();
+    this.isLoggedInState.set(this.core.isLoggedIn);
+    return response;
   }
 
   /**
