@@ -498,6 +498,27 @@ describe('FusionAuthProvider', () => {
       });
     });
 
+    test('forwards onLoginFailure to SDKCore for DPoP startLogin() failures', async () => {
+      const failure = new Error('crypto.subtle unavailable');
+      vi.spyOn(DPoPManager.prototype, 'getOrCreateKeyPair').mockRejectedValue(
+        failure,
+      );
+      mockWindowLocation(vi);
+
+      const onLoginFailure = vi.fn();
+      const { result } = renderWithWrapper({
+        ...TEST_CONFIG,
+        useDpop: true,
+        onLoginFailure,
+      });
+
+      act(() => {
+        result.current.startLogin();
+      });
+
+      await waitFor(() => expect(onLoginFailure).toHaveBeenCalledWith(failure));
+    });
+
     test('onRedirect is invoked and isLoggedIn eventually reflects the completed exchange', async () => {
       vi.spyOn(DPoPManager.prototype, 'getOrCreateKeyPair').mockResolvedValue(
         {} as any,
