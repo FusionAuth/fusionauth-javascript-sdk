@@ -354,11 +354,10 @@ export class SDKCore {
    */
   async handlePostRedirect(callback?: (state?: string) => void): Promise<void> {
     if (this.dpopManager) {
-      try {
-        await this.handleDpopPostRedirect(callback);
-      } catch (error) {
+      const error = await this.handleDpopPostRedirect(callback);
+      if (error) {
         if (this.config.onLoginFailure) {
-          this.config.onLoginFailure(error as Error);
+          this.config.onLoginFailure(error);
         } else {
           console.error('FusionAuth SDK: handlePostRedirect failed', error);
         }
@@ -372,17 +371,18 @@ export class SDKCore {
   }
 
   /**
-   * Performs the DPoP-mode authorization code exchange.
+   * Performs the DPoP-mode authorization code exchange. Returns the failure
+   * `Error` instead of throwing, since the only consumer is `handlePostRedirect`.
    */
   private async handleDpopPostRedirect(
     callback?: (state?: string) => void,
-  ): Promise<void> {
+  ): Promise<Error | undefined> {
     const code = new URLSearchParams(window.location.search).get('code');
     const codeVerifier = this.redirectHelper.getCodeVerifier();
 
     // No pending exchange
     if (!code || !codeVerifier) {
-      return;
+      return undefined;
     }
 
     // CSRF protection: the `state` echoed back on the redirect must match
@@ -390,54 +390,60 @@ export class SDKCore {
     const returnedState =
       new URLSearchParams(window.location.search).get('state') ?? undefined;
     if (returnedState !== this.redirectHelper.getState()) {
-      throw new Error(
+      return new Error(
         'FusionAuth SDK: state parameter mismatch. Aborting to prevent a possible CSRF attack.',
       );
     }
 
-    const tokenUrl = this.urlHelper.getTokenUrl();
-    const proof = await this.dpopManager!.generateProof(
-      tokenUrl.toString(),
-      'POST',
-    );
+    try {
+      const tokenUrl = this.urlHelper.getTokenUrl();
+      const proof = await this.dpopManager!.generateProof(
+        tokenUrl.toString(),
+        'POST',
+      );
 
-    const body = new URLSearchParams({
-      grant_type: 'authorization_code',
-      code,
-      code_verifier: codeVerifier,
-      client_id: this.config.clientId,
-      redirect_uri: this.config.redirectUri,
-    });
+      const body = new URLSearchParams({
+        grant_type: 'authorization_code',
+        code,
+        code_verifier: codeVerifier,
+        client_id: this.config.clientId,
+        redirect_uri: this.config.redirectUri,
+      });
 
-    const response = await fetch(tokenUrl, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-        DPoP: proof,
-      },
-      body: body.toString(),
-    });
+      const response = await fetch(tokenUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+          DPoP: proof,
+        },
+        body: body.toString(),
+      });
 
-    if (!response.ok) {
-      const errorDetails = {
-        status: response.status,
-        details:
-          (await response.text()) ||
-          'Failed to exchange authorization code for tokens',
-      };
-      throw new Error(JSON.stringify(errorDetails));
+      if (!response.ok) {
+        const errorDetails = {
+          status: response.status,
+          details:
+            (await response.text()) ||
+            'Failed to exchange authorization code for tokens',
+        };
+        return new Error(JSON.stringify(errorDetails));
+      }
+
+      const tokenResponse = await response.json();
+      const tokens = this.toDpopTokens(tokenResponse);
+      this.dpopManager!.setTokens(tokens);
+
+      this.clearRedirectQueryParams();
+      this.scheduleTokenExpiration();
+      if (this.config.shouldAutoRefresh) {
+        this.initAutoRefresh();
+      }
+
+      this.redirectHelper.handlePostRedirect(callback);
+      return undefined;
+    } catch (error) {
+      return error as Error;
     }
-
-    const tokenResponse = await response.json();
-    this.dpopManager!.setTokens(this.toDpopTokens(tokenResponse));
-
-    this.clearRedirectQueryParams();
-    this.scheduleTokenExpiration();
-    if (this.config.shouldAutoRefresh) {
-      this.initAutoRefresh();
-    }
-
-    this.redirectHelper.handlePostRedirect(callback);
   }
 
   /**
