@@ -38,12 +38,8 @@ export class FusionAuthService<T = UserInfo> {
       cookieAdapter: new SSRCookieAdapter(isPlatformBrowser(platformId)),
     });
 
-    // A signal (rather than NgZone.run() + ApplicationRef.tick()) is used
-    // here because updating a signal read in a template is one of
-    // Angular's built-in change-detection notification mechanisms, and it
-    // works regardless of the zone the write happens in — including from
-    // DPoPManager's IndexedDB callbacks, which zone.js does not patch — and
-    // regardless of whether the host app is zone-based or zoneless.
+    // A signal is used here because updating a signal read in an HTML template
+    // is one of Angular's built-in change-detection notification mechanisms.
     this.isLoggedInState = signal(this.core.isLoggedIn);
     this.isLoggedInSignal = this.isLoggedInState;
     this.isLoggedIn$ = toObservable(this.isLoggedInState);
