@@ -244,6 +244,38 @@ describe('createFusionAuth', () => {
       expect(fusionAuth.getAccessToken?.()).toBeNull();
     });
 
+    it('refreshToken() re-syncs isLoggedIn after a successful DPoP refresh', async () => {
+      seedDpopTokens(config.clientId, {
+        expiresAt: Date.now() - 1000, // already expired
+      });
+      vi.spyOn(DPoPManager.prototype, 'getOrCreateKeyPair').mockResolvedValue(
+        {} as any,
+      );
+      vi.spyOn(DPoPManager.prototype, 'generateProof').mockResolvedValue(
+        'mock-dpop-proof-jwt',
+      );
+      vi.spyOn(global, 'fetch').mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({
+            access_token: 'new-access-token',
+            refresh_token: 'new-refresh-token',
+            expires_in: 3600,
+            token_type: 'DPoP',
+          }),
+          { status: 200 },
+        ),
+      );
+
+      const fusionAuth = createFusionAuth({ ...config, useDpop: true });
+
+      expect(fusionAuth.isLoggedIn.value).toBe(false);
+
+      await fusionAuth.refreshToken();
+
+      expect(fusionAuth.isLoggedIn.value).toBe(true);
+      expect(fusionAuth.getAccessToken?.()).toBe('new-access-token');
+    });
+
     it('isLoggedIn flips to true once the post-redirect DPoP token exchange settles', async () => {
       vi.spyOn(DPoPManager.prototype, 'getOrCreateKeyPair').mockResolvedValue(
         {} as any,

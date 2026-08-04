@@ -40,7 +40,9 @@ export const createFusionAuth = <T = UserInfo>(
   }
 
   async function refreshToken() {
-    return await core.refreshToken();
+    const response = await core.refreshToken();
+    syncIsLoggedIn();
+    return response;
   }
 
   function initAutoRefresh() {

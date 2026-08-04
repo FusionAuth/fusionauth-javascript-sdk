@@ -18,10 +18,6 @@ export function useRedirecting(
   const startLogout = useCallback(() => core.startLogout(), [core]);
 
   useEffect(() => {
-    // syncIsLoggedIn runs before onRedirect, but React's setState is
-    // async/batched, so this does not guarantee isLoggedIn is already
-    // updated by the time onRedirect runs (unlike Vue/Angular's synchronous
-    // reactivity).
     core.handlePostRedirect(state => {
       syncIsLoggedIn?.();
       onRedirect?.(state);
