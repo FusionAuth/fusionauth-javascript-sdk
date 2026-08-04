@@ -185,6 +185,50 @@ describe('UrlHelper', () => {
     });
   });
 
+  describe('getOAuth2RegisterUrl', () => {
+    const dpopJkt = 'abc123thumbprint';
+    const codeChallenge = 'E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM';
+
+    it('includes all required params, matching getAuthorizeUrl()', () => {
+      const registerUrl = urlHelper.getOAuth2RegisterUrl(
+        dpopJkt,
+        codeChallenge,
+      );
+      expect(registerUrl.origin).toBe(config.serverUrl);
+      expect(registerUrl.pathname).toBe('/oauth2/register');
+      expect(registerUrl.searchParams.get('response_type')).toBe('code');
+      expect(registerUrl.searchParams.get('client_id')).toBe(config.clientId);
+      expect(registerUrl.searchParams.get('redirect_uri')).toBe(
+        config.redirectUri,
+      );
+      expect(registerUrl.searchParams.get('scope')).toBe(config.scope);
+      expect(registerUrl.searchParams.get('dpop_jkt')).toBe(dpopJkt);
+      expect(registerUrl.searchParams.get('code_challenge')).toBe(
+        codeChallenge,
+      );
+      expect(registerUrl.searchParams.get('code_challenge_method')).toBe(
+        'S256',
+      );
+    });
+
+    it('omits state when not provided', () => {
+      const registerUrl = urlHelper.getOAuth2RegisterUrl(
+        dpopJkt,
+        codeChallenge,
+      );
+      expect(registerUrl.searchParams.get('state')).toBeNull();
+    });
+
+    it('appends state when provided', () => {
+      const registerUrl = urlHelper.getOAuth2RegisterUrl(
+        dpopJkt,
+        codeChallenge,
+        'my-state',
+      );
+      expect(registerUrl.searchParams.get('state')).toBe('my-state');
+    });
+  });
+
   describe('getTokenUrl', () => {
     it('targets the FusionAuth /oauth2/token endpoint directly', () => {
       const tokenUrl = urlHelper.getTokenUrl();

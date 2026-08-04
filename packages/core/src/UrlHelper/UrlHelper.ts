@@ -113,6 +113,30 @@ export class UrlHelper {
   }
 
   /**
+   * Builds the direct `/oauth2/register` URL used in DPoP mode.
+   *
+   * @param dpopJkt  The DPoP public key JWK thumbprint for the `dpop_jkt` parameter.
+   * @param codeChallenge  The PKCE code challenge value.
+   * @param state  Optional OAuth2 `state` parameter.
+   */
+  getOAuth2RegisterUrl(
+    dpopJkt: string,
+    codeChallenge: string,
+    state?: string,
+  ): URL {
+    return this.generateUrl('/oauth2/register', {
+      client_id: this.clientId,
+      redirect_uri: this.redirectUri,
+      response_type: 'code',
+      scope: this.scope,
+      code_challenge: codeChallenge,
+      code_challenge_method: 'S256',
+      dpop_jkt: dpopJkt,
+      state,
+    });
+  }
+
+  /**
    * Builds the direct `/oauth2/userinfo` URL used in DPoP mode.
    */
   getUserInfoUrl(): URL {
