@@ -4,7 +4,7 @@ import { SDKCore } from '@fusionauth-sdk/core';
 export function useRedirecting(
   core: SDKCore,
   onRedirect?: (state?: string) => void,
-  onPostRedirectSettled?: () => void,
+  syncIsLoggedIn?: () => void,
 ) {
   const manageAccount = useCallback(() => core.manageAccount(), [core]);
   const startLogin = useCallback(
@@ -18,11 +18,15 @@ export function useRedirecting(
   const startLogout = useCallback(() => core.startLogout(), [core]);
 
   useEffect(() => {
-    (async () => {
-      await core.handlePostRedirect(onRedirect);
-      onPostRedirectSettled?.();
-    })();
-  }, [core, onRedirect, onPostRedirectSettled]);
+    // syncIsLoggedIn runs before onRedirect, but React's setState is
+    // async/batched, so this does not guarantee isLoggedIn is already
+    // updated by the time onRedirect runs (unlike Vue/Angular's synchronous
+    // reactivity).
+    core.handlePostRedirect(state => {
+      syncIsLoggedIn?.();
+      onRedirect?.(state);
+    });
+  }, [core, onRedirect, syncIsLoggedIn]);
 
   return {
     manageAccount,

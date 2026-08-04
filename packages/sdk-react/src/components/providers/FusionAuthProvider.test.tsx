@@ -497,5 +497,49 @@ describe('FusionAuthProvider', () => {
         expect(result.current.userInfo).toEqual({ email: 'user@example.com' });
       });
     });
+
+    test('onRedirect is invoked and isLoggedIn eventually reflects the completed exchange', async () => {
+      vi.spyOn(DPoPManager.prototype, 'getOrCreateKeyPair').mockResolvedValue(
+        {} as any,
+      );
+      vi.spyOn(DPoPManager.prototype, 'generateProof').mockResolvedValue(
+        'mock-dpop-proof-jwt',
+      );
+      mockWindowLocation(
+        vi,
+        '?code=mock-authorization-code&state=redirect-state',
+      );
+      localStorage.setItem(
+        'fa-sdk-redirect-value',
+        JSON.stringify({
+          codeVerifier: 'mock-code-verifier',
+          state: 'redirect-state',
+        }),
+      );
+      vi.spyOn(global, 'fetch').mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({
+            access_token: 'mock-access-token',
+            refresh_token: 'mock-refresh-token',
+            expires_in: 3600,
+            token_type: 'DPoP',
+          }),
+          { status: 200 },
+        ),
+      );
+
+      const onRedirect = vi.fn();
+
+      const { result } = renderWithWrapper({
+        ...TEST_CONFIG,
+        useDpop: true,
+        onRedirect,
+      });
+
+      await waitFor(() =>
+        expect(onRedirect).toHaveBeenCalledWith('redirect-state'),
+      );
+      await waitFor(() => expect(result.current.isLoggedIn).toBe(true));
+    });
   });
 });
