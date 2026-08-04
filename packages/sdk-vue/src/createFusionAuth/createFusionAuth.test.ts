@@ -285,7 +285,10 @@ describe('createFusionAuth', () => {
       vi.spyOn(DPoPManager.prototype, 'generateProof').mockResolvedValue(
         'mock-dpop-proof-jwt',
       );
-      mockWindowLocation(vi, '?code=mock-authorization-code');
+      mockWindowLocation(
+        vi,
+        '?code=mock-authorization-code&state=redirect-state',
+      );
       localStorage.setItem(
         'fa-sdk-redirect-value',
         JSON.stringify({

@@ -593,7 +593,7 @@ describe('SDKCore', () => {
         expect(core.isLoggedIn).toBe(true);
       });
 
-      it('does not exchange the code twice when called concurrently)', async () => {
+      it('performs an independent exchange attempt per call when called concurrently (no dedup)', async () => {
         mockDpopLoginDependencies();
         vi.spyOn(DPoPManager.prototype, 'generateProof').mockResolvedValue(
           MOCK_PROOF,
@@ -606,11 +606,9 @@ describe('SDKCore', () => {
         const first = core.handlePostRedirect();
         const second = core.handlePostRedirect();
 
-        expect(second).toBe(first);
-
         await Promise.all([first, second]);
 
-        expect(fetchMock).toHaveBeenCalledOnce();
+        expect(fetchMock).toHaveBeenCalledTimes(2);
       });
 
       it('invokes the callback with the state persisted by startLogin() and cleans up the redirect marker', async () => {
@@ -623,7 +621,7 @@ describe('SDKCore', () => {
         const location = mockWindowLocation(vi);
         core.startLogin('my-post-redirect-state');
         await vi.waitFor(() => expect(location.assign).toHaveBeenCalledOnce());
-        location.search = `?code=${MOCK_CODE}`;
+        location.search = `?code=${MOCK_CODE}&state=my-post-redirect-state`;
         mockTokenResponse();
 
         const redirectIndicator = () =>
@@ -771,6 +769,70 @@ describe('SDKCore', () => {
             expect.any(Error),
           ),
         );
+      });
+
+      it('rejects a state mismatch instead of exchanging the code (CSRF protection)', async () => {
+        mockDpopLoginDependencies();
+        vi.spyOn(DPoPManager.prototype, 'generateProof').mockResolvedValue(
+          MOCK_PROOF,
+        );
+        const onLoginFailure = vi.fn();
+        const core = new SDKCore({ ...dpopConfig, onLoginFailure });
+        const location = mockWindowLocation(vi);
+        core.startLogin('expected-state');
+        await vi.waitFor(() => expect(location.assign).toHaveBeenCalledOnce());
+        location.search = `?code=${MOCK_CODE}&state=attacker-supplied-state`;
+        const fetchMock = mockTokenResponse();
+
+        await core.handlePostRedirect();
+
+        expect(fetchMock).not.toHaveBeenCalled();
+        expect(onLoginFailure).toHaveBeenCalledWith(
+          expect.objectContaining({
+            message: expect.stringContaining('state'),
+          }),
+        );
+        expect(core.isLoggedIn).toBe(false);
+      });
+
+      it('rejects a token response with a token_type other than DPoP', async () => {
+        mockDpopLoginDependencies();
+        vi.spyOn(DPoPManager.prototype, 'generateProof').mockResolvedValue(
+          MOCK_PROOF,
+        );
+        const onLoginFailure = vi.fn();
+        const core = new SDKCore({ ...dpopConfig, onLoginFailure });
+        await primePendingRedirect(core);
+        mockTokenResponse({ token_type: 'Bearer' });
+
+        await core.handlePostRedirect();
+
+        expect(onLoginFailure).toHaveBeenCalledWith(
+          expect.objectContaining({
+            message: expect.stringContaining('token_type'),
+          }),
+        );
+        expect(core.isLoggedIn).toBe(false);
+      });
+
+      it('rejects a token response with a non-positive expires_in', async () => {
+        mockDpopLoginDependencies();
+        vi.spyOn(DPoPManager.prototype, 'generateProof').mockResolvedValue(
+          MOCK_PROOF,
+        );
+        const onLoginFailure = vi.fn();
+        const core = new SDKCore({ ...dpopConfig, onLoginFailure });
+        await primePendingRedirect(core);
+        mockTokenResponse({ expires_in: 0 });
+
+        await core.handlePostRedirect();
+
+        expect(onLoginFailure).toHaveBeenCalledWith(
+          expect.objectContaining({
+            message: expect.stringContaining('expires_in'),
+          }),
+        );
+        expect(core.isLoggedIn).toBe(false);
       });
     });
 
@@ -953,6 +1015,34 @@ describe('SDKCore', () => {
           'No refresh token available. Have you called startLogin()?',
         );
         expect(fetchMock).not.toHaveBeenCalled();
+      });
+
+      it('rejects a token response with a token_type other than DPoP', async () => {
+        vi.spyOn(DPoPManager.prototype, 'getOrCreateKeyPair').mockResolvedValue(
+          {} as any,
+        );
+        vi.spyOn(DPoPManager.prototype, 'generateProof').mockResolvedValue(
+          MOCK_PROOF,
+        );
+        const core = new SDKCore(dpopConfig);
+        seedExistingTokens(core);
+        mockTokenResponse({ token_type: 'Bearer' });
+
+        await expect(core.refreshToken()).rejects.toThrow('token_type');
+      });
+
+      it('rejects a token response with a non-positive expires_in', async () => {
+        vi.spyOn(DPoPManager.prototype, 'getOrCreateKeyPair').mockResolvedValue(
+          {} as any,
+        );
+        vi.spyOn(DPoPManager.prototype, 'generateProof').mockResolvedValue(
+          MOCK_PROOF,
+        );
+        const core = new SDKCore(dpopConfig);
+        seedExistingTokens(core);
+        mockTokenResponse({ expires_in: -1 });
+
+        await expect(core.refreshToken()).rejects.toThrow('expires_in');
       });
     });
   });

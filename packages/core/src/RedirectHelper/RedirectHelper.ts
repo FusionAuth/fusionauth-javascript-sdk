@@ -66,6 +66,17 @@ export class RedirectHelper {
   }
 
   /**
+   * Returns the `state` value persisted by {@link handlePreRedirect}, or
+   * `undefined` if none was stored or no redirect has been initiated.
+   */
+  getState(): string | undefined {
+    const raw = this.storage.getItem(this.REDIRECT_VALUE);
+    if (!raw) return undefined;
+
+    return this.parseStoredValue(raw).state;
+  }
+
+  /**
    * Parses a raw stored value for either mode.
    */
   private parseStoredValue(raw: string): {

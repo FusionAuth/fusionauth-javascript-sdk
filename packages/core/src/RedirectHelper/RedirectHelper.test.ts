@@ -131,6 +131,17 @@ describe('RedirectHelper', () => {
       // After cleanup, getCodeVerifier() should return undefined.
       expect(helper.getCodeVerifier()).toBeUndefined();
     });
+
+    it('getState() returns the persisted state', () => {
+      const helper = new RedirectHelper();
+      helper.handlePreRedirect('my-state', 'verifier-value');
+      expect(helper.getState()).toBe('my-state');
+    });
+
+    it('getState() returns undefined when no redirect was initiated', () => {
+      const helper = new RedirectHelper();
+      expect(helper.getState()).toBeUndefined();
+    });
   });
 
   describe('storage format', () => {
