@@ -254,6 +254,70 @@ describe('SDKCore', () => {
       expect(assignedUrl.searchParams.get('state')).toBe('my-state');
     });
 
+    it('startRegister() in DPoP mode redirects to /oauth2/register with dpop_jkt and code_challenge', async () => {
+      vi.spyOn(DPoPManager.prototype, 'getOrCreateKeyPair').mockResolvedValue(
+        {} as any,
+      );
+      vi.spyOn(DPoPManager.prototype, 'getThumbprint').mockResolvedValue(
+        MOCK_JKT,
+      );
+      vi.spyOn(Pkce, 'generateCodeVerifier').mockReturnValue(MOCK_VERIFIER);
+      vi.spyOn(Pkce, 'generateCodeChallenge').mockResolvedValue(MOCK_CHALLENGE);
+      const location = mockWindowLocation(vi);
+
+      const core = new SDKCore(dpopConfig);
+      core.startRegister();
+      await vi.waitFor(() => expect(location.assign).toHaveBeenCalledOnce());
+
+      const assignedUrl = new URL(
+        (location.assign as ReturnType<typeof vi.fn>).mock.calls[0][0],
+      );
+      expect(assignedUrl.pathname).toBe('/oauth2/register');
+      expect(assignedUrl.searchParams.get('dpop_jkt')).toBe(MOCK_JKT);
+      expect(assignedUrl.searchParams.get('code_challenge')).toBe(
+        MOCK_CHALLENGE,
+      );
+      expect(assignedUrl.searchParams.get('code_challenge_method')).toBe(
+        'S256',
+      );
+      expect(assignedUrl.searchParams.get('response_type')).toBe('code');
+    });
+
+    it('startRegister() in DPoP mode persists code_verifier via RedirectHelper', async () => {
+      vi.spyOn(DPoPManager.prototype, 'getOrCreateKeyPair').mockResolvedValue(
+        {} as any,
+      );
+      vi.spyOn(DPoPManager.prototype, 'getThumbprint').mockResolvedValue(
+        MOCK_JKT,
+      );
+      vi.spyOn(Pkce, 'generateCodeVerifier').mockReturnValue(MOCK_VERIFIER);
+      vi.spyOn(Pkce, 'generateCodeChallenge').mockResolvedValue(MOCK_CHALLENGE);
+      const location = mockWindowLocation(vi);
+
+      const core = new SDKCore(dpopConfig);
+      core.startRegister();
+      await vi.waitFor(() => expect(location.assign).toHaveBeenCalledOnce());
+
+      const redirectHelper = new RedirectHelper();
+      expect(redirectHelper.getCodeVerifier()).toBe(MOCK_VERIFIER);
+    });
+
+    it('reports a DPoP startRegister() failure via onLoginFailure instead of an unhandled rejection', async () => {
+      const failure = new Error('crypto.subtle unavailable');
+      vi.spyOn(DPoPManager.prototype, 'getOrCreateKeyPair').mockRejectedValue(
+        failure,
+      );
+      mockWindowLocation(vi);
+
+      const onLoginFailure = vi.fn();
+      const core = new SDKCore({ ...dpopConfig, onLoginFailure });
+
+      core.startRegister();
+      await vi.waitFor(() => expect(onLoginFailure).toHaveBeenCalledOnce());
+
+      expect(onLoginFailure).toHaveBeenCalledWith(failure);
+    });
+
     it('reports a DPoP startLogin() failure via onLoginFailure instead of an unhandled rejection', async () => {
       const failure = new Error('crypto.subtle unavailable');
       vi.spyOn(DPoPManager.prototype, 'getOrCreateKeyPair').mockRejectedValue(

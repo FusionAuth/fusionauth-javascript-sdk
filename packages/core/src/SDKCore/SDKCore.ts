@@ -3,8 +3,7 @@ import { SDKConfig } from '../SDKConfig';
 import { UserInfo } from '../SDKContext';
 import { RedirectHelper } from '../RedirectHelper';
 import { getAccessTokenExpirationMoment } from '../CookieHelpers';
-import { DPoPManager, DPoPTokens } from '../DPoP';
-import * as Pkce from '../Pkce';
+import { DPoPManager } from '../DPoP';
 
 /** A class containing framework-agnostic SDK methods */
 export class SDKCore {
@@ -61,14 +60,19 @@ export class SDKCore {
    * @param state  Optional OAuth2 state value echoed back post-login.
    */
   startLogin(state?: string): void {
-    if (this.dpopManager) {
-      this.startDpopLogin(state).catch(error => {
-        if (this.config.onLoginFailure) {
-          this.config.onLoginFailure(error as Error);
-        } else {
-          console.error('FusionAuth SDK: startLogin failed', error);
+    const dpopManager = this.dpopManager;
+    if (dpopManager) {
+      (async () => {
+        try {
+          await dpopManager.startLogin(state);
+        } catch (error) {
+          if (this.config.onLoginFailure) {
+            this.config.onLoginFailure(error as Error);
+          } else {
+            console.error('FusionAuth SDK: startLogin failed', error);
+          }
         }
-      });
+      })();
       return;
     }
 
@@ -77,20 +81,26 @@ export class SDKCore {
   }
 
   /**
-   * Performs the DPoP mode login flow.
+   * Initiates the register flow.
+   * @param state  Optional OAuth2 state value echoed back post-register.
    */
-  private async startDpopLogin(state?: string): Promise<void> {
-    await this.dpopManager!.getOrCreateKeyPair();
-    const dpopJkt = await this.dpopManager!.getThumbprint();
-    const codeVerifier = Pkce.generateCodeVerifier();
-    const codeChallenge = await Pkce.generateCodeChallenge(codeVerifier);
-    this.redirectHelper.handlePreRedirect(state, codeVerifier);
-    window.location.assign(
-      this.urlHelper.getAuthorizeUrl(dpopJkt, codeChallenge, state),
-    );
-  }
+  startRegister(state?: string): void {
+    const dpopManager = this.dpopManager;
+    if (dpopManager) {
+      (async () => {
+        try {
+          await dpopManager.startRegister(state);
+        } catch (error) {
+          if (this.config.onLoginFailure) {
+            this.config.onLoginFailure(error as Error);
+          } else {
+            console.error('FusionAuth SDK: startRegister failed', error);
+          }
+        }
+      })();
+      return;
+    }
 
-  startRegister(state?: string) {
     this.redirectHelper.handlePreRedirect(state);
     window.location.assign(this.urlHelper.getRegisterUrl(state));
   }
@@ -107,26 +117,19 @@ export class SDKCore {
     clearTimeout(this.tokenExpirationTimeout);
     this.stopAutoRefresh();
 
-    if (this.dpopManager) {
-      this.startDpopLogout().catch(error => {
-        console.error('FusionAuth SDK: startLogout failed', error);
-      });
+    const dpopManager = this.dpopManager;
+    if (dpopManager) {
+      (async () => {
+        try {
+          await dpopManager.startLogout();
+        } catch (error) {
+          console.error('FusionAuth SDK: startLogout failed', error);
+        }
+      })();
       return;
     }
 
     window.location.assign(this.urlHelper.getLogoutUrl());
-  }
-
-  /**
-   * Performs the DPoP mode logout flow, clearing the key pair, stored
-   * tokens, and in-memory nonces.
-   */
-  private async startDpopLogout(): Promise<void> {
-    try {
-      await this.dpopManager!.clear();
-    } finally {
-      window.location.assign(this.urlHelper.getOAuth2LogoutUrl());
-    }
   }
 
   manageAccount() {
@@ -190,7 +193,7 @@ export class SDKCore {
 
   async fetchUserInfo<T = UserInfo>(): Promise<T> {
     if (this.dpopManager) {
-      return this.fetchDpopUserInfo<T>();
+      return this.dpopManager.fetchUserInfo<T>();
     }
 
     const userInfoResponse = await fetch(this.urlHelper.getMeUrl(), {
@@ -207,30 +210,14 @@ export class SDKCore {
     return userInfo;
   }
 
-  private async fetchDpopUserInfo<T>(): Promise<T> {
-    const accessToken = this.dpopManager!.getAccessToken();
-    if (!accessToken) {
-      throw new Error(
-        'No access token available. Have you called startLogin()?',
-      );
-    }
-
-    const userInfoResponse = await this.dpopManager!.fetch(
-      this.urlHelper.getUserInfoUrl(),
-    );
-
-    if (!userInfoResponse.ok) {
-      throw new Error(
-        `Unable to fetch userInfo. Request failed with status code ${userInfoResponse?.status}`,
-      );
-    }
-
-    return (await userInfoResponse.json()) as T;
-  }
-
   async refreshToken(): Promise<Response> {
     if (this.dpopManager) {
-      return this.refreshDpopToken();
+      const response = await this.dpopManager.refreshToken();
+      this.scheduleTokenExpiration();
+      if (this.config.shouldAutoRefresh) {
+        this.initAutoRefresh();
+      }
+      return response;
     }
 
     const response = await fetch(this.urlHelper.getTokenRefreshUrl(), {
@@ -251,59 +238,6 @@ export class SDKCore {
     }
 
     this.scheduleTokenExpiration();
-
-    return response;
-  }
-
-  /**
-   * Performs the DPoP mode refresh token grant.
-   */
-  private async refreshDpopToken(): Promise<Response> {
-    const refreshToken = this.dpopManager!.getRefreshToken();
-    if (!refreshToken) {
-      throw new Error(
-        'No refresh token available. Have you called startLogin()?',
-      );
-    }
-
-    const tokenUrl = this.urlHelper.getTokenUrl();
-    const proof = await this.dpopManager!.generateProof(
-      tokenUrl.toString(),
-      'POST',
-    );
-
-    const body = new URLSearchParams({
-      grant_type: 'refresh_token',
-      refresh_token: refreshToken,
-      client_id: this.config.clientId,
-    });
-
-    const response = await fetch(tokenUrl, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-        DPoP: proof,
-      },
-      body: body.toString(),
-    });
-
-    if (!response.ok) {
-      const errorDetails = {
-        status: response.status,
-        details:
-          (await response.text()) ||
-          'Failed to refresh fusionauth access token',
-      };
-      throw new Error(JSON.stringify(errorDetails));
-    }
-
-    const tokenResponse = await response.clone().json();
-    this.dpopManager!.setTokens(this.toDpopTokens(tokenResponse, refreshToken));
-
-    this.scheduleTokenExpiration();
-    if (this.config.shouldAutoRefresh) {
-      this.initAutoRefresh();
-    }
 
     return response;
   }
@@ -356,12 +290,17 @@ export class SDKCore {
    */
   async handlePostRedirect(callback?: (state?: string) => void): Promise<void> {
     if (this.dpopManager) {
-      const error = await this.handleDpopPostRedirect(callback);
+      const error = await this.dpopManager.handlePostRedirect(callback);
       if (error) {
         if (this.config.onLoginFailure) {
           this.config.onLoginFailure(error);
         } else {
           console.error('FusionAuth SDK: handlePostRedirect failed', error);
+        }
+      } else {
+        this.scheduleTokenExpiration();
+        if (this.config.shouldAutoRefresh) {
+          this.initAutoRefresh();
         }
       }
       return;
@@ -370,127 +309,6 @@ export class SDKCore {
     if (this.isLoggedIn) {
       this.redirectHelper.handlePostRedirect(callback);
     }
-  }
-
-  /**
-   * Performs the DPoP-mode authorization code exchange. Returns the failure
-   * `Error` instead of throwing, since the only consumer is `handlePostRedirect`.
-   */
-  private async handleDpopPostRedirect(
-    callback?: (state?: string) => void,
-  ): Promise<Error | undefined> {
-    const code = new URLSearchParams(window.location.search).get('code');
-    const codeVerifier = this.redirectHelper.getCodeVerifier();
-
-    // No pending exchange
-    if (!code || !codeVerifier) {
-      return undefined;
-    }
-
-    // CSRF protection: the `state` echoed back on the redirect must match
-    // what was persisted before redirecting.
-    const returnedState =
-      new URLSearchParams(window.location.search).get('state') ?? undefined;
-    if (returnedState !== this.redirectHelper.getState()) {
-      return new Error(
-        'FusionAuth SDK: state parameter mismatch. Aborting to prevent a possible CSRF attack.',
-      );
-    }
-
-    try {
-      const tokenUrl = this.urlHelper.getTokenUrl();
-      const proof = await this.dpopManager!.generateProof(
-        tokenUrl.toString(),
-        'POST',
-      );
-
-      const body = new URLSearchParams({
-        grant_type: 'authorization_code',
-        code,
-        code_verifier: codeVerifier,
-        client_id: this.config.clientId,
-        redirect_uri: this.config.redirectUri,
-      });
-
-      const response = await fetch(tokenUrl, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
-          DPoP: proof,
-        },
-        body: body.toString(),
-      });
-
-      if (!response.ok) {
-        const errorDetails = {
-          status: response.status,
-          details:
-            (await response.text()) ||
-            'Failed to exchange authorization code for tokens',
-        };
-        return new Error(JSON.stringify(errorDetails));
-      }
-
-      const tokenResponse = await response.json();
-      const tokens = this.toDpopTokens(tokenResponse);
-      this.dpopManager!.setTokens(tokens);
-
-      this.clearRedirectQueryParams();
-      this.scheduleTokenExpiration();
-      if (this.config.shouldAutoRefresh) {
-        this.initAutoRefresh();
-      }
-
-      this.redirectHelper.handlePostRedirect(callback);
-      return undefined;
-    } catch (error) {
-      return error as Error;
-    }
-  }
-
-  /**
-   * Validates a `/oauth2/token` response
-   */
-  private toDpopTokens(
-    tokenResponse: {
-      access_token?: string;
-      refresh_token?: string;
-      expires_in?: number;
-      token_type?: string;
-    },
-    fallbackRefreshToken?: string,
-  ): DPoPTokens {
-    if (tokenResponse.token_type !== 'DPoP') {
-      throw new Error(
-        `FusionAuth SDK: expected token_type "DPoP" but received "${tokenResponse.token_type}".`,
-      );
-    }
-    if (
-      typeof tokenResponse.expires_in !== 'number' ||
-      !Number.isFinite(tokenResponse.expires_in) ||
-      tokenResponse.expires_in <= 0
-    ) {
-      throw new Error(
-        `FusionAuth SDK: invalid expires_in "${tokenResponse.expires_in}" in token response.`,
-      );
-    }
-
-    return {
-      accessToken: tokenResponse.access_token!,
-      refreshToken: tokenResponse.refresh_token ?? fallbackRefreshToken,
-      expiresAt: Date.now() + tokenResponse.expires_in * 1000,
-      tokenType: 'DPoP',
-    };
-  }
-
-  /**
-   * Removes `code` from the current URL.
-   */
-  private clearRedirectQueryParams(): void {
-    const { origin, pathname, search, hash } = window.location;
-    const url = new URL(`${origin}${pathname}${search}${hash}`);
-    url.searchParams.delete('code');
-    window.history.replaceState(null, '', url.toString());
   }
 
   /**
