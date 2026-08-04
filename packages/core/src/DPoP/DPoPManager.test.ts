@@ -160,6 +160,18 @@ describe('generateProof()', () => {
     expect(payload.htm).toBe('POST');
   });
 
+  it('resolves a relative htu against window.location.origin instead of throwing', async () => {
+    vi.stubGlobal('window', {
+      location: { origin: 'https://app.example.com' },
+    });
+    const manager = makeManager();
+    const proof = await manager.generateProof('/api/data', 'GET');
+
+    const payload = decodeJwtPayload(proof);
+    expect(payload.htu).toBe('https://app.example.com/api/data');
+    vi.unstubAllGlobals();
+  });
+
   it('includes ath claim when an accessToken is provided', async () => {
     const manager = makeManager();
     const proof = await manager.generateProof(

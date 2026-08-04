@@ -4,6 +4,18 @@ import type { KeyPair } from 'dpop';
 import { DPoPStorage } from './DPoPStorage';
 import { DPoPTokenStore, DPoPTokens } from './DPoPTokenStore';
 
+/** Duck-types `Request` instead of `instanceof Request`, so cross-realm or polyfilled `Request`-like objects are still recognised. */
+function isRequestLike(input: unknown): input is Request {
+  return (
+    typeof input === 'object' &&
+    input !== null &&
+    typeof (input as Request).clone === 'function' &&
+    typeof (input as Request).headers === 'object' &&
+    typeof (input as Request).url === 'string' &&
+    typeof (input as Request).method === 'string'
+  );
+}
+
 /**
  * Central coordinator for all DPoP operations.
  *
@@ -129,7 +141,11 @@ export class DPoPManager {
     const keyPair = await this.getOrCreateKeyPair();
 
     // Per RFC 9449, htu MUST NOT include the query or fragment components.
-    const url = new URL(htu);
+    // Relative URLs (e.g. `/api/data`) are resolved against the current
+    // origin, since `dpopFetch()` accepts them.
+    const base =
+      typeof window !== 'undefined' ? window.location.origin : undefined;
+    const url = new URL(htu, base);
     const normalizedHtu = `${url.origin}${url.pathname}`;
     const normalizedHtm = htm.toUpperCase();
 
@@ -162,21 +178,17 @@ export class DPoPManager {
     // attempt and a potential retry each get an independent, unconsumed body.
     // Request.clone() safely tees any internal streaming body per spec, so
     // this also covers a Request constructed with a ReadableStream body.
-    const primaryInput = input instanceof Request ? input.clone() : input;
-    const retryInput = input instanceof Request ? input.clone() : input;
+    const primaryInput = isRequestLike(input) ? input.clone() : input;
+    const retryInput = isRequestLike(input) ? input.clone() : input;
 
     const response = await this._doFetch(primaryInput, init);
 
-    if (
-      response.status === 401 &&
-      this._isUseNonceError(response) &&
-      response.headers.has('DPoP-Nonce')
-    ) {
+    if (response.status === 401 && this._isUseNonceError(response)) {
       // A raw ReadableStream passed via init.body (not wrapped in a Request)
       // cannot be safely reused for a retry — it's single-read and there is
       // no Request object to clone. Fail clearly rather than let native
       // fetch throw an opaque "body already used" error on the retry.
-      if (!(input instanceof Request) && init?.body instanceof ReadableStream) {
+      if (!isRequestLike(input) && init?.body instanceof ReadableStream) {
         throw new Error(
           'DPoPManager.fetch() received a use_dpop_nonce challenge but cannot ' +
             'automatically retry because init.body is a ReadableStream (single-use). ' +
@@ -239,15 +251,17 @@ export class DPoPManager {
     return globalThis.fetch(input, { ...init, headers });
   }
 
-  /** Returns `true` when the `WWW-Authenticate` header signals a nonce requirement. */
+  /** Returns `true` when the response signals a DPoP nonce retry is warranted: a `WWW-Authenticate: use_dpop_nonce` challenge with a `DPoP-Nonce` header to retry with. */
   private _isUseNonceError(response: Response): boolean {
     const wwwAuth = response.headers.get('WWW-Authenticate') ?? '';
-    return wwwAuth.includes('use_dpop_nonce');
+    return (
+      wwwAuth.includes('use_dpop_nonce') && response.headers.has('DPoP-Nonce')
+    );
   }
 
   /** Extracts the URL string from any of the three allowed `fetch` input shapes. */
   private _resolveUrl(input: RequestInfo | URL): string {
-    if (input instanceof Request) {
+    if (isRequestLike(input)) {
       return input.url;
     }
     return input.toString();
@@ -256,8 +270,7 @@ export class DPoPManager {
   /** Extracts the HTTP method from the request/init, defaulting to `'GET'`. */
   private _resolveMethod(input: RequestInfo | URL, init?: RequestInit): string {
     if (init?.method) return init.method.toUpperCase();
-    if (input instanceof Request && input.method)
-      return input.method.toUpperCase();
+    if (isRequestLike(input) && input.method) return input.method.toUpperCase();
     return 'GET';
   }
 
@@ -277,7 +290,7 @@ export class DPoPManager {
     const headers = new Headers(init?.headers);
 
     // Overlay: Request.headers wins on any conflicting header name.
-    if (input instanceof Request) {
+    if (isRequestLike(input)) {
       input.headers.forEach((value, key) => headers.set(key, value));
     }
 
