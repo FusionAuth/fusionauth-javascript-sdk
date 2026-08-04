@@ -10,12 +10,16 @@ import { IDBFactory } from 'fake-indexeddb';
 
 import { DPoPManager } from './DPoPManager';
 import { DPoPTokens } from './DPoPTokenStore';
+import { UrlHelper } from '../UrlHelper';
+import { RedirectHelper } from '../RedirectHelper';
 
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
 
 const CLIENT_ID = 'test-client';
+const SERVER_URL = 'https://auth.example.com';
+const REDIRECT_URI = 'https://app.example.com/callback';
 const RESOURCE_URL = 'https://api.example.com/data';
 
 /** Decode the payload of a JWT without verifying the signature. */
@@ -36,10 +40,42 @@ function makeTokens(overrides?: Partial<DPoPTokens>): DPoPTokens {
   };
 }
 
+function makeUrlHelper(): UrlHelper {
+  return new UrlHelper({
+    serverUrl: SERVER_URL,
+    clientId: CLIENT_ID,
+    redirectUri: REDIRECT_URI,
+  });
+}
+
 function makeManager(
   tokenStorage: 'localStorage' | 'memory' = 'memory',
+  urlHelper: UrlHelper = makeUrlHelper(),
+  redirectHelper: RedirectHelper = new RedirectHelper(),
 ): DPoPManager {
-  return new DPoPManager(CLIENT_ID, tokenStorage);
+  return new DPoPManager(CLIENT_ID, urlHelper, redirectHelper, tokenStorage);
+}
+
+/**
+ * Stubs `window` with a minimal `location`/`history` so `startLogin()`,
+ * `startLogout()`, `startRegister()`, and `handlePostRedirect()` — which
+ * this file exercises in the `node` test environment where `window` is
+ * otherwise undefined — can run. Returns the `assign`/`replaceState` spies.
+ */
+function stubWindow(search = '') {
+  const assign = vi.fn();
+  const replaceState = vi.fn();
+  vi.stubGlobal('window', {
+    location: {
+      origin: 'https://app.example.com',
+      pathname: '/callback',
+      search,
+      hash: '',
+      assign,
+    },
+    history: { replaceState },
+  });
+  return { assign, replaceState };
 }
 
 /** Minimal `Response`-like stub that satisfies the fetch return contract. */
@@ -79,6 +115,7 @@ beforeEach(() => {
 
 afterEach(() => {
   vi.restoreAllMocks();
+  vi.unstubAllGlobals();
 });
 
 describe('getOrCreateKeyPair()', () => {
@@ -643,5 +680,280 @@ describe('clear()', () => {
     const second = await manager.getOrCreateKeyPair();
     // clear() resets the promise — a new object is created.
     expect(second).not.toBe(first);
+  });
+});
+
+describe('startLogin()', () => {
+  it('persists code_verifier via RedirectHelper and redirects to /oauth2/authorize with dpop_jkt/code_challenge/state', async () => {
+    const { assign } = stubWindow();
+    const redirectHelper = new RedirectHelper();
+    const manager = makeManager('memory', makeUrlHelper(), redirectHelper);
+
+    await manager.startLogin('my-state');
+
+    expect(assign).toHaveBeenCalledOnce();
+    const url = new URL(assign.mock.calls[0][0].toString());
+    expect(url.pathname).toBe('/oauth2/authorize');
+    expect(url.searchParams.get('state')).toBe('my-state');
+    expect(url.searchParams.has('dpop_jkt')).toBe(true);
+    expect(url.searchParams.has('code_challenge')).toBe(true);
+
+    expect(redirectHelper.getCodeVerifier()).toBeDefined();
+    expect(redirectHelper.getState()).toBe('my-state');
+  });
+});
+
+describe('startLogout()', () => {
+  it('clears DPoP state and redirects to /oauth2/logout', async () => {
+    const { assign } = stubWindow();
+    const manager = makeManager();
+    manager.setTokens(makeTokens());
+    expect(manager.isLoggedIn).toBe(true);
+
+    await manager.startLogout();
+
+    expect(manager.isLoggedIn).toBe(false);
+    expect(assign).toHaveBeenCalledOnce();
+    const url = new URL(assign.mock.calls[0][0].toString());
+    expect(url.pathname).toBe('/oauth2/logout');
+  });
+
+  it('still redirects even if clear() throws', async () => {
+    const { assign } = stubWindow();
+    const manager = makeManager();
+    vi.spyOn(manager, 'clear').mockRejectedValueOnce(new Error('boom'));
+
+    await expect(manager.startLogout()).rejects.toThrow('boom');
+    expect(assign).toHaveBeenCalledOnce();
+  });
+});
+
+describe('startRegister()', () => {
+  it('persists code_verifier via RedirectHelper and redirects to /oauth2/register with dpop_jkt/code_challenge/state', async () => {
+    const { assign } = stubWindow();
+    const redirectHelper = new RedirectHelper();
+    const manager = makeManager('memory', makeUrlHelper(), redirectHelper);
+
+    await manager.startRegister('my-state');
+
+    expect(assign).toHaveBeenCalledOnce();
+    const url = new URL(assign.mock.calls[0][0].toString());
+    expect(url.pathname).toBe('/oauth2/register');
+    expect(url.searchParams.get('state')).toBe('my-state');
+    expect(url.searchParams.has('dpop_jkt')).toBe(true);
+    expect(url.searchParams.has('code_challenge')).toBe(true);
+
+    expect(redirectHelper.getCodeVerifier()).toBeDefined();
+    expect(redirectHelper.getState()).toBe('my-state');
+  });
+});
+
+describe('refreshToken()', () => {
+  it('throws when no refresh token is stored', async () => {
+    const manager = makeManager();
+    await expect(manager.refreshToken()).rejects.toThrow(
+      'No refresh token available. Have you called startLogin()?',
+    );
+  });
+
+  it('sends a DPoP header and refresh_token grant body to /oauth2/token', async () => {
+    const manager = makeManager();
+    manager.setTokens(makeTokens({ refreshToken: 'old-refresh-token' }));
+
+    const fetchSpy = vi.spyOn(globalThis, 'fetch').mockResolvedValue(
+      makeResponse(
+        200,
+        {},
+        JSON.stringify({
+          access_token: 'new-access-token',
+          refresh_token: 'new-refresh-token',
+          expires_in: 3600,
+          token_type: 'DPoP',
+        }),
+      ),
+    );
+
+    const response = await manager.refreshToken();
+
+    expect(response.status).toBe(200);
+    expect(fetchSpy).toHaveBeenCalledOnce();
+    const [url, init] = fetchSpy.mock.calls[0];
+    expect(new URL(url.toString()).pathname).toBe('/oauth2/token');
+    const headers = init?.headers as Record<string, string>;
+    expect(headers['DPoP']).toBeDefined();
+    const body = new URLSearchParams(init?.body as string);
+    expect(body.get('grant_type')).toBe('refresh_token');
+    expect(body.get('refresh_token')).toBe('old-refresh-token');
+    expect(body.get('client_id')).toBe(CLIENT_ID);
+
+    expect(manager.getAccessToken()).toBe('new-access-token');
+  });
+
+  it('throws when the response is not ok', async () => {
+    const manager = makeManager();
+    manager.setTokens(makeTokens());
+    vi.spyOn(globalThis, 'fetch').mockResolvedValue(
+      makeResponse(400, {}, 'invalid_grant'),
+    );
+
+    await expect(manager.refreshToken()).rejects.toThrow();
+  });
+
+  it('throws when token_type is not DPoP', async () => {
+    const manager = makeManager();
+    manager.setTokens(makeTokens());
+    vi.spyOn(globalThis, 'fetch').mockResolvedValue(
+      makeResponse(
+        200,
+        {},
+        JSON.stringify({
+          access_token: 'a',
+          expires_in: 3600,
+          token_type: 'Bearer',
+        }),
+      ),
+    );
+
+    await expect(manager.refreshToken()).rejects.toThrow('token_type');
+  });
+
+  it('throws when expires_in is not a positive number', async () => {
+    const manager = makeManager();
+    manager.setTokens(makeTokens());
+    vi.spyOn(globalThis, 'fetch').mockResolvedValue(
+      makeResponse(
+        200,
+        {},
+        JSON.stringify({
+          access_token: 'a',
+          expires_in: 0,
+          token_type: 'DPoP',
+        }),
+      ),
+    );
+
+    await expect(manager.refreshToken()).rejects.toThrow('expires_in');
+  });
+});
+
+describe('handlePostRedirect()', () => {
+  it('returns undefined when there is no code query param', async () => {
+    stubWindow();
+    const manager = makeManager();
+
+    expect(await manager.handlePostRedirect()).toBeUndefined();
+  });
+
+  it('returns undefined when code is present but no code_verifier was persisted', async () => {
+    stubWindow('?code=abc123');
+    const manager = makeManager();
+
+    expect(await manager.handlePostRedirect()).toBeUndefined();
+  });
+
+  it('returns a state-mismatch Error and does not exchange the code (CSRF protection)', async () => {
+    stubWindow('?code=abc123&state=attacker-state');
+    const redirectHelper = new RedirectHelper();
+    redirectHelper.handlePreRedirect('expected-state', 'my-code-verifier');
+    const manager = makeManager('memory', makeUrlHelper(), redirectHelper);
+    const fetchSpy = vi.spyOn(globalThis, 'fetch');
+
+    const error = await manager.handlePostRedirect();
+
+    expect(error?.message).toContain('state');
+    expect(fetchSpy).not.toHaveBeenCalled();
+  });
+
+  it('exchanges the code, stores tokens, clears the URL, and invokes the callback', async () => {
+    const { replaceState } = stubWindow('?code=abc123&state=my-state');
+    const redirectHelper = new RedirectHelper();
+    redirectHelper.handlePreRedirect('my-state', 'my-code-verifier');
+    const manager = makeManager('memory', makeUrlHelper(), redirectHelper);
+
+    vi.spyOn(globalThis, 'fetch').mockResolvedValue(
+      makeResponse(
+        200,
+        {},
+        JSON.stringify({
+          access_token: 'access-token',
+          refresh_token: 'refresh-token',
+          expires_in: 3600,
+          token_type: 'DPoP',
+        }),
+      ),
+    );
+
+    const callback = vi.fn();
+    const result = await manager.handlePostRedirect(callback);
+
+    expect(result).toBeUndefined();
+    expect(manager.getAccessToken()).toBe('access-token');
+    expect(callback).toHaveBeenCalledWith('my-state');
+    expect(replaceState).toHaveBeenCalledOnce();
+  });
+
+  it('returns an Error instead of throwing when the token exchange fails', async () => {
+    stubWindow('?code=abc123');
+    const redirectHelper = new RedirectHelper();
+    redirectHelper.handlePreRedirect(undefined, 'my-code-verifier');
+    const manager = makeManager('memory', makeUrlHelper(), redirectHelper);
+
+    vi.spyOn(globalThis, 'fetch').mockResolvedValue(
+      makeResponse(400, {}, 'invalid_grant'),
+    );
+
+    const error = await manager.handlePostRedirect();
+    expect(error).toBeInstanceOf(Error);
+  });
+
+  it('returns an Error when token_type is not DPoP', async () => {
+    stubWindow('?code=abc123');
+    const redirectHelper = new RedirectHelper();
+    redirectHelper.handlePreRedirect(undefined, 'my-code-verifier');
+    const manager = makeManager('memory', makeUrlHelper(), redirectHelper);
+
+    vi.spyOn(globalThis, 'fetch').mockResolvedValue(
+      makeResponse(
+        200,
+        {},
+        JSON.stringify({
+          access_token: 'a',
+          expires_in: 3600,
+          token_type: 'Bearer',
+        }),
+      ),
+    );
+
+    const error = await manager.handlePostRedirect();
+    expect(error?.message).toContain('token_type');
+  });
+});
+
+describe('fetchUserInfo()', () => {
+  it('throws when no access token is stored', async () => {
+    const manager = makeManager();
+    await expect(manager.fetchUserInfo()).rejects.toThrow(
+      'No access token available. Have you called startLogin()?',
+    );
+  });
+
+  it('fetches /oauth2/userinfo and returns the parsed claims', async () => {
+    const manager = makeManager();
+    manager.setTokens(makeTokens({ accessToken: 'my-access-token' }));
+
+    vi.spyOn(globalThis, 'fetch').mockResolvedValue(
+      makeResponse(200, {}, JSON.stringify({ email: 'user@example.com' })),
+    );
+
+    const userInfo = await manager.fetchUserInfo<{ email: string }>();
+    expect(userInfo).toEqual({ email: 'user@example.com' });
+  });
+
+  it('throws when the response is not ok', async () => {
+    const manager = makeManager();
+    manager.setTokens(makeTokens());
+    vi.spyOn(globalThis, 'fetch').mockResolvedValue(makeResponse(401));
+
+    await expect(manager.fetchUserInfo()).rejects.toThrow(/status code 401/);
   });
 });

@@ -35,6 +35,8 @@ export class SDKCore {
     if (config.useDpop) {
       this.dpopManager = new DPoPManager(
         config.clientId,
+        this.urlHelper,
+        this.redirectHelper,
         config.dpopTokenStorage,
       );
     }

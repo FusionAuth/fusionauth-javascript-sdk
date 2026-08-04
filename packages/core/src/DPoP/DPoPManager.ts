@@ -3,6 +3,9 @@ import type { KeyPair } from 'dpop';
 
 import { DPoPStorage } from './DPoPStorage';
 import { DPoPTokenStore, DPoPTokens } from './DPoPTokenStore';
+import { UrlHelper } from '../UrlHelper';
+import { RedirectHelper } from '../RedirectHelper';
+import * as Pkce from '../Pkce';
 
 /** Duck-types `Request` instead of `instanceof Request` */
 function isRequestLike(input: unknown): input is Request {
@@ -25,6 +28,8 @@ function isRequestLike(input: unknown): input is Request {
 export class DPoPManager {
   private readonly tokenStore: DPoPTokenStore;
   private readonly storage: DPoPStorage;
+  private readonly urlHelper: UrlHelper;
+  private readonly redirectHelper: RedirectHelper;
 
   /** In-memory nonce cache keyed by origin (e.g. `https://api.example.com`). */
   private readonly nonces = new Map<string, string>();
@@ -39,10 +44,14 @@ export class DPoPManager {
 
   constructor(
     clientId: string,
+    urlHelper: UrlHelper,
+    redirectHelper: RedirectHelper,
     tokenStorage: 'localStorage' | 'memory' = 'localStorage',
   ) {
     this.storage = new DPoPStorage({ clientId });
     this.tokenStore = new DPoPTokenStore(clientId, tokenStorage);
+    this.urlHelper = urlHelper;
+    this.redirectHelper = redirectHelper;
   }
 
   /**
@@ -225,6 +234,182 @@ export class DPoPManager {
     await Promise.all([this.storage.clearKeyPair(), this.tokenStore.clear()]);
   }
 
+  /**
+   * Starts the authorization code grant flow.
+   */
+  async startLogin(state?: string): Promise<void> {
+    await this.getOrCreateKeyPair();
+    const dpopJkt = await this.getThumbprint();
+    const codeVerifier = Pkce.generateCodeVerifier();
+    const codeChallenge = await Pkce.generateCodeChallenge(codeVerifier);
+    this.redirectHelper.handlePreRedirect(state, codeVerifier);
+    window.location.assign(
+      this.urlHelper.getAuthorizeUrl(dpopJkt, codeChallenge, state),
+    );
+  }
+
+  /**
+   * Performs the OAut2logout flow: clears the key pair, stored tokens, and
+   * in-memory nonces, then redirects to `/oauth2/logout`.
+   */
+  async startLogout(): Promise<void> {
+    try {
+      await this.clear();
+    } finally {
+      window.location.assign(this.urlHelper.getOAuth2LogoutUrl());
+    }
+  }
+
+  /**
+   * Performs the register flow.
+   */
+  async startRegister(state?: string): Promise<void> {
+    await this.getOrCreateKeyPair();
+    const dpopJkt = await this.getThumbprint();
+    const codeVerifier = Pkce.generateCodeVerifier();
+    const codeChallenge = await Pkce.generateCodeChallenge(codeVerifier);
+    this.redirectHelper.handlePreRedirect(state, codeVerifier);
+    window.location.assign(
+      this.urlHelper.getOAuth2RegisterUrl(dpopJkt, codeChallenge, state),
+    );
+  }
+
+  /**
+   * Performs the refresh token grant.
+   * @throws {Error} if no refresh token is stored, or the request fails.
+   */
+  async refreshToken(): Promise<Response> {
+    const refreshToken = this.getRefreshToken();
+    if (!refreshToken) {
+      throw new Error(
+        'No refresh token available. Have you called startLogin()?',
+      );
+    }
+
+    const tokenUrl = this.urlHelper.getTokenUrl();
+    const proof = await this.generateProof(tokenUrl.toString(), 'POST');
+
+    const body = new URLSearchParams({
+      grant_type: 'refresh_token',
+      refresh_token: refreshToken,
+      client_id: this.urlHelper.clientId,
+    });
+
+    const response = await fetch(tokenUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        DPoP: proof,
+      },
+      body: body.toString(),
+    });
+
+    if (!response.ok) {
+      const errorDetails = {
+        status: response.status,
+        details:
+          (await response.text()) ||
+          'Failed to refresh fusionauth access token',
+      };
+      throw new Error(JSON.stringify(errorDetails));
+    }
+
+    const tokenResponse = await response.clone().json();
+    this.setTokens(this.parseTokenResponse(tokenResponse, refreshToken));
+
+    return response;
+  }
+
+  /**
+   * Performs the authorization code exchange for tokens.
+   */
+  async handlePostRedirect(
+    callback?: (state?: string) => void,
+  ): Promise<Error | undefined> {
+    const code = new URLSearchParams(window.location.search).get('code');
+    const codeVerifier = this.redirectHelper.getCodeVerifier();
+
+    // No pending exchange
+    if (!code || !codeVerifier) {
+      return undefined;
+    }
+
+    // CSRF protection: the `state` echoed back on the redirect must match
+    // what was persisted before redirecting.
+    const returnedState =
+      new URLSearchParams(window.location.search).get('state') ?? undefined;
+    if (returnedState !== this.redirectHelper.getState()) {
+      return new Error(
+        'FusionAuth SDK: state parameter mismatch. Aborting to prevent a possible CSRF attack.',
+      );
+    }
+
+    try {
+      const tokenUrl = this.urlHelper.getTokenUrl();
+      const proof = await this.generateProof(tokenUrl.toString(), 'POST');
+
+      const body = new URLSearchParams({
+        grant_type: 'authorization_code',
+        code,
+        code_verifier: codeVerifier,
+        client_id: this.urlHelper.clientId,
+        redirect_uri: this.urlHelper.redirectUri,
+      });
+
+      const response = await fetch(tokenUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+          DPoP: proof,
+        },
+        body: body.toString(),
+      });
+
+      if (!response.ok) {
+        const errorDetails = {
+          status: response.status,
+          details:
+            (await response.text()) ||
+            'Failed to exchange authorization code for tokens',
+        };
+        return new Error(JSON.stringify(errorDetails));
+      }
+
+      const tokenResponse = await response.json();
+      const tokens = this.parseTokenResponse(tokenResponse);
+      this.setTokens(tokens);
+
+      this.redirectHelper.clearCodeFromUrl();
+      this.redirectHelper.handlePostRedirect(callback);
+      return undefined;
+    } catch (error) {
+      return error as Error;
+    }
+  }
+
+  /**
+   * Fetches userInfo from `/oauth2/userinfo`.
+   * @throws {Error} if no access token is stored, or the request fails.
+   */
+  async fetchUserInfo<T>(): Promise<T> {
+    const accessToken = this.getAccessToken();
+    if (!accessToken) {
+      throw new Error(
+        'No access token available. Have you called startLogin()?',
+      );
+    }
+
+    const userInfoResponse = await this.fetch(this.urlHelper.getUserInfoUrl());
+
+    if (!userInfoResponse.ok) {
+      throw new Error(
+        `Unable to fetch userInfo. Request failed with status code ${userInfoResponse?.status}`,
+      );
+    }
+
+    return (await userInfoResponse.json()) as T;
+  }
+
   // ---------------------------------------------------------------------------
   // Private helpers
   // ---------------------------------------------------------------------------
@@ -295,5 +480,40 @@ export class DPoPManager {
     }
 
     return headers;
+  }
+
+  /**
+   * Validates a `/oauth2/token` response.
+   */
+  private parseTokenResponse(
+    tokenResponse: {
+      access_token?: string;
+      refresh_token?: string;
+      expires_in?: number;
+      token_type?: string;
+    },
+    fallbackRefreshToken?: string,
+  ): DPoPTokens {
+    if (tokenResponse.token_type !== 'DPoP') {
+      throw new Error(
+        `FusionAuth SDK: expected token_type "DPoP" but received "${tokenResponse.token_type}".`,
+      );
+    }
+    if (
+      typeof tokenResponse.expires_in !== 'number' ||
+      !Number.isFinite(tokenResponse.expires_in) ||
+      tokenResponse.expires_in <= 0
+    ) {
+      throw new Error(
+        `FusionAuth SDK: invalid expires_in "${tokenResponse.expires_in}" in token response.`,
+      );
+    }
+
+    return {
+      accessToken: tokenResponse.access_token!,
+      refreshToken: tokenResponse.refresh_token ?? fallbackRefreshToken,
+      expiresAt: Date.now() + tokenResponse.expires_in * 1000,
+      tokenType: 'DPoP',
+    };
   }
 }
