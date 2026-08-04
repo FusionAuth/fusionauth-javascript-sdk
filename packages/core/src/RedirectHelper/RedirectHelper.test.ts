@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { RedirectHelper } from './RedirectHelper';
+import { mockWindowLocation } from '../testUtils';
 
 describe('RedirectHelper', () => {
   afterEach(() => {
@@ -141,6 +142,28 @@ describe('RedirectHelper', () => {
     it('getState() returns undefined when no redirect was initiated', () => {
       const helper = new RedirectHelper();
       expect(helper.getState()).toBeUndefined();
+    });
+  });
+
+  describe('clearCodeFromUrl()', () => {
+    it('removes code from the URL via history.replaceState(), preserving other params', () => {
+      mockWindowLocation(vi, '?code=abc123&state=my-state');
+      const replaceState = vi.spyOn(window.history, 'replaceState');
+
+      const helper = new RedirectHelper();
+      helper.clearCodeFromUrl();
+
+      expect(replaceState).toHaveBeenCalledOnce();
+      const [, , url] = replaceState.mock.calls[0];
+      const cleanedUrl = new URL(url as string);
+      expect(cleanedUrl.searchParams.get('code')).toBeNull();
+      expect(cleanedUrl.searchParams.get('state')).toBe('my-state');
+    });
+
+    it('does not throw when there is no code in the URL', () => {
+      mockWindowLocation(vi, '');
+      const helper = new RedirectHelper();
+      expect(() => helper.clearCodeFromUrl()).not.toThrow();
     });
   });
 

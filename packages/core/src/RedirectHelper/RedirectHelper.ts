@@ -54,6 +54,16 @@ export class RedirectHelper {
   }
 
   /**
+   * Removes `code` from the current URL, leaving other query params intact.
+   */
+  clearCodeFromUrl(): void {
+    const { origin, pathname, search, hash } = window.location;
+    const url = new URL(`${origin}${pathname}${search}${hash}`);
+    url.searchParams.delete('code');
+    window.history.replaceState(null, '', url.toString());
+  }
+
+  /**
    * Returns the PKCE `code_verifier` that was persisted by
    * {@link handlePreRedirect}, or `undefined` if none was stored (hosted
    * backend mode) or if no redirect has been initiated.
