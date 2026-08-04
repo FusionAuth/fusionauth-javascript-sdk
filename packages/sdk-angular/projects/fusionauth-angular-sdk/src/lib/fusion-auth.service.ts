@@ -44,8 +44,9 @@ export class FusionAuthService<T = UserInfo> {
     this.isLoggedInSignal = this.isLoggedInState;
     this.isLoggedIn$ = toObservable(this.isLoggedInState);
 
-    this.core.handlePostRedirect(config.onRedirect).then(() => {
+    this.core.handlePostRedirect(state => {
       this.isLoggedInState.set(this.core.isLoggedIn);
+      config.onRedirect?.(state);
     });
 
     if (config.shouldAutoRefresh && this.core.isLoggedIn) {

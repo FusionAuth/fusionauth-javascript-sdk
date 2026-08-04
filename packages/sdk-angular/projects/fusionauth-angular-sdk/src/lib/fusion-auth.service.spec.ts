@@ -291,5 +291,48 @@ describe('FusionAuthService', () => {
         expect(service.isLoggedInSignal()).toBe(true);
       });
     });
+
+    it('onRedirect is invoked after isLoggedInSignal is already true', async () => {
+      vi.spyOn(DPoPManager.prototype, 'getOrCreateKeyPair').mockResolvedValue(
+        {} as any,
+      );
+      vi.spyOn(DPoPManager.prototype, 'generateProof').mockResolvedValue(
+        'mock-dpop-proof-jwt',
+      );
+      mockWindowLocation(
+        vi,
+        '?code=mock-authorization-code&state=redirect-state',
+      );
+      localStorage.setItem(
+        'fa-sdk-redirect-value',
+        JSON.stringify({
+          codeVerifier: 'mock-code-verifier',
+          state: 'redirect-state',
+        }),
+      );
+      vi.spyOn(global, 'fetch').mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({
+            access_token: 'mock-access-token',
+            refresh_token: 'mock-refresh-token',
+            expires_in: 3600,
+            token_type: 'DPoP',
+          }),
+          { status: 200 },
+        ),
+      );
+
+      let isLoggedInDuringOnRedirect: boolean | undefined;
+      const onRedirect = vi.fn(() => {
+        isLoggedInDuringOnRedirect = service.isLoggedInSignal();
+      });
+
+      const service = configureTestingModule({ ...dpopConfig, onRedirect });
+
+      await vi.waitFor(() => expect(onRedirect).toHaveBeenCalledOnce());
+
+      expect(onRedirect).toHaveBeenCalledWith('redirect-state');
+      expect(isLoggedInDuringOnRedirect).toBe(true);
+    });
   });
 });
