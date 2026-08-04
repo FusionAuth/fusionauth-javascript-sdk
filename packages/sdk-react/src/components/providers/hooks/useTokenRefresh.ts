@@ -1,11 +1,16 @@
 import { useEffect, useCallback } from 'react';
 import { SDKCore } from '@fusionauth-sdk/core';
 
-export function useTokenRefresh(core: SDKCore, shouldAutoRefresh: boolean) {
-  const refreshToken = useCallback(
-    async () => await core.refreshToken(),
-    [core],
-  );
+export function useTokenRefresh(
+  core: SDKCore,
+  shouldAutoRefresh: boolean,
+  syncIsLoggedIn?: () => void,
+) {
+  const refreshToken = useCallback(async () => {
+    const response = await core.refreshToken();
+    syncIsLoggedIn?.();
+    return response;
+  }, [core, syncIsLoggedIn]);
 
   const initAutoRefresh = useCallback(() => {
     core.initAutoRefresh();

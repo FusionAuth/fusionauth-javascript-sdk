@@ -118,6 +118,7 @@ function FusionAuthProvider<T = DefaultUserInfo>(
   const { refreshToken, initAutoRefresh } = useTokenRefresh(
     core,
     config.shouldAutoRefresh ?? false,
+    syncIsLoggedIn,
   );
 
   const { dpopFetch, generateProof, getAccessToken } = useDpop(
