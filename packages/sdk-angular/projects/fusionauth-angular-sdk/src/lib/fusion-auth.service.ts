@@ -2,13 +2,13 @@ import {
   Injectable,
   Inject,
   PLATFORM_ID,
-  NgZone,
   Signal,
-  ApplicationRef,
+  signal,
+  WritableSignal,
 } from '@angular/core';
-import { toSignal } from '@angular/core/rxjs-interop';
+import { toObservable } from '@angular/core/rxjs-interop';
 import { isPlatformBrowser } from '@angular/common';
-import { Observable, catchError, BehaviorSubject } from 'rxjs';
+import { Observable, catchError } from 'rxjs';
 
 import { SDKCore } from '../sdkcore';
 import { SSRCookieAdapter } from './SSRCookieAdapter';
@@ -24,48 +24,36 @@ import { FUSIONAUTH_SERVICE_CONFIG } from './injectionToken';
 export class FusionAuthService<T = UserInfo> {
   private core: SDKCore;
   private autoRefreshTimer?: NodeJS.Timeout;
-  private isLoggedInSubject: BehaviorSubject<boolean>;
+  private isLoggedInState: WritableSignal<boolean>;
 
   constructor(
     @Inject(FUSIONAUTH_SERVICE_CONFIG) config: FusionAuthConfig,
     @Inject(PLATFORM_ID) platformId: Object,
-    private ngZone: NgZone,
-    private appRef: ApplicationRef,
   ) {
     this.core = new SDKCore({
       ...config,
       onTokenExpiration: () => {
-        this.runInZoneAndTick(() => this.isLoggedInSubject.next(false));
+        this.isLoggedInState.set(false);
       },
       cookieAdapter: new SSRCookieAdapter(isPlatformBrowser(platformId)),
     });
 
-    this.isLoggedInSubject = new BehaviorSubject(this.core.isLoggedIn);
-    this.isLoggedIn$ = this.isLoggedInSubject.asObservable();
-    this.isLoggedInSignal = toSignal(this.isLoggedIn$, {
-      initialValue: this.core.isLoggedIn,
-    });
+    // A signal (rather than NgZone.run() + ApplicationRef.tick()) is used
+    // here because updating a signal read in a template is one of
+    // Angular's built-in change-detection notification mechanisms, and it
+    // works regardless of the zone the write happens in — including from
+    // DPoPManager's IndexedDB callbacks, which zone.js does not patch — and
+    // regardless of whether the host app is zone-based or zoneless.
+    this.isLoggedInState = signal(this.core.isLoggedIn);
+    this.isLoggedInSignal = this.isLoggedInState;
+    this.isLoggedIn$ = toObservable(this.isLoggedInState);
 
     this.core.handlePostRedirect(config.onRedirect).then(() => {
-      this.runInZoneAndTick(() =>
-        this.isLoggedInSubject.next(this.core.isLoggedIn),
-      );
+      this.isLoggedInState.set(this.core.isLoggedIn);
     });
 
     if (config.shouldAutoRefresh && this.core.isLoggedIn) {
       this.initAutoRefresh();
-    }
-  }
-
-  // Re-enters the Angular zone (SDKCore's DPoP key storage uses IndexedDB,
-  // whose callbacks zone.js does not patch) and forces a tick so the host
-  // app picks up the change even when bootstrapped zoneless. In a zone-full
-  // app, ngZone.run() alone would already schedule a tick, so this tick()
-  // is a harmless extra pass — kept for zoneless compatibility.
-  private runInZoneAndTick(fn: () => void): void {
-    this.ngZone.run(fn);
-    if (!this.appRef.destroyed) {
-      this.appRef.tick();
     }
   }
 
@@ -114,13 +102,13 @@ export class FusionAuthService<T = UserInfo> {
       this.core
         .fetchUserInfo<T>()
         .then(userInfo => {
-          this.runInZoneAndTick(() => observer.next(userInfo));
+          observer.next(userInfo);
         })
         .catch(error => {
-          this.runInZoneAndTick(() => observer.error(error));
+          observer.error(error);
         })
         .finally(() => {
-          this.runInZoneAndTick(() => callbacks?.onDone?.());
+          callbacks?.onDone?.();
         });
     }).pipe(
       catchError(error => {
@@ -134,12 +122,7 @@ export class FusionAuthService<T = UserInfo> {
    * @throws {Error} - if an error occurred while fetching.
    */
   async getUserInfo<T>(): Promise<T> {
-    const userInfo = await this.core.fetchUserInfo<T>();
-    let result!: T;
-    this.runInZoneAndTick(() => {
-      result = userInfo;
-    });
-    return result;
+    return await this.core.fetchUserInfo<T>();
   }
 
   /**
