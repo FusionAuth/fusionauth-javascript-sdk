@@ -24,23 +24,43 @@ export class RedirectHelper {
 
   /**
    * Persists a redirect marker and an optional `state` value to localStorage
-   * before a redirect is initiated. When `codeVerifier` is provided (DPoP
-   * mode), it is persisted alongside `state` as a JSON object instead of the
-   * plain colon-delimited string used by hosted backend mode.
+   * before a redirect is initiated, for hosted backend mode.
    *
-   * Hosted backend mode format: a plain string `${randomNonce}:${state ?? ''}`
+   * Format: a plain string `${randomNonce}:${state ?? ''}`.
    *
-   * DPoP mode format: a JSON object `{ codeVerifier, state }`
-   *
-   * @param state         Optional OAuth2 state string echoed back post-login.
-   * @param codeVerifier  Optional PKCE `code_verifier` (DPoP mode only).
+   * @param state  Optional OAuth2 state string echoed back post-login.
    */
-  handlePreRedirect(state?: string, codeVerifier?: string) {
-    const isDpopMode = codeVerifier !== undefined;
-    const valueForStorage = isDpopMode
-      ? JSON.stringify({ codeVerifier, state })
-      : `${this.generateRandomString()}:${state ?? ''}`;
+  handlePreRedirect(state?: string) {
+    const valueForStorage = `${this.generateRandomString()}:${state ?? ''}`;
     this.storage.setItem(this.REDIRECT_VALUE, valueForStorage);
+  }
+
+  /**
+   * Persists a redirect marker for DPoP mode: the PKCE `code_verifier`, an
+   * optional caller-supplied `state`, and a freshly generated
+   * `transactionState`, all as a JSON object.
+   *
+   * `transactionState` — not the caller's `state` — must be sent as the
+   * OAuth2 `state` parameter on the `/oauth2/authorize` (or `/oauth2/register`)
+   * request, and is what {@link getTransactionState} returns for verifying
+   * the value FusionAuth echoes back on redirect. The caller's own `state`
+   * may be predictable, absent, or attacker-influenced, so it cannot serve
+   * as the CSRF defense described in RFC 6749 section 10.12 — a distinct,
+   * unguessable SDK-generated value is required for that.
+   *
+   * @param codeVerifier  PKCE `code_verifier` for the pending exchange.
+   * @param state         Optional caller-supplied state, returned as-is to
+   *                       the {@link handlePostRedirect} callback.
+   * @returns The generated `transactionState` to send as the OAuth2 `state`
+   *          parameter.
+   */
+  handlePreDpopRedirect(codeVerifier: string, state?: string): string {
+    const transactionState = this.generateRandomString();
+    this.storage.setItem(
+      this.REDIRECT_VALUE,
+      JSON.stringify({ codeVerifier, transactionState, state }),
+    );
+    return transactionState;
   }
 
   handlePostRedirect(callback?: (state?: string) => void) {
@@ -65,7 +85,7 @@ export class RedirectHelper {
 
   /**
    * Returns the PKCE `code_verifier` that was persisted by
-   * {@link handlePreRedirect}, or `undefined` if none was stored (hosted
+   * {@link handlePreDpopRedirect}, or `undefined` if none was stored (hosted
    * backend mode) or if no redirect has been initiated.
    */
   getCodeVerifier(): string | undefined {
@@ -76,8 +96,9 @@ export class RedirectHelper {
   }
 
   /**
-   * Returns the `state` value persisted by {@link handlePreRedirect}, or
-   * `undefined` if none was stored or no redirect has been initiated.
+   * Returns the `state` value persisted by {@link handlePreRedirect} or
+   * {@link handlePreDpopRedirect}, or `undefined` if none was stored or no
+   * redirect has been initiated.
    */
   getState(): string | undefined {
     const raw = this.storage.getItem(this.REDIRECT_VALUE);
@@ -87,20 +108,39 @@ export class RedirectHelper {
   }
 
   /**
+   * Returns the `transactionState` persisted by {@link handlePreDpopRedirect},
+   * or `undefined` if none was stored (hosted backend mode) or if no redirect
+   * has been initiated.
+   *
+   * Compare this against the `state` query parameter FusionAuth echoes back
+   * on redirect to guard against CSRF — do not use {@link getState} for this,
+   * since it returns the caller's own (possibly predictable) `state` value.
+   */
+  getTransactionState(): string | undefined {
+    const raw = this.storage.getItem(this.REDIRECT_VALUE);
+    if (!raw) return undefined;
+
+    return this.parseStoredValue(raw).transactionState;
+  }
+
+  /**
    * Parses a raw stored value for either mode.
    */
   private parseStoredValue(raw: string): {
     codeVerifier?: string;
+    transactionState?: string;
     state?: string;
   } {
     if (raw.startsWith('{')) {
       // DPoP mode
       const parsed = JSON.parse(raw) as {
         codeVerifier?: string;
+        transactionState?: string;
         state?: string;
       };
       return {
         codeVerifier: parsed.codeVerifier || undefined,
+        transactionState: parsed.transactionState || undefined,
         state: parsed.state ?? undefined,
       };
     }

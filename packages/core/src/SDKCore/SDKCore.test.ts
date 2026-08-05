@@ -251,7 +251,16 @@ describe('SDKCore', () => {
       const assignedUrl = new URL(
         (location.assign as ReturnType<typeof vi.fn>).mock.calls[0][0],
       );
-      expect(assignedUrl.searchParams.get('state')).toBe('my-state');
+      // The OAuth `state` param sent to the server is the SDK-generated
+      // transactionState, not the caller's own state — see
+      // RedirectHelper.handlePreDpopRedirect() for why this is the actual
+      // CSRF defense.
+      const redirectHelper = new RedirectHelper();
+      expect(assignedUrl.searchParams.get('state')).toBe(
+        redirectHelper.getTransactionState(),
+      );
+      expect(assignedUrl.searchParams.get('state')).not.toBe('my-state');
+      expect(redirectHelper.getState()).toBe('my-state');
     });
 
     it('startRegister() in DPoP mode redirects to /oauth2/register with dpop_jkt and code_challenge', async () => {
@@ -579,13 +588,16 @@ describe('SDKCore', () => {
       /**
        * Runs `startLogin()` (with DPoP dependencies mocked) to legitimately
        * persist a `code_verifier` via `RedirectHelper`, then simulates landing
-       * back on the redirect URI with `?code=...` in the query string.
+       * back on the redirect URI with `?code=...&state=...` in the query
+       * string, using the real SDK-generated transactionState so the CSRF
+       * check in `handlePostRedirect()` passes.
        */
       async function primePendingRedirect(core: SDKCore) {
         const location = mockWindowLocation(vi);
         core.startLogin();
         await vi.waitFor(() => expect(location.assign).toHaveBeenCalledOnce());
-        location.search = `?code=${MOCK_CODE}`;
+        const transactionState = new RedirectHelper().getTransactionState();
+        location.search = `?code=${MOCK_CODE}&state=${transactionState}`;
         return location;
       }
 
@@ -685,7 +697,10 @@ describe('SDKCore', () => {
         const location = mockWindowLocation(vi);
         core.startLogin('my-post-redirect-state');
         await vi.waitFor(() => expect(location.assign).toHaveBeenCalledOnce());
-        location.search = `?code=${MOCK_CODE}&state=my-post-redirect-state`;
+        // The server echoes back the SDK-generated transactionState, not the
+        // caller's own state — see RedirectHelper.handlePreDpopRedirect().
+        const transactionState = new RedirectHelper().getTransactionState();
+        location.search = `?code=${MOCK_CODE}&state=${transactionState}`;
         mockTokenResponse();
 
         const redirectIndicator = () =>
@@ -711,7 +726,8 @@ describe('SDKCore', () => {
         const location = mockWindowLocation(vi);
         core.startLogin('my-post-redirect-state');
         await vi.waitFor(() => expect(location.assign).toHaveBeenCalledOnce());
-        location.search = `?code=${MOCK_CODE}&state=my-post-redirect-state`;
+        const transactionState = new RedirectHelper().getTransactionState();
+        location.search = `?code=${MOCK_CODE}&state=${transactionState}`;
         mockTokenResponse();
 
         core.handlePostRedirect();

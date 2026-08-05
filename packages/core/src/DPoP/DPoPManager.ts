@@ -218,9 +218,12 @@ export class DPoPManager {
     const dpopJkt = await this.getThumbprint();
     const codeVerifier = Pkce.generateCodeVerifier();
     const codeChallenge = await Pkce.generateCodeChallenge(codeVerifier);
-    this.redirectHelper.handlePreRedirect(state, codeVerifier);
+    const transactionState = this.redirectHelper.handlePreDpopRedirect(
+      codeVerifier,
+      state,
+    );
     window.location.assign(
-      this.urlHelper.getAuthorizeUrl(dpopJkt, codeChallenge, state),
+      this.urlHelper.getAuthorizeUrl(dpopJkt, codeChallenge, transactionState),
     );
   }
 
@@ -244,9 +247,16 @@ export class DPoPManager {
     const dpopJkt = await this.getThumbprint();
     const codeVerifier = Pkce.generateCodeVerifier();
     const codeChallenge = await Pkce.generateCodeChallenge(codeVerifier);
-    this.redirectHelper.handlePreRedirect(state, codeVerifier);
+    const transactionState = this.redirectHelper.handlePreDpopRedirect(
+      codeVerifier,
+      state,
+    );
     window.location.assign(
-      this.urlHelper.getOAuth2RegisterUrl(dpopJkt, codeChallenge, state),
+      this.urlHelper.getOAuth2RegisterUrl(
+        dpopJkt,
+        codeChallenge,
+        transactionState,
+      ),
     );
   }
 
@@ -311,10 +321,12 @@ export class DPoPManager {
     }
 
     // CSRF protection: the `state` echoed back on the redirect must match
-    // what was persisted before redirecting.
+    // the SDK-generated `transactionState` persisted before redirecting —
+    // not the caller's own `state`, which may be predictable or absent and
+    // so cannot serve as a CSRF defense. See RFC 6749 section 10.12.
     const returnedState =
       new URLSearchParams(window.location.search).get('state') ?? undefined;
-    if (returnedState !== this.redirectHelper.getState()) {
+    if (returnedState !== this.redirectHelper.getTransactionState()) {
       return new Error(
         'FusionAuth SDK: state parameter mismatch. Aborting to prevent a possible CSRF attack.',
       );

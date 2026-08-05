@@ -74,6 +74,9 @@ function stubWindow(search = '') {
       assign,
     },
     history: { replaceState },
+    // RedirectHelper.handlePreDpopRedirect()/handlePreRedirect() generate a
+    // random string via window.crypto.getRandomValues().
+    crypto: globalThis.crypto,
   });
   return { assign, replaceState };
 }
@@ -711,7 +714,13 @@ describe('startLogin()', () => {
     expect(assign).toHaveBeenCalledOnce();
     const url = new URL(assign.mock.calls[0][0].toString());
     expect(url.pathname).toBe('/oauth2/authorize');
-    expect(url.searchParams.get('state')).toBe('my-state');
+    // The OAuth `state` param sent to the server is the SDK-generated
+    // transactionState — not the caller's own state — since it's the actual
+    // CSRF defense (see RedirectHelper.handlePreDpopRedirect()).
+    expect(url.searchParams.get('state')).toBe(
+      redirectHelper.getTransactionState(),
+    );
+    expect(url.searchParams.get('state')).not.toBe('my-state');
     expect(url.searchParams.has('dpop_jkt')).toBe(true);
     expect(url.searchParams.has('code_challenge')).toBe(true);
 
@@ -756,7 +765,12 @@ describe('startRegister()', () => {
     expect(assign).toHaveBeenCalledOnce();
     const url = new URL(assign.mock.calls[0][0].toString());
     expect(url.pathname).toBe('/oauth2/register');
-    expect(url.searchParams.get('state')).toBe('my-state');
+    // See the equivalent startLogin() assertion above for why this is the
+    // generated transactionState, not the caller's own state.
+    expect(url.searchParams.get('state')).toBe(
+      redirectHelper.getTransactionState(),
+    );
+    expect(url.searchParams.get('state')).not.toBe('my-state');
     expect(url.searchParams.has('dpop_jkt')).toBe(true);
     expect(url.searchParams.has('code_challenge')).toBe(true);
 
@@ -869,9 +883,13 @@ describe('handlePostRedirect()', () => {
   });
 
   it('returns a state-mismatch Error and does not exchange the code (CSRF protection)', async () => {
-    stubWindow('?code=abc123&state=attacker-state');
+    stubWindow(); // establishes window.crypto for handlePreDpopRedirect()
     const redirectHelper = new RedirectHelper();
-    redirectHelper.handlePreRedirect('expected-state', 'my-code-verifier');
+    redirectHelper.handlePreDpopRedirect('my-code-verifier', 'expected-state');
+    // The URL's `state` never matches a real transactionState regardless of
+    // its value — this proves the mismatch check independent of what the
+    // caller's own `state` was.
+    stubWindow('?code=abc123&state=attacker-state');
     const manager = makeManager('memory', makeUrlHelper(), redirectHelper);
     const fetchSpy = vi.spyOn(globalThis, 'fetch');
 
@@ -882,9 +900,15 @@ describe('handlePostRedirect()', () => {
   });
 
   it('exchanges the code, stores tokens, clears the URL, and invokes the callback', async () => {
-    const { replaceState } = stubWindow('?code=abc123&state=my-state');
+    stubWindow(); // establishes window.crypto for handlePreDpopRedirect()
     const redirectHelper = new RedirectHelper();
-    redirectHelper.handlePreRedirect('my-state', 'my-code-verifier');
+    const transactionState = redirectHelper.handlePreDpopRedirect(
+      'my-code-verifier',
+      'my-state',
+    );
+    const { replaceState } = stubWindow(
+      `?code=abc123&state=${transactionState}`,
+    );
     const manager = makeManager('memory', makeUrlHelper(), redirectHelper);
 
     vi.spyOn(globalThis, 'fetch').mockResolvedValue(
@@ -910,9 +934,11 @@ describe('handlePostRedirect()', () => {
   });
 
   it('returns an Error instead of throwing when the token exchange fails', async () => {
-    stubWindow('?code=abc123');
+    stubWindow(); // establishes window.crypto for handlePreDpopRedirect()
     const redirectHelper = new RedirectHelper();
-    redirectHelper.handlePreRedirect(undefined, 'my-code-verifier');
+    const transactionState =
+      redirectHelper.handlePreDpopRedirect('my-code-verifier');
+    stubWindow(`?code=abc123&state=${transactionState}`);
     const manager = makeManager('memory', makeUrlHelper(), redirectHelper);
 
     vi.spyOn(globalThis, 'fetch').mockResolvedValue(
@@ -924,9 +950,11 @@ describe('handlePostRedirect()', () => {
   });
 
   it('returns an Error when token_type is not DPoP', async () => {
-    stubWindow('?code=abc123');
+    stubWindow(); // establishes window.crypto for handlePreDpopRedirect()
     const redirectHelper = new RedirectHelper();
-    redirectHelper.handlePreRedirect(undefined, 'my-code-verifier');
+    const transactionState =
+      redirectHelper.handlePreDpopRedirect('my-code-verifier');
+    stubWindow(`?code=abc123&state=${transactionState}`);
     const manager = makeManager('memory', makeUrlHelper(), redirectHelper);
 
     vi.spyOn(globalThis, 'fetch').mockResolvedValue(
