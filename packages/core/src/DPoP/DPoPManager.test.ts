@@ -292,8 +292,8 @@ describe('fetch()', () => {
     const manager = makeManager();
     let capturedHeaders: Headers | undefined;
 
-    vi.spyOn(globalThis, 'fetch').mockImplementation(async (_input, init) => {
-      capturedHeaders = new Headers(init?.headers);
+    vi.spyOn(globalThis, 'fetch').mockImplementation(async input => {
+      capturedHeaders = (input as Request).headers;
       return makeResponse(200);
     });
 
@@ -310,8 +310,8 @@ describe('fetch()', () => {
     manager.setTokens(makeTokens({ accessToken: 'stored-access-token' }));
 
     let capturedHeaders: Headers | undefined;
-    vi.spyOn(globalThis, 'fetch').mockImplementation(async (_input, init) => {
-      capturedHeaders = new Headers(init?.headers);
+    vi.spyOn(globalThis, 'fetch').mockImplementation(async input => {
+      capturedHeaders = (input as Request).headers;
       return makeResponse(200);
     });
 
@@ -326,8 +326,8 @@ describe('fetch()', () => {
     const manager = makeManager();
     let capturedHeaders: Headers | undefined;
 
-    vi.spyOn(globalThis, 'fetch').mockImplementation(async (_input, init) => {
-      capturedHeaders = new Headers(init?.headers);
+    vi.spyOn(globalThis, 'fetch').mockImplementation(async input => {
+      capturedHeaders = (input as Request).headers;
       return makeResponse(200);
     });
 
@@ -340,8 +340,8 @@ describe('fetch()', () => {
     const manager = makeManager();
     let capturedHeaders: Headers | undefined;
 
-    vi.spyOn(globalThis, 'fetch').mockImplementation(async (_input, init) => {
-      capturedHeaders = new Headers(init?.headers);
+    vi.spyOn(globalThis, 'fetch').mockImplementation(async input => {
+      capturedHeaders = (input as Request).headers;
       return makeResponse(200);
     });
 
@@ -357,8 +357,8 @@ describe('fetch()', () => {
     const manager = makeManager();
     let capturedHeaders: Headers | undefined;
 
-    vi.spyOn(globalThis, 'fetch').mockImplementation(async (_input, init) => {
-      capturedHeaders = new Headers(init?.headers);
+    vi.spyOn(globalThis, 'fetch').mockImplementation(async input => {
+      capturedHeaders = (input as Request).headers;
       return makeResponse(200);
     });
 
@@ -380,8 +380,8 @@ describe('fetch()', () => {
     const manager = makeManager();
     let capturedHeaders: Headers | undefined;
 
-    vi.spyOn(globalThis, 'fetch').mockImplementation(async (_input, init) => {
-      capturedHeaders = new Headers(init?.headers);
+    vi.spyOn(globalThis, 'fetch').mockImplementation(async input => {
+      capturedHeaders = (input as Request).headers;
       return makeResponse(200);
     });
 
@@ -420,8 +420,8 @@ describe('fetch()', () => {
       const manager = makeManager();
       const capturedProofs: string[] = [];
 
-      vi.spyOn(globalThis, 'fetch').mockImplementation(async (_input, init) => {
-        const headers = new Headers(init?.headers);
+      vi.spyOn(globalThis, 'fetch').mockImplementation(async input => {
+        const headers = (input as Request).headers;
         const proof = headers.get('DPoP');
         if (proof) capturedProofs.push(proof);
 
@@ -522,15 +522,26 @@ describe('fetch()', () => {
       expect(response.status).toBe(200);
     });
 
-    it('throws a clear error on retry when init.body is a raw ReadableStream', async () => {
+    it('retries successfully when init.body is a raw ReadableStream (body is not double-consumed)', async () => {
       const manager = makeManager();
+      let callCount = 0;
 
-      vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce(
-        makeResponse(401, {
-          'WWW-Authenticate': 'DPoP error="use_dpop_nonce"',
-          'DPoP-Nonce': 'some-nonce',
-        }),
-      );
+      vi.spyOn(globalThis, 'fetch').mockImplementation(async input => {
+        callCount++;
+        // Same rationale as the Request-with-body retry test above: if the
+        // stream were reused/double-read instead of teed via Request.clone(),
+        // this second read would throw instead of resolving with the text.
+        const bodyText = await (input as Request).text();
+        expect(bodyText).toBe('stream-body');
+
+        if (callCount === 1) {
+          return makeResponse(401, {
+            'WWW-Authenticate': 'DPoP error="use_dpop_nonce"',
+            'DPoP-Nonce': 'nonce-for-stream-retry',
+          });
+        }
+        return makeResponse(200);
+      });
 
       const stream = new ReadableStream({
         start(controller) {
@@ -539,9 +550,14 @@ describe('fetch()', () => {
         },
       });
 
-      await expect(
-        manager.fetch(RESOURCE_URL, { method: 'POST', body: stream }),
-      ).rejects.toThrow(/ReadableStream \(single-use\)/);
+      const response = await manager.fetch(RESOURCE_URL, {
+        method: 'POST',
+        body: stream,
+        duplex: 'half',
+      } as RequestInit);
+
+      expect(callCount).toBe(2);
+      expect(response.status).toBe(200);
     });
 
     it('does not throw for a raw ReadableStream body when no retry is needed', async () => {
@@ -559,7 +575,8 @@ describe('fetch()', () => {
       const response = await manager.fetch(RESOURCE_URL, {
         method: 'POST',
         body: stream,
-      });
+        duplex: 'half',
+      } as RequestInit);
 
       expect(response.status).toBe(200);
     });

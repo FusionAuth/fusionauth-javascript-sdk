@@ -7,18 +7,6 @@ import { UrlHelper } from '../UrlHelper';
 import { RedirectHelper } from '../RedirectHelper';
 import * as Pkce from '../Pkce';
 
-/** Duck-types `Request` instead of `instanceof Request` */
-function isRequestLike(input: unknown): input is Request {
-  return (
-    typeof input === 'object' &&
-    input !== null &&
-    typeof (input as Request).clone === 'function' &&
-    typeof (input as Request).headers === 'object' &&
-    typeof (input as Request).url === 'string' &&
-    typeof (input as Request).method === 'string'
-  );
-}
-
 /**
  * Central coordinator for all DPoP operations.
  *
@@ -182,38 +170,26 @@ export class DPoPManager {
    *    and retries the request exactly once. A second `401` is returned as-is.
    */
   async fetch(input: RequestInfo | URL, init?: RequestInit): Promise<Response> {
-    // Request bodies can only be read once. If `input` is a Request, clone it
-    // twice up front — before either clone is read from — so the initial
-    // attempt and a potential retry each get an independent, unconsumed body.
+    // Normalise into a single Request object up front, then clone it twice —
+    // before either clone is read from — so the initial attempt and a
+    // potential retry each get an independent, unconsumed body.
     // Request.clone() safely tees any internal streaming body per spec, so
-    // this also covers a Request constructed with a ReadableStream body.
-    const primaryInput = isRequestLike(input) ? input.clone() : input;
-    const retryInput = isRequestLike(input) ? input.clone() : input;
+    // this covers Request objects, raw ReadableStream bodies passed via
+    // init.body, and every other allowed `fetch` input shape uniformly.
+    const request = this._buildWorkingRequest(input, init);
+    const primaryRequest = request.clone();
+    const retryRequest = request.clone();
 
-    const response = await this._doFetch(primaryInput, init);
+    const response = await this._doFetch(primaryRequest);
 
     if (response.status === 401 && this._isUseNonceError(response)) {
-      // A raw ReadableStream passed via init.body (not wrapped in a Request)
-      // cannot be safely reused for a retry — it's single-read and there is
-      // no Request object to clone. Fail clearly rather than let native
-      // fetch throw an opaque "body already used" error on the retry.
-      if (!isRequestLike(input) && init?.body instanceof ReadableStream) {
-        throw new Error(
-          'DPoPManager.fetch() received a use_dpop_nonce challenge but cannot ' +
-            'automatically retry because init.body is a ReadableStream (single-use). ' +
-            'Pass the body as a string, Blob, ArrayBuffer, or FormData instead, or ' +
-            'handle the nonce retry manually for streaming request bodies.',
-        );
-      }
-
       // Cache the server-provided nonce for this origin.
-      const htu = this._resolveUrl(input);
-      const origin = new URL(htu).origin;
+      const origin = new URL(request.url).origin;
       const serverNonce = response.headers.get('DPoP-Nonce')!;
       this.nonces.set(origin, serverNonce);
 
       // Single retry — return the result regardless of status.
-      return this._doFetch(retryInput, init);
+      return this._doFetch(retryRequest);
     }
 
     return response;
@@ -415,25 +391,22 @@ export class DPoPManager {
   // ---------------------------------------------------------------------------
 
   /** Builds the request with DPoP headers and delegates to native `fetch`. */
-  private async _doFetch(
-    input: RequestInfo | URL,
-    init?: RequestInit,
-  ): Promise<Response> {
-    const htu = this._resolveUrl(input);
-    const htm = this._resolveMethod(input, init);
+  private async _doFetch(request: Request): Promise<Response> {
     const accessToken = this.tokenStore.getAccessToken();
+    const proof = await this.generateProof(
+      request.url,
+      request.method,
+      accessToken ?? undefined,
+    );
 
-    const proof = await this.generateProof(htu, htm, accessToken ?? undefined);
-
-    // Merge headers: start from any existing headers on the request/init, then
-    // layer in the DPoP-specific ones so we never silently drop caller headers.
-    const headers = this._resolveHeaders(input, init);
+    // Request.headers is a live, mutable Headers instance — set the
+    // DPoP-specific headers directly on it rather than reconstructing.
     if (accessToken) {
-      headers.set('Authorization', `DPoP ${accessToken}`);
+      request.headers.set('Authorization', `DPoP ${accessToken}`);
     }
-    headers.set('DPoP', proof);
+    request.headers.set('DPoP', proof);
 
-    return globalThis.fetch(input, { ...init, headers });
+    return globalThis.fetch(request);
   }
 
   /** Returns `true` when the response signals a DPoP nonce retry is warranted */
@@ -444,42 +417,33 @@ export class DPoPManager {
     );
   }
 
-  /** Extracts the URL string from any of the three allowed `fetch` input shapes. */
-  private _resolveUrl(input: RequestInfo | URL): string {
-    if (isRequestLike(input)) {
-      return input.url;
-    }
-    return input.toString();
-  }
-
-  /** Extracts the HTTP method from the request/init, defaulting to `'GET'`. */
-  private _resolveMethod(input: RequestInfo | URL, init?: RequestInit): string {
-    if (init?.method) return init.method.toUpperCase();
-    if (isRequestLike(input) && input.method) return input.method.toUpperCase();
-    return 'GET';
-  }
-
   /**
-   * Merges headers from `init.headers` and, if `input` is a `Request`, its
-   * own headers — so callers never lose headers regardless of which of the
-   * two allowed places they set them on. When the same header name appears
-   * in both, the `Request`'s value wins, since a caller who went to the
-   * trouble of building a `Request` object with specific headers most likely
-   * intended those to be authoritative.
+   * Normalises any allowed `fetch()` input shape into a single `Request`
+   * object, merging headers from both `input` (when it's a `Request`) and
+   * `init` so neither source is silently dropped.
+   *
+   * When `input` is a `Request`, it is cloned before being passed to the
+   * `Request` constructor — constructing `new Request(existingRequest, ...)`
+   * disturbs (locks) `existingRequest`'s body as a side effect, and cloning
+   * first ensures we never disturb the caller's own `Request` object.
+   *
+   * Header precedence matches the previous implementation: `input`'s own
+   * headers win over `init.headers` on a conflicting header name. This is
+   * necessary because `new Request(existingRequest, init)` replaces —
+   * rather than merges — headers when `init.headers` is present, which
+   * would otherwise silently drop headers unique to `input`.
    */
-  private _resolveHeaders(
+  private _buildWorkingRequest(
     input: RequestInfo | URL,
     init?: RequestInit,
-  ): Headers {
-    // Base: init.headers (lowest precedence).
-    const headers = new Headers(init?.headers);
-
-    // Overlay: Request.headers wins on any conflicting header name.
-    if (isRequestLike(input)) {
-      input.headers.forEach((value, key) => headers.set(key, value));
+  ): Request {
+    if (!(input instanceof Request)) {
+      return new Request(input, init);
     }
 
-    return headers;
+    const headers = new Headers(init?.headers);
+    input.headers.forEach((value, key) => headers.set(key, value));
+    return new Request(input.clone(), { ...init, headers });
   }
 
   /**
