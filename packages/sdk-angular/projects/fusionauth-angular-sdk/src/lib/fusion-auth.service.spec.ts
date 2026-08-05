@@ -366,5 +366,25 @@ describe('FusionAuthService', () => {
       expect(service.isLoggedInSignal()).toBe(true);
       expect(service.getAccessToken()).toBe('new-access-token');
     });
+
+    it('forwards onLoginFailure to SDKCore for DPoP startLogin() failures', async () => {
+      const failure = new Error('crypto.subtle unavailable');
+      vi.spyOn(DPoPManager.prototype, 'getOrCreateKeyPair').mockRejectedValue(
+        failure,
+      );
+      mockWindowLocation(vi);
+
+      const onLoginFailure = vi.fn();
+      const service = configureTestingModule({
+        ...dpopConfig,
+        onLoginFailure,
+      });
+
+      service.startLogin();
+
+      await vi.waitFor(() =>
+        expect(onLoginFailure).toHaveBeenCalledWith(failure),
+      );
+    });
   });
 });

@@ -48,6 +48,12 @@ export interface FusionAuthConfig {
   onAutoRefreshFailure?: (error: Error) => void;
 
   /**
+   * Callback invoked if a DPoP mode login/register/redirect exchange fails.
+   * Only relevant when `useDpop: true`.
+   */
+  onLoginFailure?: (error: Error) => void;
+
+  /**
    * The path to the login endpoint.
    */
   loginPath?: string;

@@ -410,5 +410,26 @@ describe('createFusionAuth', () => {
         });
       });
     });
+
+    it('forwards onLoginFailure to SDKCore for DPoP login() failures', async () => {
+      const failure = new Error('crypto.subtle unavailable');
+      vi.spyOn(DPoPManager.prototype, 'getOrCreateKeyPair').mockRejectedValue(
+        failure,
+      );
+      mockWindowLocation(vi);
+
+      const onLoginFailure = vi.fn();
+      const fusionAuth = createFusionAuth({
+        ...config,
+        useDpop: true,
+        onLoginFailure,
+      });
+
+      fusionAuth.login();
+
+      await vi.waitFor(() =>
+        expect(onLoginFailure).toHaveBeenCalledWith(failure),
+      );
+    });
   });
 });

@@ -54,6 +54,12 @@ export interface FusionAuthConfig {
   onAutoRefreshFailure?: (error: Error) => void;
 
   /**
+   * Callback invoked if a DPoP mode login/register/redirect exchange fails.
+   * Only relevant when `useDpop: true`.
+   */
+  onLoginFailure?: (error: Error) => void;
+
+  /**
    * Pass in `useCookie` from nuxt/app [useCookie](https://nuxt.com/docs/api/composables/use-cookie).
    * This is needed for the Vue SDK to support Nuxt/SSR.
    */
