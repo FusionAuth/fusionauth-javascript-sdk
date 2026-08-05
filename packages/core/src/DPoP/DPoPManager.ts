@@ -323,7 +323,7 @@ export class DPoPManager {
     // CSRF protection: the `state` echoed back on the redirect must match
     // the SDK-generated `transactionState` persisted before redirecting —
     // not the caller's own `state`, which may be predictable or absent and
-    // so cannot serve as a CSRF defense. See RFC 6749 section 10.12.
+    // so cannot serve as a CSRF defense.
     const returnedState =
       new URLSearchParams(window.location.search).get('state') ?? undefined;
     if (returnedState !== this.redirectHelper.getTransactionState()) {
@@ -433,17 +433,7 @@ export class DPoPManager {
    * Normalises any allowed `fetch()` input shape into a single `Request`
    * object, merging headers from both `input` (when it's a `Request`) and
    * `init` so neither source is silently dropped.
-   *
-   * When `input` is a `Request`, it is cloned before being passed to the
-   * `Request` constructor — constructing `new Request(existingRequest, ...)`
-   * disturbs (locks) `existingRequest`'s body as a side effect, and cloning
-   * first ensures we never disturb the caller's own `Request` object.
-   *
-   * Header precedence matches the previous implementation: `input`'s own
-   * headers win over `init.headers` on a conflicting header name. This is
-   * necessary because `new Request(existingRequest, init)` replaces —
-   * rather than merges — headers when `init.headers` is present, which
-   * would otherwise silently drop headers unique to `input`.
+
    */
   private _buildWorkingRequest(
     input: RequestInfo | URL,

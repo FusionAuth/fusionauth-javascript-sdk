@@ -301,12 +301,15 @@ describe('FusionAuthService', () => {
       );
       mockWindowLocation(
         vi,
-        '?code=mock-authorization-code&state=redirect-state',
+        '?code=mock-authorization-code&state=mock-transaction-state',
       );
       localStorage.setItem(
         'fa-sdk-redirect-value',
         JSON.stringify({
           codeVerifier: 'mock-code-verifier',
+          // The OAuth `state` param FusionAuth echoes back is the
+          // SDK-generated transactionState, not the app's own state.
+          transactionState: 'mock-transaction-state',
           state: 'redirect-state',
         }),
       );

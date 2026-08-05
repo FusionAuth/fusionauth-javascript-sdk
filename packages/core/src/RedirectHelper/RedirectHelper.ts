@@ -43,10 +43,7 @@ export class RedirectHelper {
    * `transactionState` — not the caller's `state` — must be sent as the
    * OAuth2 `state` parameter on the `/oauth2/authorize` (or `/oauth2/register`)
    * request, and is what {@link getTransactionState} returns for verifying
-   * the value FusionAuth echoes back on redirect. The caller's own `state`
-   * may be predictable, absent, or attacker-influenced, so it cannot serve
-   * as the CSRF defense described in RFC 6749 section 10.12 — a distinct,
-   * unguessable SDK-generated value is required for that.
+   * the value FusionAuth echoes back on redirect.
    *
    * @param codeVerifier  PKCE `code_verifier` for the pending exchange.
    * @param state         Optional caller-supplied state, returned as-is to
@@ -111,10 +108,6 @@ export class RedirectHelper {
    * Returns the `transactionState` persisted by {@link handlePreDpopRedirect},
    * or `undefined` if none was stored (hosted backend mode) or if no redirect
    * has been initiated.
-   *
-   * Compare this against the `state` query parameter FusionAuth echoes back
-   * on redirect to guard against CSRF — do not use {@link getState} for this,
-   * since it returns the caller's own (possibly predictable) `state` value.
    */
   getTransactionState(): string | undefined {
     const raw = this.storage.getItem(this.REDIRECT_VALUE);
