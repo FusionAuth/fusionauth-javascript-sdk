@@ -54,6 +54,12 @@ export interface FusionAuthConfig {
   onAutoRefreshFailure?: (error: Error) => void;
 
   /**
+   * Callback invoked if a DPoP mode login/register/redirect exchange fails.
+   * Only relevant when `useDpop: true`.
+   */
+  onLoginFailure?: (error: Error) => void;
+
+  /**
    * Pass in `useCookie` from nuxt/app [useCookie](https://nuxt.com/docs/api/composables/use-cookie).
    * This is needed for the Vue SDK to support Nuxt/SSR.
    */
@@ -79,6 +85,19 @@ export interface FusionAuthConfig {
    * The path to the me endpoint.
    */
   mePath?: string;
+
+  /**
+   * Opt-in to DPoP mode. When `true`, the SDK calls FusionAuth endpoints
+   * directly and stores tokens in JavaScript-accessible storage instead of
+   * relying on the Hosted Backend's HttpOnly cookies. Defaults to `false`.
+   */
+  useDpop?: boolean;
+
+  /**
+   * Token storage location in DPoP mode. Only meaningful when `useDpop: true`.
+   * Defaults to `'localStorage'`.
+   */
+  dpopTokenStorage?: 'localStorage' | 'memory';
 }
 
 /**
@@ -167,4 +186,31 @@ export interface FusionAuth<T = UserInfo> {
    * Refresh is scheduled to happen at the configured `autoRefreshSecondsBeforeExpiry`.
    */
   initAutoRefresh: () => NodeJS.Timeout | undefined;
+
+  /**
+   * Fetch wrapper that automatically attaches DPoP proof headers.
+   * Present only when `useDpop: true`.
+   */
+  dpopFetch?: (
+    input: RequestInfo | URL,
+    init?: RequestInit,
+  ) => Promise<Response>;
+
+  /**
+   * Returns a signed DPoP proof JWT for use with axios or other
+   * HTTP libraries. Present only when `useDpop: true`.
+   */
+  generateProof?: (
+    htu: string,
+    htm: string,
+    accessToken?: string,
+    nonce?: string,
+  ) => Promise<string>;
+
+  /**
+   * Returns the stored DPoP access token, or `null` if not logged in.
+   * Throws a descriptive error when `useDpop: false`.
+   * Present only when `useDpop: true`.
+   */
+  getAccessToken?: () => string | null;
 }

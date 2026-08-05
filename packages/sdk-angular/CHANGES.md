@@ -1,5 +1,9 @@
 @fusionauth/angular-sdk Changes
 
+Changes in 2.1.0
+
+- Added support for DPoP mode. Configure with `useDpop: true` and `dpopTokenStorage`. `FusionAuthService` now exposes `dpopFetch()`, `generateProof()`, and `getAccessToken()`.
+
 Changes in 2.0.0
 
 - Upgraded to Angular 22. Angular 17 through 21 are no longer supported.

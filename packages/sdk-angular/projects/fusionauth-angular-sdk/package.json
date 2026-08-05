@@ -1,12 +1,13 @@
 {
   "name": "@fusionauth/angular-sdk",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "peerDependencies": {
     "@angular/common": ">=22.0.0",
     "@angular/core": ">=22.0.0"
   },
   "dependencies": {
-    "tslib": "^2.3.0"
+    "tslib": "^2.3.0",
+    "dpop": "^2.1.1"
   },
   "sideEffects": false,
   "repository": {

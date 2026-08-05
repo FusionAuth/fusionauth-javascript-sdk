@@ -99,4 +99,27 @@ export interface SDKConfig {
    * Callback to be invoked at the moment of access token expiration
    */
   onTokenExpiration: () => void;
+
+  /**
+   * Opt-in to DPoP mode. When `true`, the SDK calls FusionAuth endpoints
+   * directly and stores tokens in JavaScript-accessible storage.
+   * Defaults to `false`.
+   */
+  useDpop?: boolean;
+
+  /**
+   * Token storage location in DPoP mode. Only meaningful when `useDpop: true`.
+   * Defaults to `'localStorage'`.
+   */
+  dpopTokenStorage?: 'localStorage' | 'memory';
+
+  /**
+   * Callback invoked if `startLogin()` fails in DPoP mode (e.g. the DPoP key
+   * pair could not be generated/loaded, or PKCE parameter generation
+   * failed). `startLogin()` is synchronous (`void`), so this is the only way
+   * to observe an async failure in the DPoP login flow. Defaults to logging
+   * the error via `console.error` if not provided. Only relevant when
+   * `useDpop: true`.
+   */
+  onLoginFailure?: (error: Error) => void;
 }

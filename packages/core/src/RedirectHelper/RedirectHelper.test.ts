@@ -1,0 +1,262 @@
+import { afterEach, describe, expect, it, vi } from 'vitest';
+import { RedirectHelper } from './RedirectHelper';
+import { mockWindowLocation } from '../testUtils';
+
+describe('RedirectHelper', () => {
+  afterEach(() => {
+    localStorage.clear();
+    vi.restoreAllMocks();
+  });
+
+  describe('handlePreRedirect / handlePostRedirect (hosted backend mode)', () => {
+    it('stores a redirect marker in localStorage', () => {
+      const helper = new RedirectHelper();
+      expect(localStorage.getItem('fa-sdk-redirect-value')).toBeNull();
+
+      helper.handlePreRedirect();
+      expect(localStorage.getItem('fa-sdk-redirect-value')).not.toBeNull();
+    });
+
+    it('invokes the callback with undefined when no state was provided', () => {
+      const helper = new RedirectHelper();
+      const callback = vi.fn();
+
+      helper.handlePreRedirect();
+      helper.handlePostRedirect(callback);
+
+      expect(callback).toHaveBeenCalledOnce();
+      expect(callback).toHaveBeenCalledWith(undefined);
+    });
+
+    it('invokes the callback with the stored state', () => {
+      const helper = new RedirectHelper();
+      const callback = vi.fn();
+
+      helper.handlePreRedirect('my-state');
+      helper.handlePostRedirect(callback);
+
+      expect(callback).toHaveBeenCalledWith('my-state');
+    });
+
+    it('preserves state values that contain colons', () => {
+      const helper = new RedirectHelper();
+      const callback = vi.fn();
+      const stateWithColons = 'return:/dashboard?tab=2';
+
+      helper.handlePreRedirect(stateWithColons);
+      helper.handlePostRedirect(callback);
+
+      expect(callback).toHaveBeenCalledWith(stateWithColons);
+    });
+
+    it('removes the redirect marker from localStorage after post-redirect', () => {
+      const helper = new RedirectHelper();
+
+      helper.handlePreRedirect('some-state');
+      expect(localStorage.getItem('fa-sdk-redirect-value')).not.toBeNull();
+
+      helper.handlePostRedirect();
+      expect(localStorage.getItem('fa-sdk-redirect-value')).toBeNull();
+    });
+
+    it('does not invoke callback when no redirect was initiated', () => {
+      const helper = new RedirectHelper();
+      const callback = vi.fn();
+
+      helper.handlePostRedirect(callback);
+
+      expect(callback).not.toHaveBeenCalled();
+    });
+
+    it('does not throw when no callback is provided to handlePostRedirect', () => {
+      const helper = new RedirectHelper();
+      helper.handlePreRedirect('state');
+      expect(() => helper.handlePostRedirect()).not.toThrow();
+    });
+  });
+
+  describe('handlePreDpopRedirect (DPoP mode)', () => {
+    it('persists the code_verifier and returns it via getCodeVerifier()', () => {
+      const helper = new RedirectHelper();
+      const verifier = 'dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk';
+
+      helper.handlePreDpopRedirect(verifier);
+
+      expect(helper.getCodeVerifier()).toBe(verifier);
+    });
+
+    it('persists code_verifier, state, and transactionState; all are retrievable', () => {
+      const helper = new RedirectHelper();
+      const verifier = 'dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk';
+      const state = 'my-state';
+      const callback = vi.fn();
+
+      const transactionState = helper.handlePreDpopRedirect(verifier, state);
+
+      expect(helper.getCodeVerifier()).toBe(verifier);
+      expect(helper.getTransactionState()).toBe(transactionState);
+      helper.handlePostRedirect(callback);
+      expect(callback).toHaveBeenCalledWith(state);
+    });
+
+    it('returns a transactionState distinct from both the code_verifier and the caller state', () => {
+      const helper = new RedirectHelper();
+      const verifier = 'dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk';
+      const state = 'my-state';
+
+      const transactionState = helper.handlePreDpopRedirect(verifier, state);
+
+      expect(transactionState).not.toBe(verifier);
+      expect(transactionState).not.toBe(state);
+      expect(transactionState.length).toBeGreaterThan(0);
+    });
+
+    it('generates a different transactionState on each call', () => {
+      const helper = new RedirectHelper();
+
+      const first = helper.handlePreDpopRedirect('verifier-1');
+      const second = helper.handlePreDpopRedirect('verifier-2');
+
+      expect(first).not.toBe(second);
+    });
+
+    it('preserves state with colons alongside a code_verifier', () => {
+      const helper = new RedirectHelper();
+      const verifier = 'dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk';
+      const stateWithColons = 'return:/dashboard?tab=2';
+      const callback = vi.fn();
+
+      helper.handlePreDpopRedirect(verifier, stateWithColons);
+
+      expect(helper.getCodeVerifier()).toBe(verifier);
+      helper.handlePostRedirect(callback);
+      expect(callback).toHaveBeenCalledWith(stateWithColons);
+    });
+
+    it('returns undefined from getCodeVerifier() when no redirect was initiated', () => {
+      const helper = new RedirectHelper();
+      expect(helper.getCodeVerifier()).toBeUndefined();
+    });
+
+    it('returns undefined from getCodeVerifier() when no verifier was stored (hosted backend mode)', () => {
+      const helper = new RedirectHelper();
+      helper.handlePreRedirect('some-state');
+      expect(helper.getCodeVerifier()).toBeUndefined();
+    });
+
+    it('getCodeVerifier() still works after a handlePostRedirect call clears storage', () => {
+      const helper = new RedirectHelper();
+      helper.handlePreDpopRedirect('verifier-value', 'state');
+
+      // Post-redirect removes the marker.
+      helper.handlePostRedirect();
+
+      // After cleanup, getCodeVerifier() should return undefined.
+      expect(helper.getCodeVerifier()).toBeUndefined();
+    });
+
+    it('getState() returns the persisted state', () => {
+      const helper = new RedirectHelper();
+      helper.handlePreDpopRedirect('verifier-value', 'my-state');
+      expect(helper.getState()).toBe('my-state');
+    });
+
+    it('getState() returns undefined when no redirect was initiated', () => {
+      const helper = new RedirectHelper();
+      expect(helper.getState()).toBeUndefined();
+    });
+
+    it('getTransactionState() returns undefined when no redirect was initiated', () => {
+      const helper = new RedirectHelper();
+      expect(helper.getTransactionState()).toBeUndefined();
+    });
+
+    it('getTransactionState() returns undefined in hosted backend mode', () => {
+      const helper = new RedirectHelper();
+      helper.handlePreRedirect('some-state');
+      expect(helper.getTransactionState()).toBeUndefined();
+    });
+
+    it('getTransactionState() still works after a handlePostRedirect call clears storage', () => {
+      const helper = new RedirectHelper();
+      helper.handlePreDpopRedirect('verifier-value', 'state');
+
+      helper.handlePostRedirect();
+
+      expect(helper.getTransactionState()).toBeUndefined();
+    });
+  });
+
+  describe('clearCodeFromUrl()', () => {
+    it('removes code from the URL via history.replaceState(), preserving other params', () => {
+      mockWindowLocation(vi, '?code=abc123&state=my-state');
+      const replaceState = vi.spyOn(window.history, 'replaceState');
+
+      const helper = new RedirectHelper();
+      helper.clearCodeFromUrl();
+
+      expect(replaceState).toHaveBeenCalledOnce();
+      const [, , url] = replaceState.mock.calls[0];
+      const cleanedUrl = new URL(url as string);
+      expect(cleanedUrl.searchParams.get('code')).toBeNull();
+      expect(cleanedUrl.searchParams.get('state')).toBe('my-state');
+    });
+
+    it('does not throw when there is no code in the URL', () => {
+      mockWindowLocation(vi, '');
+      const helper = new RedirectHelper();
+      expect(() => helper.clearCodeFromUrl()).not.toThrow();
+    });
+  });
+
+  describe('storage format', () => {
+    it('hosted backend mode stores a plain, non-JSON string', () => {
+      const helper = new RedirectHelper();
+      helper.handlePreRedirect('some-state');
+
+      const raw = localStorage.getItem('fa-sdk-redirect-value')!;
+      expect(() => JSON.parse(raw)).toThrow();
+      expect(raw).toMatch(/^[0-9a-f]+:some-state$/);
+    });
+
+    it('DPoP mode stores a JSON object with codeVerifier, transactionState, and state', () => {
+      const helper = new RedirectHelper();
+      const transactionState = helper.handlePreDpopRedirect(
+        'some-verifier',
+        'some-state',
+      );
+
+      const raw = localStorage.getItem('fa-sdk-redirect-value')!;
+      const parsed = JSON.parse(raw);
+      expect(parsed).toEqual({
+        codeVerifier: 'some-verifier',
+        transactionState,
+        state: 'some-state',
+      });
+    });
+
+    it('a hosted backend mode call after a DPoP mode call is not confused with the old JSON value', () => {
+      const helper = new RedirectHelper();
+      const callback = vi.fn();
+
+      helper.handlePreDpopRedirect('dpop-verifier', 'dpop-state');
+      helper.handlePreRedirect('hosted-backend-state'); // overwrites with the plain format
+
+      expect(helper.getCodeVerifier()).toBeUndefined();
+      helper.handlePostRedirect(callback);
+      expect(callback).toHaveBeenCalledWith('hosted-backend-state');
+    });
+
+    it('a DPoP mode call after a hosted backend mode call is not confused with the old plain value', () => {
+      const helper = new RedirectHelper();
+      const callback = vi.fn();
+
+      helper.handlePreRedirect('hosted-backend-state');
+      helper.handlePreDpopRedirect('dpop-verifier', 'dpop-state'); // overwrites with the JSON format
+
+      expect(helper.getCodeVerifier()).toBe('dpop-verifier');
+      helper.handlePostRedirect(callback);
+      expect(callback).toHaveBeenCalledWith('dpop-state');
+    });
+  });
+});

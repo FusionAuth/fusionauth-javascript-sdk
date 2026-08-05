@@ -6,6 +6,7 @@ import {
   mockWindowLocation,
   mockIsLoggedIn,
   removeAt_expCookie,
+  DPoPManager,
 } from '@fusionauth-sdk/core';
 
 const config: FusionAuthConfig = {
@@ -14,6 +15,28 @@ const config: FusionAuthConfig = {
   redirectUri: 'http://localhost',
   scope: 'openid offline_access',
 };
+
+/** Seeds `localStorage` with a valid, unexpired DPoP token set for `clientId`. */
+function seedDpopTokens(
+  clientId: string,
+  overrides: Partial<{
+    accessToken: string;
+    refreshToken: string | undefined;
+    expiresAt: number;
+    tokenType: string;
+  }> = {},
+) {
+  localStorage.setItem(
+    `fusionauth-sdk:tokens:${clientId}`,
+    JSON.stringify({
+      accessToken: 'mock-access-token',
+      refreshToken: 'mock-refresh-token',
+      expiresAt: Date.now() + 60_000,
+      tokenType: 'DPoP',
+      ...overrides,
+    }),
+  );
+}
 
 describe('createFusionAuth', () => {
   afterEach(() => {
@@ -64,6 +87,7 @@ describe('createFusionAuth', () => {
     mockIsLoggedIn();
     const onRedirect = vi.fn();
     const expectedStateValue = 'redirect-callback-test';
+    // Format: nonce:state (hosted backend mode)
     localStorage.setItem(
       'fa-sdk-redirect-value',
       `rAnd0mStR1ng:${expectedStateValue}`,
@@ -185,5 +209,230 @@ describe('createFusionAuth', () => {
     );
 
     expect(mockedLocation.assign).toHaveBeenCalledWith(expectedUrl);
+  });
+
+  describe('DPoP mode', () => {
+    it('dpopFetch, generateProof, and getAccessToken are functions when useDpop: true', () => {
+      const fusionAuth = createFusionAuth({ ...config, useDpop: true });
+
+      expect(typeof fusionAuth.dpopFetch).toBe('function');
+      expect(typeof fusionAuth.generateProof).toBe('function');
+      expect(typeof fusionAuth.getAccessToken).toBe('function');
+    });
+
+    it('dpopFetch, generateProof, and getAccessToken are undefined when useDpop is not set', () => {
+      const fusionAuth = createFusionAuth(config);
+
+      expect(fusionAuth.dpopFetch).toBeUndefined();
+      expect(fusionAuth.generateProof).toBeUndefined();
+      expect(fusionAuth.getAccessToken).toBeUndefined();
+    });
+
+    it('getAccessToken() returns the stored access token after login', () => {
+      seedDpopTokens(config.clientId, {
+        accessToken: 'mock-stored-access-token',
+      });
+
+      const fusionAuth = createFusionAuth({ ...config, useDpop: true });
+
+      expect(fusionAuth.getAccessToken?.()).toBe('mock-stored-access-token');
+    });
+
+    it('getAccessToken() returns null when logged out', () => {
+      const fusionAuth = createFusionAuth({ ...config, useDpop: true });
+
+      expect(fusionAuth.getAccessToken?.()).toBeNull();
+    });
+
+    it('refreshToken() re-syncs isLoggedIn after a successful DPoP refresh', async () => {
+      seedDpopTokens(config.clientId, {
+        expiresAt: Date.now() - 1000, // already expired
+      });
+      vi.spyOn(DPoPManager.prototype, 'getOrCreateKeyPair').mockResolvedValue(
+        {} as any,
+      );
+      vi.spyOn(DPoPManager.prototype, 'generateProof').mockResolvedValue(
+        'mock-dpop-proof-jwt',
+      );
+      vi.spyOn(global, 'fetch').mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({
+            access_token: 'new-access-token',
+            refresh_token: 'new-refresh-token',
+            expires_in: 3600,
+            token_type: 'DPoP',
+          }),
+          { status: 200 },
+        ),
+      );
+
+      const fusionAuth = createFusionAuth({ ...config, useDpop: true });
+
+      expect(fusionAuth.isLoggedIn.value).toBe(false);
+
+      await fusionAuth.refreshToken();
+
+      expect(fusionAuth.isLoggedIn.value).toBe(true);
+      expect(fusionAuth.getAccessToken?.()).toBe('new-access-token');
+    });
+
+    it('isLoggedIn flips to true once the post-redirect DPoP token exchange settles', async () => {
+      vi.spyOn(DPoPManager.prototype, 'getOrCreateKeyPair').mockResolvedValue(
+        {} as any,
+      );
+      vi.spyOn(DPoPManager.prototype, 'generateProof').mockResolvedValue(
+        'mock-dpop-proof-jwt',
+      );
+      mockWindowLocation(vi, '?code=mock-authorization-code');
+      localStorage.setItem(
+        'fa-sdk-redirect-value',
+        JSON.stringify({ codeVerifier: 'mock-code-verifier' }),
+      );
+      vi.spyOn(global, 'fetch').mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({
+            access_token: 'mock-access-token',
+            refresh_token: 'mock-refresh-token',
+            expires_in: 3600,
+            token_type: 'DPoP',
+          }),
+          { status: 200 },
+        ),
+      );
+
+      const fusionAuth = createFusionAuth({ ...config, useDpop: true });
+
+      expect(fusionAuth.isLoggedIn.value).toBe(false);
+
+      await vi.waitFor(() => {
+        expect(fusionAuth.isLoggedIn.value).toBe(true);
+      });
+      expect(fusionAuth.getAccessToken?.()).toBe('mock-access-token');
+    });
+
+    it('onRedirect is invoked after isLoggedIn is already true, so a handler that navigates based on isLoggedIn.value (e.g. a router guard) sees the up-to-date value', async () => {
+      vi.spyOn(DPoPManager.prototype, 'getOrCreateKeyPair').mockResolvedValue(
+        {} as any,
+      );
+      vi.spyOn(DPoPManager.prototype, 'generateProof').mockResolvedValue(
+        'mock-dpop-proof-jwt',
+      );
+      mockWindowLocation(
+        vi,
+        '?code=mock-authorization-code&state=mock-transaction-state',
+      );
+      localStorage.setItem(
+        'fa-sdk-redirect-value',
+        JSON.stringify({
+          codeVerifier: 'mock-code-verifier',
+          // The OAuth `state` param FusionAuth echoes back is the
+          // SDK-generated transactionState, not the app's own state.
+          transactionState: 'mock-transaction-state',
+          state: 'redirect-state',
+        }),
+      );
+      vi.spyOn(global, 'fetch').mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({
+            access_token: 'mock-access-token',
+            refresh_token: 'mock-refresh-token',
+            expires_in: 3600,
+            token_type: 'DPoP',
+          }),
+          { status: 200 },
+        ),
+      );
+
+      let isLoggedInDuringOnRedirect: boolean | undefined;
+      const onRedirect = vi.fn((state?: string) => {
+        isLoggedInDuringOnRedirect = fusionAuth.isLoggedIn.value;
+        expect(state).toBe('redirect-state');
+      });
+
+      const fusionAuth = createFusionAuth({
+        ...config,
+        useDpop: true,
+        onRedirect,
+      });
+
+      await vi.waitFor(() => expect(onRedirect).toHaveBeenCalledOnce());
+
+      expect(isLoggedInDuringOnRedirect).toBe(true);
+    });
+
+    it('shouldAutoFetchUserInfo fetches userInfo once isLoggedIn flips to true after the DPoP redirect settles (not just at construction)', async () => {
+      vi.spyOn(DPoPManager.prototype, 'getOrCreateKeyPair').mockResolvedValue(
+        {} as any,
+      );
+      vi.spyOn(DPoPManager.prototype, 'generateProof').mockResolvedValue(
+        'mock-dpop-proof-jwt',
+      );
+      mockWindowLocation(vi, '?code=mock-authorization-code');
+      localStorage.setItem(
+        'fa-sdk-redirect-value',
+        JSON.stringify({ codeVerifier: 'mock-code-verifier' }),
+      );
+
+      // First response is the code exchange (/oauth2/token); second is the
+      // subsequent /oauth2/userinfo call triggered by shouldAutoFetchUserInfo.
+      vi.spyOn(global, 'fetch')
+        .mockResolvedValueOnce(
+          new Response(
+            JSON.stringify({
+              access_token: 'mock-access-token',
+              refresh_token: 'mock-refresh-token',
+              expires_in: 3600,
+              token_type: 'DPoP',
+            }),
+            { status: 200 },
+          ),
+        )
+        .mockResolvedValueOnce(
+          new Response(JSON.stringify({ email: 'user@example.com' }), {
+            status: 200,
+          }),
+        );
+
+      const fusionAuth = createFusionAuth({
+        ...config,
+        useDpop: true,
+        shouldAutoFetchUserInfo: true,
+      });
+
+      expect(fusionAuth.isLoggedIn.value).toBe(false);
+
+      await vi.waitFor(() => {
+        expect(fusionAuth.isLoggedIn.value).toBe(true);
+      });
+
+      // userInfo only becomes available asynchronously, well after
+      // construction — it is not fetched until the DPoP redirect settles.
+      await vi.waitFor(() => {
+        expect(fusionAuth.userInfo.value).toEqual({
+          email: 'user@example.com',
+        });
+      });
+    });
+
+    it('forwards onLoginFailure to SDKCore for DPoP login() failures', async () => {
+      const failure = new Error('crypto.subtle unavailable');
+      vi.spyOn(DPoPManager.prototype, 'getOrCreateKeyPair').mockRejectedValue(
+        failure,
+      );
+      mockWindowLocation(vi);
+
+      const onLoginFailure = vi.fn();
+      const fusionAuth = createFusionAuth({
+        ...config,
+        useDpop: true,
+        onLoginFailure,
+      });
+
+      fusionAuth.login();
+
+      await vi.waitFor(() =>
+        expect(onLoginFailure).toHaveBeenCalledWith(failure),
+      );
+    });
   });
 });

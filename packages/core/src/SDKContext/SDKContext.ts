@@ -55,6 +55,33 @@ export interface SDKContext {
    * This is handled automatically if the SDK is configured with `shouldAutoRefresh`.
    */
   initAutoRefresh: () => void;
+
+  /**
+   * Fetch wrapper that automatically attaches DPoP proof headers.
+   * Present only when `useDpop: true`.
+   */
+  dpopFetch?: (
+    input: RequestInfo | URL,
+    init?: RequestInit,
+  ) => Promise<Response>;
+
+  /**
+   * Returns a signed DPoP proof JWT for use with axios or other
+   * HTTP libraries. Present only when `useDpop: true`.
+   */
+  generateProof?: (
+    htu: string,
+    htm: string,
+    accessToken?: string,
+    nonce?: string,
+  ) => Promise<string>;
+
+  /**
+   * Returns the stored DPoP access token, or `null` if not logged in.
+   * Throws a descriptive error when `useDpop: false`.
+   * Present only when `useDpop: true`.
+   */
+  getAccessToken?: () => string | null;
 }
 
 /**

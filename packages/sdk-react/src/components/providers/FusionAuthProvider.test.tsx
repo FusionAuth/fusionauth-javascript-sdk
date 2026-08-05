@@ -13,6 +13,7 @@ import {
   mockIsLoggedIn,
   removeAt_expCookie,
   mockWindowLocation,
+  DPoPManager,
 } from '@fusionauth-sdk/core';
 import {
   TEST_CONFIG,
@@ -27,11 +28,34 @@ function renderWithWrapper<T = UserInfo>(config: FusionAuthProviderConfig) {
   });
 }
 
+/** Seeds `localStorage` with a valid, unexpired DPoP token set for `clientId`. */
+function seedDpopTokens(
+  clientId: string,
+  overrides: Partial<{
+    accessToken: string;
+    refreshToken: string | undefined;
+    expiresAt: number;
+    tokenType: string;
+  }> = {},
+) {
+  localStorage.setItem(
+    `fusionauth-sdk:tokens:${clientId}`,
+    JSON.stringify({
+      accessToken: 'mock-access-token',
+      refreshToken: 'mock-refresh-token',
+      expiresAt: Date.now() + 60_000,
+      tokenType: 'DPoP',
+      ...overrides,
+    }),
+  );
+}
+
 describe('FusionAuthProvider', () => {
   afterEach(() => {
     removeAt_expCookie();
     localStorage.clear();
     vi.clearAllMocks();
+    vi.useRealTimers();
   });
 
   test('Redirects to the correct login url', () => {
@@ -121,12 +145,13 @@ describe('FusionAuthProvider', () => {
     mockIsLoggedIn();
 
     const stateValue = 'hello-world';
+    // Format: nonce:state (hosted backend mode)
     localStorage.setItem('fa-sdk-redirect-value', `abc123:${stateValue}`);
 
     const onRedirect = vi.fn();
     renderWithWrapper({ ...TEST_CONFIG, onRedirect });
 
-    expect(onRedirect).toHaveBeenCalled();
+    expect(onRedirect).toHaveBeenCalledWith(stateValue);
   });
 
   test('Will not invoke onRedirect if no redirect value is found in localStorage', () => {
@@ -326,5 +351,254 @@ describe('FusionAuthProvider', () => {
         }),
       ),
     );
+  });
+
+  describe('DPoP mode', () => {
+    test('dpopFetch, generateProof, and getAccessToken are functions when useDpop: true', () => {
+      const { result } = renderWithWrapper({ ...TEST_CONFIG, useDpop: true });
+
+      expect(typeof result.current.dpopFetch).toBe('function');
+      expect(typeof result.current.generateProof).toBe('function');
+      expect(typeof result.current.getAccessToken).toBe('function');
+    });
+
+    test('dpopFetch, generateProof, and getAccessToken are undefined when useDpop is false', () => {
+      const { result } = renderWithWrapper({ ...TEST_CONFIG, useDpop: false });
+
+      expect(result.current.dpopFetch).toBeUndefined();
+      expect(result.current.generateProof).toBeUndefined();
+      expect(result.current.getAccessToken).toBeUndefined();
+    });
+
+    test('dpopFetch, generateProof, and getAccessToken are undefined when useDpop is not set', () => {
+      const { result } = renderWithWrapper(TEST_CONFIG);
+
+      expect(result.current.dpopFetch).toBeUndefined();
+      expect(result.current.generateProof).toBeUndefined();
+      expect(result.current.getAccessToken).toBeUndefined();
+    });
+
+    test('getAccessToken() returns the stored access token after login', () => {
+      seedDpopTokens(TEST_CONFIG.clientId, {
+        accessToken: 'mock-stored-access-token',
+      });
+
+      const { result } = renderWithWrapper({ ...TEST_CONFIG, useDpop: true });
+
+      expect(result.current.getAccessToken?.()).toBe(
+        'mock-stored-access-token',
+      );
+    });
+
+    test('getAccessToken() returns null when logged out', () => {
+      const { result } = renderWithWrapper({ ...TEST_CONFIG, useDpop: true });
+
+      expect(result.current.getAccessToken?.()).toBeNull();
+    });
+
+    test('isLoggedIn reflects DPoP token store state, not the app.at_exp cookie', () => {
+      seedDpopTokens(TEST_CONFIG.clientId);
+      // Explicitly confirm no cookie-based login signal is present.
+      removeAt_expCookie();
+
+      const { result } = renderWithWrapper({ ...TEST_CONFIG, useDpop: true });
+
+      expect(result.current.isLoggedIn).toBe(true);
+    });
+
+    test('isLoggedIn is false in DPoP mode when no tokens are stored, even if the app.at_exp cookie is set', () => {
+      mockIsLoggedIn(); // sets app.at_exp cookie — must be ignored in DPoP mode.
+
+      const { result } = renderWithWrapper({ ...TEST_CONFIG, useDpop: true });
+
+      expect(result.current.isLoggedIn).toBe(false);
+    });
+
+    test('isLoggedIn flips to true once the post-redirect DPoP token exchange completes', async () => {
+      vi.spyOn(DPoPManager.prototype, 'getOrCreateKeyPair').mockResolvedValue(
+        {} as any,
+      );
+      vi.spyOn(DPoPManager.prototype, 'generateProof').mockResolvedValue(
+        'mock-dpop-proof-jwt',
+      );
+      mockWindowLocation(vi, '?code=mock-authorization-code');
+      localStorage.setItem(
+        'fa-sdk-redirect-value',
+        JSON.stringify({ codeVerifier: 'mock-code-verifier' }),
+      );
+      vi.spyOn(global, 'fetch').mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({
+            access_token: 'mock-access-token',
+            refresh_token: 'mock-refresh-token',
+            expires_in: 3600,
+            token_type: 'DPoP',
+          }),
+          { status: 200 },
+        ),
+      );
+
+      const { result } = renderWithWrapper({ ...TEST_CONFIG, useDpop: true });
+
+      expect(result.current.isLoggedIn).toBe(false);
+
+      await waitFor(() => {
+        expect(result.current.isLoggedIn).toBe(true);
+      });
+      expect(result.current.getAccessToken?.()).toBe('mock-access-token');
+    });
+
+    test('shouldAutoFetchUserInfo fetches userInfo once isLoggedIn flips to true after the DPoP redirect completes', async () => {
+      vi.spyOn(DPoPManager.prototype, 'getOrCreateKeyPair').mockResolvedValue(
+        {} as any,
+      );
+      vi.spyOn(DPoPManager.prototype, 'generateProof').mockResolvedValue(
+        'mock-dpop-proof-jwt',
+      );
+      mockWindowLocation(vi, '?code=mock-authorization-code');
+      localStorage.setItem(
+        'fa-sdk-redirect-value',
+        JSON.stringify({ codeVerifier: 'mock-code-verifier' }),
+      );
+
+      // First response is the code exchange (/oauth2/token); second is the
+      // subsequent /oauth2/userinfo call triggered by shouldAutoFetchUserInfo.
+      vi.spyOn(global, 'fetch')
+        .mockResolvedValueOnce(
+          new Response(
+            JSON.stringify({
+              access_token: 'mock-access-token',
+              refresh_token: 'mock-refresh-token',
+              expires_in: 3600,
+              token_type: 'DPoP',
+            }),
+            { status: 200 },
+          ),
+        )
+        .mockResolvedValueOnce(
+          new Response(JSON.stringify({ email: 'user@example.com' }), {
+            status: 200,
+          }),
+        );
+
+      const { result } = renderWithWrapper({
+        ...TEST_CONFIG,
+        useDpop: true,
+        shouldAutoFetchUserInfo: true,
+      });
+
+      expect(result.current.isLoggedIn).toBe(false);
+
+      await waitFor(() => {
+        expect(result.current.isLoggedIn).toBe(true);
+      });
+
+      await waitFor(() => {
+        expect(result.current.userInfo).toEqual({ email: 'user@example.com' });
+      });
+    });
+
+    test('forwards onLoginFailure to SDKCore for DPoP startLogin() failures', async () => {
+      const failure = new Error('crypto.subtle unavailable');
+      vi.spyOn(DPoPManager.prototype, 'getOrCreateKeyPair').mockRejectedValue(
+        failure,
+      );
+      mockWindowLocation(vi);
+
+      const onLoginFailure = vi.fn();
+      const { result } = renderWithWrapper({
+        ...TEST_CONFIG,
+        useDpop: true,
+        onLoginFailure,
+      });
+
+      act(() => {
+        result.current.startLogin();
+      });
+
+      await waitFor(() => expect(onLoginFailure).toHaveBeenCalledWith(failure));
+    });
+
+    test('onRedirect is invoked and isLoggedIn eventually reflects the completed exchange', async () => {
+      vi.spyOn(DPoPManager.prototype, 'getOrCreateKeyPair').mockResolvedValue(
+        {} as any,
+      );
+      vi.spyOn(DPoPManager.prototype, 'generateProof').mockResolvedValue(
+        'mock-dpop-proof-jwt',
+      );
+      mockWindowLocation(
+        vi,
+        '?code=mock-authorization-code&state=mock-transaction-state',
+      );
+      localStorage.setItem(
+        'fa-sdk-redirect-value',
+        JSON.stringify({
+          codeVerifier: 'mock-code-verifier',
+          // The OAuth `state` param FusionAuth echoes back is the SDK-generated
+          // transactionState — not the app's own state — per the CSRF fix in
+          // RedirectHelper.handlePreDpopRedirect().
+          transactionState: 'mock-transaction-state',
+          state: 'redirect-state',
+        }),
+      );
+      vi.spyOn(global, 'fetch').mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({
+            access_token: 'mock-access-token',
+            refresh_token: 'mock-refresh-token',
+            expires_in: 3600,
+            token_type: 'DPoP',
+          }),
+          { status: 200 },
+        ),
+      );
+
+      const onRedirect = vi.fn();
+
+      const { result } = renderWithWrapper({
+        ...TEST_CONFIG,
+        useDpop: true,
+        onRedirect,
+      });
+
+      await waitFor(() =>
+        expect(onRedirect).toHaveBeenCalledWith('redirect-state'),
+      );
+      await waitFor(() => expect(result.current.isLoggedIn).toBe(true));
+    });
+
+    test('refreshToken() re-syncs isLoggedIn after a successful DPoP refresh', async () => {
+      seedDpopTokens(TEST_CONFIG.clientId, {
+        expiresAt: Date.now() - 1000, // already expired
+      });
+      vi.spyOn(DPoPManager.prototype, 'getOrCreateKeyPair').mockResolvedValue(
+        {} as any,
+      );
+      vi.spyOn(DPoPManager.prototype, 'generateProof').mockResolvedValue(
+        'mock-dpop-proof-jwt',
+      );
+      vi.spyOn(global, 'fetch').mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({
+            access_token: 'new-access-token',
+            refresh_token: 'new-refresh-token',
+            expires_in: 3600,
+            token_type: 'DPoP',
+          }),
+          { status: 200 },
+        ),
+      );
+
+      const { result } = renderWithWrapper({ ...TEST_CONFIG, useDpop: true });
+
+      expect(result.current.isLoggedIn).toBe(false);
+
+      await act(async () => {
+        await result.current.refreshToken();
+      });
+
+      expect(result.current.isLoggedIn).toBe(true);
+      expect(result.current.getAccessToken?.()).toBe('new-access-token');
+    });
   });
 });

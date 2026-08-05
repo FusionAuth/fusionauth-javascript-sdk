@@ -16,10 +16,14 @@
     "test:watch": "vitest",
     "test": "vitest --watch=false"
   },
+  "dependencies": {
+    "dpop": "^2.1.1"
+  },
   "devDependencies": {
+    "fake-indexeddb": "^6.0.0",
     "typescript": "^5.2.2",
     "vite": "^5.2.0",
     "vite-plugin-dts": "^3.8.0",
-    "vitest": "^1.4.0"
+    "vitest": "^3.2.6"
   }
 }

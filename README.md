@@ -89,6 +89,14 @@ The e2e tests are structured to use the Page Object Model (POM) design pattern. 
     Example: In common.page.ts, methods for navigation and authentication are defined.
 Tests import these page objects to perform actions, ensuring that if the UI changes, only the page object needs updating, not all the tests.
 
+### DPoP E2E tests
+
+`e2e/tests/dpop-endpoints.test.ts` — mirrors `endpoints.test.ts`, but drives a consuming quickstart application configured with `useDpop: true` through its UI. Since DPoP mode has no hosted backend mode (`SDKCore` talks directly to FusionAuth), this validates the *direct* calls to `/oauth2/authorize`, `/oauth2/token` (both the authorization code exchange and the refresh token grant), `/oauth2/userinfo`, and `/oauth2/logout`:
+  ```
+  SERVER_COMMAND="your-dpop-quickstart-start-command" PORT=your-port-number npx playwright test e2e/tests/dpop-endpoints.test.ts --config playwright.dpop-endpoints.config.ts
+  ```
+  This must be run on its own — it cannot be combined with `endpoints.test.ts` / `cookies.test.ts` in the same invocation, since those require a hosted backend mode quickstart instance instead.
+
 ## Architecture
 
 We use a monorepo because our SDKs share core functionality, which is contained in the @fusionauth-sdk/core package. This private module is bundled into the distributed SDK packages, allowing us to maintain core logic in a single place.

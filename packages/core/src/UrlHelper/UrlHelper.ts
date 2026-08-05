@@ -67,10 +67,80 @@ export class UrlHelper {
     });
   }
 
+  /**
+   * Builds the direct `/oauth2/logout` URL used in DPoP mode.
+   */
+  getOAuth2LogoutUrl(): URL {
+    return this.generateUrl('/oauth2/logout', {
+      client_id: this.clientId,
+      post_logout_redirect_uri: this.postLogoutRedirectUri || this.redirectUri,
+    });
+  }
+
   getAccountManagementUrl(): URL {
     return this.generateUrl('/account/', {
       client_id: this.clientId,
     });
+  }
+
+  /**
+   * Builds the direct `/oauth2/authorize` URL used in DPoP mode.
+   * Targets FusionAuth directly (not the hosted backend mode).
+   *
+   * @param dpopJkt  The DPoP public key JWK thumbprint for the `dpop_jkt` parameter.
+   * @param codeChallenge  The PKCE code challenge value.
+   * @param state  Optional OAuth2 `state` parameter.
+   */
+  getAuthorizeUrl(dpopJkt: string, codeChallenge: string, state?: string): URL {
+    return this.generateUrl('/oauth2/authorize', {
+      client_id: this.clientId,
+      redirect_uri: this.redirectUri,
+      response_type: 'code',
+      scope: this.scope,
+      code_challenge: codeChallenge,
+      code_challenge_method: 'S256',
+      dpop_jkt: dpopJkt,
+      state,
+    });
+  }
+
+  /**
+   * Builds the direct `/oauth2/token` URL used in DPoP mode for the
+   * authorization code exchange and refresh token grant.
+   */
+  getTokenUrl(): URL {
+    return this.generateUrl('/oauth2/token');
+  }
+
+  /**
+   * Builds the direct `/oauth2/register` URL used in DPoP mode.
+   *
+   * @param dpopJkt  The DPoP public key JWK thumbprint for the `dpop_jkt` parameter.
+   * @param codeChallenge  The PKCE code challenge value.
+   * @param state  Optional OAuth2 `state` parameter.
+   */
+  getOAuth2RegisterUrl(
+    dpopJkt: string,
+    codeChallenge: string,
+    state?: string,
+  ): URL {
+    return this.generateUrl('/oauth2/register', {
+      client_id: this.clientId,
+      redirect_uri: this.redirectUri,
+      response_type: 'code',
+      scope: this.scope,
+      code_challenge: codeChallenge,
+      code_challenge_method: 'S256',
+      dpop_jkt: dpopJkt,
+      state,
+    });
+  }
+
+  /**
+   * Builds the direct `/oauth2/userinfo` URL used in DPoP mode.
+   */
+  getUserInfoUrl(): URL {
+    return this.generateUrl('/oauth2/userinfo');
   }
 
   private generateUrl(path: string, params?: UrlHelperQueryParams): URL {
