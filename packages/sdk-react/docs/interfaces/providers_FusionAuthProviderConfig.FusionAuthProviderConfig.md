@@ -43,7 +43,7 @@ Only set this if you are hosting server that uses a custom name for the 'app.at_
 
 #### Defined in
 
-[packages/sdk-react/src/components/providers/FusionAuthProviderConfig.ts:104](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/cd7ae7b9456d5730265cf9895942c3e7263c1c85/packages/sdk-react/src/components/providers/FusionAuthProviderConfig.ts#L104)
+[packages/sdk-react/src/components/providers/FusionAuthProviderConfig.ts:104](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/97b137f4922b7072a3d647cca72fc0a02412325b/packages/sdk-react/src/components/providers/FusionAuthProviderConfig.ts#L104)
 
 ---
 
@@ -55,7 +55,7 @@ Additional params passed to loginPath typically `/app/login/`, which redirects t
 
 #### Defined in
 
-[packages/sdk-react/src/components/providers/FusionAuthProviderConfig.ts:30](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/cd7ae7b9456d5730265cf9895942c3e7263c1c85/packages/sdk-react/src/components/providers/FusionAuthProviderConfig.ts#L30)
+[packages/sdk-react/src/components/providers/FusionAuthProviderConfig.ts:30](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/97b137f4922b7072a3d647cca72fc0a02412325b/packages/sdk-react/src/components/providers/FusionAuthProviderConfig.ts#L30)
 
 ---
 
@@ -67,7 +67,7 @@ The number of seconds before the access token expiry when the auto refresh funct
 
 #### Defined in
 
-[packages/sdk-react/src/components/providers/FusionAuthProviderConfig.ts:50](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/cd7ae7b9456d5730265cf9895942c3e7263c1c85/packages/sdk-react/src/components/providers/FusionAuthProviderConfig.ts#L50)
+[packages/sdk-react/src/components/providers/FusionAuthProviderConfig.ts:50](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/97b137f4922b7072a3d647cca72fc0a02412325b/packages/sdk-react/src/components/providers/FusionAuthProviderConfig.ts#L50)
 
 ---
 
@@ -79,7 +79,7 @@ The client id of the application.
 
 #### Defined in
 
-[packages/sdk-react/src/components/providers/FusionAuthProviderConfig.ts:15](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/cd7ae7b9456d5730265cf9895942c3e7263c1c85/packages/sdk-react/src/components/providers/FusionAuthProviderConfig.ts#L15)
+[packages/sdk-react/src/components/providers/FusionAuthProviderConfig.ts:15](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/97b137f4922b7072a3d647cca72fc0a02412325b/packages/sdk-react/src/components/providers/FusionAuthProviderConfig.ts#L15)
 
 ---
 
@@ -92,7 +92,7 @@ Defaults to `'localStorage'`.
 
 #### Defined in
 
-[packages/sdk-react/src/components/providers/FusionAuthProviderConfig.ts:117](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/cd7ae7b9456d5730265cf9895942c3e7263c1c85/packages/sdk-react/src/components/providers/FusionAuthProviderConfig.ts#L117)
+[packages/sdk-react/src/components/providers/FusionAuthProviderConfig.ts:117](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/97b137f4922b7072a3d647cca72fc0a02412325b/packages/sdk-react/src/components/providers/FusionAuthProviderConfig.ts#L117)
 
 ---
 
@@ -104,7 +104,7 @@ The path to the login endpoint.
 
 #### Defined in
 
-[packages/sdk-react/src/components/providers/FusionAuthProviderConfig.ts:71](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/cd7ae7b9456d5730265cf9895942c3e7263c1c85/packages/sdk-react/src/components/providers/FusionAuthProviderConfig.ts#L71)
+[packages/sdk-react/src/components/providers/FusionAuthProviderConfig.ts:71](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/97b137f4922b7072a3d647cca72fc0a02412325b/packages/sdk-react/src/components/providers/FusionAuthProviderConfig.ts#L71)
 
 ---
 
@@ -116,7 +116,7 @@ The path to the logout endpoint.
 
 #### Defined in
 
-[packages/sdk-react/src/components/providers/FusionAuthProviderConfig.ts:81](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/cd7ae7b9456d5730265cf9895942c3e7263c1c85/packages/sdk-react/src/components/providers/FusionAuthProviderConfig.ts#L81)
+[packages/sdk-react/src/components/providers/FusionAuthProviderConfig.ts:81](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/97b137f4922b7072a3d647cca72fc0a02412325b/packages/sdk-react/src/components/providers/FusionAuthProviderConfig.ts#L81)
 
 ---
 
@@ -128,7 +128,7 @@ The path to the me endpoint.
 
 #### Defined in
 
-[packages/sdk-react/src/components/providers/FusionAuthProviderConfig.ts:98](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/cd7ae7b9456d5730265cf9895942c3e7263c1c85/packages/sdk-react/src/components/providers/FusionAuthProviderConfig.ts#L98)
+[packages/sdk-react/src/components/providers/FusionAuthProviderConfig.ts:98](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/97b137f4922b7072a3d647cca72fc0a02412325b/packages/sdk-react/src/components/providers/FusionAuthProviderConfig.ts#L98)
 
 ---
 
@@ -150,7 +150,7 @@ See docs for [configuration with nextjs](https://github.com/FusionAuth/fusionaut
 
 #### Defined in
 
-[packages/sdk-react/src/components/providers/FusionAuthProviderConfig.ts:93](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/cd7ae7b9456d5730265cf9895942c3e7263c1c85/packages/sdk-react/src/components/providers/FusionAuthProviderConfig.ts#L93)
+[packages/sdk-react/src/components/providers/FusionAuthProviderConfig.ts:93](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/97b137f4922b7072a3d647cca72fc0a02412325b/packages/sdk-react/src/components/providers/FusionAuthProviderConfig.ts#L93)
 
 ---
 
@@ -176,7 +176,7 @@ Callback to be invoked if a request to refresh the access token fails during aut
 
 #### Defined in
 
-[packages/sdk-react/src/components/providers/FusionAuthProviderConfig.ts:60](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/cd7ae7b9456d5730265cf9895942c3e7263c1c85/packages/sdk-react/src/components/providers/FusionAuthProviderConfig.ts#L60)
+[packages/sdk-react/src/components/providers/FusionAuthProviderConfig.ts:60](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/97b137f4922b7072a3d647cca72fc0a02412325b/packages/sdk-react/src/components/providers/FusionAuthProviderConfig.ts#L60)
 
 ---
 
@@ -203,7 +203,7 @@ Only relevant when `useDpop: true`.
 
 #### Defined in
 
-[packages/sdk-react/src/components/providers/FusionAuthProviderConfig.ts:66](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/cd7ae7b9456d5730265cf9895942c3e7263c1c85/packages/sdk-react/src/components/providers/FusionAuthProviderConfig.ts#L66)
+[packages/sdk-react/src/components/providers/FusionAuthProviderConfig.ts:66](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/97b137f4922b7072a3d647cca72fc0a02412325b/packages/sdk-react/src/components/providers/FusionAuthProviderConfig.ts#L66)
 
 ---
 
@@ -229,7 +229,7 @@ Callback function to be invoked with the `state` value upon redirect from login 
 
 #### Defined in
 
-[packages/sdk-react/src/components/providers/FusionAuthProviderConfig.ts:55](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/cd7ae7b9456d5730265cf9895942c3e7263c1c85/packages/sdk-react/src/components/providers/FusionAuthProviderConfig.ts#L55)
+[packages/sdk-react/src/components/providers/FusionAuthProviderConfig.ts:55](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/97b137f4922b7072a3d647cca72fc0a02412325b/packages/sdk-react/src/components/providers/FusionAuthProviderConfig.ts#L55)
 
 ---
 
@@ -241,7 +241,7 @@ The redirect URI for post-logout. Defaults the provided `redirectUri`.
 
 #### Defined in
 
-[packages/sdk-react/src/components/providers/FusionAuthProviderConfig.ts:35](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/cd7ae7b9456d5730265cf9895942c3e7263c1c85/packages/sdk-react/src/components/providers/FusionAuthProviderConfig.ts#L35)
+[packages/sdk-react/src/components/providers/FusionAuthProviderConfig.ts:35](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/97b137f4922b7072a3d647cca72fc0a02412325b/packages/sdk-react/src/components/providers/FusionAuthProviderConfig.ts#L35)
 
 ---
 
@@ -253,7 +253,7 @@ The redirect URI of the application.
 
 #### Defined in
 
-[packages/sdk-react/src/components/providers/FusionAuthProviderConfig.ts:20](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/cd7ae7b9456d5730265cf9895942c3e7263c1c85/packages/sdk-react/src/components/providers/FusionAuthProviderConfig.ts#L20)
+[packages/sdk-react/src/components/providers/FusionAuthProviderConfig.ts:20](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/97b137f4922b7072a3d647cca72fc0a02412325b/packages/sdk-react/src/components/providers/FusionAuthProviderConfig.ts#L20)
 
 ---
 
@@ -265,7 +265,7 @@ The path to the register endpoint.
 
 #### Defined in
 
-[packages/sdk-react/src/components/providers/FusionAuthProviderConfig.ts:76](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/cd7ae7b9456d5730265cf9895942c3e7263c1c85/packages/sdk-react/src/components/providers/FusionAuthProviderConfig.ts#L76)
+[packages/sdk-react/src/components/providers/FusionAuthProviderConfig.ts:76](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/97b137f4922b7072a3d647cca72fc0a02412325b/packages/sdk-react/src/components/providers/FusionAuthProviderConfig.ts#L76)
 
 ---
 
@@ -277,7 +277,7 @@ The OAuth2 scope parameter passed to the `/oauth2/authorize` endpoint. If not sp
 
 #### Defined in
 
-[packages/sdk-react/src/components/providers/FusionAuthProviderConfig.ts:25](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/cd7ae7b9456d5730265cf9895942c3e7263c1c85/packages/sdk-react/src/components/providers/FusionAuthProviderConfig.ts#L25)
+[packages/sdk-react/src/components/providers/FusionAuthProviderConfig.ts:25](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/97b137f4922b7072a3d647cca72fc0a02412325b/packages/sdk-react/src/components/providers/FusionAuthProviderConfig.ts#L25)
 
 ---
 
@@ -289,7 +289,7 @@ The URL of the server that performs the token exchange.
 
 #### Defined in
 
-[packages/sdk-react/src/components/providers/FusionAuthProviderConfig.ts:10](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/cd7ae7b9456d5730265cf9895942c3e7263c1c85/packages/sdk-react/src/components/providers/FusionAuthProviderConfig.ts#L10)
+[packages/sdk-react/src/components/providers/FusionAuthProviderConfig.ts:10](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/97b137f4922b7072a3d647cca72fc0a02412325b/packages/sdk-react/src/components/providers/FusionAuthProviderConfig.ts#L10)
 
 ---
 
@@ -301,7 +301,7 @@ Enables the SDK to automatically handle fetching user info when logged in. Defau
 
 #### Defined in
 
-[packages/sdk-react/src/components/providers/FusionAuthProviderConfig.ts:45](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/cd7ae7b9456d5730265cf9895942c3e7263c1c85/packages/sdk-react/src/components/providers/FusionAuthProviderConfig.ts#L45)
+[packages/sdk-react/src/components/providers/FusionAuthProviderConfig.ts:45](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/97b137f4922b7072a3d647cca72fc0a02412325b/packages/sdk-react/src/components/providers/FusionAuthProviderConfig.ts#L45)
 
 ---
 
@@ -313,7 +313,7 @@ Enables automatic token refreshing. Defaults to false.
 
 #### Defined in
 
-[packages/sdk-react/src/components/providers/FusionAuthProviderConfig.ts:40](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/cd7ae7b9456d5730265cf9895942c3e7263c1c85/packages/sdk-react/src/components/providers/FusionAuthProviderConfig.ts#L40)
+[packages/sdk-react/src/components/providers/FusionAuthProviderConfig.ts:40](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/97b137f4922b7072a3d647cca72fc0a02412325b/packages/sdk-react/src/components/providers/FusionAuthProviderConfig.ts#L40)
 
 ---
 
@@ -325,7 +325,7 @@ The path to the token refresh endpoint.
 
 #### Defined in
 
-[packages/sdk-react/src/components/providers/FusionAuthProviderConfig.ts:86](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/cd7ae7b9456d5730265cf9895942c3e7263c1c85/packages/sdk-react/src/components/providers/FusionAuthProviderConfig.ts#L86)
+[packages/sdk-react/src/components/providers/FusionAuthProviderConfig.ts:86](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/97b137f4922b7072a3d647cca72fc0a02412325b/packages/sdk-react/src/components/providers/FusionAuthProviderConfig.ts#L86)
 
 ---
 
@@ -339,4 +339,4 @@ relying on the Hosted Backend's HttpOnly cookies. Defaults to `false`.
 
 #### Defined in
 
-[packages/sdk-react/src/components/providers/FusionAuthProviderConfig.ts:111](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/cd7ae7b9456d5730265cf9895942c3e7263c1c85/packages/sdk-react/src/components/providers/FusionAuthProviderConfig.ts#L111)
+[packages/sdk-react/src/components/providers/FusionAuthProviderConfig.ts:111](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/97b137f4922b7072a3d647cca72fc0a02412325b/packages/sdk-react/src/components/providers/FusionAuthProviderConfig.ts#L111)

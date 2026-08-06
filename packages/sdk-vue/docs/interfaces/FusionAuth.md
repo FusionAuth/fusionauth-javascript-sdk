@@ -55,7 +55,7 @@ Present only when `useDpop: true`.
 
 #### Defined in
 
-[packages/sdk-vue/src/types.ts:194](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/cd7ae7b9456d5730265cf9895942c3e7263c1c85/packages/sdk-vue/src/types.ts#L194)
+[packages/sdk-vue/src/types.ts:194](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/97b137f4922b7072a3d647cca72fc0a02412325b/packages/sdk-vue/src/types.ts#L194)
 
 ---
 
@@ -67,7 +67,7 @@ Error occurred within getUserInfo.
 
 #### Defined in
 
-[packages/sdk-vue/src/types.ts:153](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/cd7ae7b9456d5730265cf9895942c3e7263c1c85/packages/sdk-vue/src/types.ts#L153)
+[packages/sdk-vue/src/types.ts:153](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/97b137f4922b7072a3d647cca72fc0a02412325b/packages/sdk-vue/src/types.ts#L153)
 
 ---
 
@@ -97,7 +97,7 @@ HTTP libraries. Present only when `useDpop: true`.
 
 #### Defined in
 
-[packages/sdk-vue/src/types.ts:203](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/cd7ae7b9456d5730265cf9895942c3e7263c1c85/packages/sdk-vue/src/types.ts#L203)
+[packages/sdk-vue/src/types.ts:203](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/97b137f4922b7072a3d647cca72fc0a02412325b/packages/sdk-vue/src/types.ts#L203)
 
 ---
 
@@ -119,7 +119,7 @@ Present only when `useDpop: true`.
 
 #### Defined in
 
-[packages/sdk-vue/src/types.ts:215](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/cd7ae7b9456d5730265cf9895942c3e7263c1c85/packages/sdk-vue/src/types.ts#L215)
+[packages/sdk-vue/src/types.ts:215](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/97b137f4922b7072a3d647cca72fc0a02412325b/packages/sdk-vue/src/types.ts#L215)
 
 ---
 
@@ -140,7 +140,7 @@ Internally updates `isFetchingUser` and `userInfo` refs, as well as `error` if t
 
 #### Defined in
 
-[packages/sdk-vue/src/types.ts:138](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/cd7ae7b9456d5730265cf9895942c3e7263c1c85/packages/sdk-vue/src/types.ts#L138)
+[packages/sdk-vue/src/types.ts:138](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/97b137f4922b7072a3d647cca72fc0a02412325b/packages/sdk-vue/src/types.ts#L138)
 
 ---
 
@@ -161,7 +161,7 @@ Refresh is scheduled to happen at the configured `autoRefreshSecondsBeforeExpiry
 
 #### Defined in
 
-[packages/sdk-vue/src/types.ts:188](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/cd7ae7b9456d5730265cf9895942c3e7263c1c85/packages/sdk-vue/src/types.ts#L188)
+[packages/sdk-vue/src/types.ts:188](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/97b137f4922b7072a3d647cca72fc0a02412325b/packages/sdk-vue/src/types.ts#L188)
 
 ---
 
@@ -173,7 +173,7 @@ Indicates that the getUserInfo call is unresolved.
 
 #### Defined in
 
-[packages/sdk-vue/src/types.ts:148](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/cd7ae7b9456d5730265cf9895942c3e7263c1c85/packages/sdk-vue/src/types.ts#L148)
+[packages/sdk-vue/src/types.ts:148](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/97b137f4922b7072a3d647cca72fc0a02412325b/packages/sdk-vue/src/types.ts#L148)
 
 ---
 
@@ -185,7 +185,7 @@ Whether the user is logged in.
 
 #### Defined in
 
-[packages/sdk-vue/src/types.ts:131](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/cd7ae7b9456d5730265cf9895942c3e7263c1c85/packages/sdk-vue/src/types.ts#L131)
+[packages/sdk-vue/src/types.ts:131](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/97b137f4922b7072a3d647cca72fc0a02412325b/packages/sdk-vue/src/types.ts#L131)
 
 ---
 
@@ -211,7 +211,7 @@ Initiates login flow.
 
 #### Defined in
 
-[packages/sdk-vue/src/types.ts:159](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/cd7ae7b9456d5730265cf9895942c3e7263c1c85/packages/sdk-vue/src/types.ts#L159)
+[packages/sdk-vue/src/types.ts:159](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/97b137f4922b7072a3d647cca72fc0a02412325b/packages/sdk-vue/src/types.ts#L159)
 
 ---
 
@@ -231,7 +231,7 @@ Initiates a logout.
 
 #### Defined in
 
-[packages/sdk-vue/src/types.ts:170](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/cd7ae7b9456d5730265cf9895942c3e7263c1c85/packages/sdk-vue/src/types.ts#L170)
+[packages/sdk-vue/src/types.ts:170](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/97b137f4922b7072a3d647cca72fc0a02412325b/packages/sdk-vue/src/types.ts#L170)
 
 ---
 
@@ -252,7 +252,7 @@ Self service account management is only available in FusionAuth paid plans.
 
 #### Defined in
 
-[packages/sdk-vue/src/types.ts:176](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/cd7ae7b9456d5730265cf9895942c3e7263c1c85/packages/sdk-vue/src/types.ts#L176)
+[packages/sdk-vue/src/types.ts:176](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/97b137f4922b7072a3d647cca72fc0a02412325b/packages/sdk-vue/src/types.ts#L176)
 
 ---
 
@@ -273,7 +273,7 @@ Token refreshing is handled automatically if configured with `shouldAutoRefresh`
 
 #### Defined in
 
-[packages/sdk-vue/src/types.ts:182](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/cd7ae7b9456d5730265cf9895942c3e7263c1c85/packages/sdk-vue/src/types.ts#L182)
+[packages/sdk-vue/src/types.ts:182](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/97b137f4922b7072a3d647cca72fc0a02412325b/packages/sdk-vue/src/types.ts#L182)
 
 ---
 
@@ -299,7 +299,7 @@ Initiates register flow.
 
 #### Defined in
 
-[packages/sdk-vue/src/types.ts:165](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/cd7ae7b9456d5730265cf9895942c3e7263c1c85/packages/sdk-vue/src/types.ts#L165)
+[packages/sdk-vue/src/types.ts:165](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/97b137f4922b7072a3d647cca72fc0a02412325b/packages/sdk-vue/src/types.ts#L165)
 
 ---
 
@@ -311,4 +311,4 @@ Data fetched from the configured 'me' endpoint.
 
 #### Defined in
 
-[packages/sdk-vue/src/types.ts:143](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/cd7ae7b9456d5730265cf9895942c3e7263c1c85/packages/sdk-vue/src/types.ts#L143)
+[packages/sdk-vue/src/types.ts:143](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/97b137f4922b7072a3d647cca72fc0a02412325b/packages/sdk-vue/src/types.ts#L143)
