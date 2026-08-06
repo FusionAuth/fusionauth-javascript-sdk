@@ -11,14 +11,14 @@ User information returned from FusionAuth.
 - [applicationId](UserInfo.md#applicationid)
 - [birthdate](UserInfo.md#birthdate)
 - [email](UserInfo.md#email)
-- [email_verified](UserInfo.md#email_verified)
-- [family_name](UserInfo.md#family_name)
-- [given_name](UserInfo.md#given_name)
-- [middle_name](UserInfo.md#middle_name)
+- [email\_verified](UserInfo.md#email_verified)
+- [family\_name](UserInfo.md#family_name)
+- [given\_name](UserInfo.md#given_name)
+- [middle\_name](UserInfo.md#middle_name)
 - [name](UserInfo.md#name)
-- [phone_number](UserInfo.md#phone_number)
+- [phone\_number](UserInfo.md#phone_number)
 - [picture](UserInfo.md#picture)
-- [preferred_username](UserInfo.md#preferred_username)
+- [preferred\_username](UserInfo.md#preferred_username)
 - [roles](UserInfo.md#roles)
 - [sid](UserInfo.md#sid)
 - [sub](UserInfo.md#sub)
@@ -32,7 +32,7 @@ User information returned from FusionAuth.
 
 #### Defined in
 
-[src/types.ts:88](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/02b46e2174ba0f4804f6b5ef004ac88414902cc3/packages/sdk-vue/src/types.ts#L88)
+[packages/sdk-vue/src/types.ts:107](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/cd7ae7b9456d5730265cf9895942c3e7263c1c85/packages/sdk-vue/src/types.ts#L107)
 
 ---
 
@@ -42,7 +42,7 @@ User information returned from FusionAuth.
 
 #### Defined in
 
-[src/types.ts:89](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/02b46e2174ba0f4804f6b5ef004ac88414902cc3/packages/sdk-vue/src/types.ts#L89)
+[packages/sdk-vue/src/types.ts:108](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/cd7ae7b9456d5730265cf9895942c3e7263c1c85/packages/sdk-vue/src/types.ts#L108)
 
 ---
 
@@ -52,47 +52,47 @@ User information returned from FusionAuth.
 
 #### Defined in
 
-[src/types.ts:90](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/02b46e2174ba0f4804f6b5ef004ac88414902cc3/packages/sdk-vue/src/types.ts#L90)
+[packages/sdk-vue/src/types.ts:109](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/cd7ae7b9456d5730265cf9895942c3e7263c1c85/packages/sdk-vue/src/types.ts#L109)
 
 ---
 
-### email_verified
+### email\_verified
 
-• `Optional` **email_verified**: `boolean`
+• `Optional` **email\_verified**: `boolean`
 
 #### Defined in
 
-[src/types.ts:91](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/02b46e2174ba0f4804f6b5ef004ac88414902cc3/packages/sdk-vue/src/types.ts#L91)
+[packages/sdk-vue/src/types.ts:110](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/cd7ae7b9456d5730265cf9895942c3e7263c1c85/packages/sdk-vue/src/types.ts#L110)
 
 ---
 
-### family_name
+### family\_name
 
-• `Optional` **family_name**: `string`
+• `Optional` **family\_name**: `string`
 
 #### Defined in
 
-[src/types.ts:92](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/02b46e2174ba0f4804f6b5ef004ac88414902cc3/packages/sdk-vue/src/types.ts#L92)
+[packages/sdk-vue/src/types.ts:111](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/cd7ae7b9456d5730265cf9895942c3e7263c1c85/packages/sdk-vue/src/types.ts#L111)
 
 ---
 
-### given_name
+### given\_name
 
-• `Optional` **given_name**: `string`
+• `Optional` **given\_name**: `string`
 
 #### Defined in
 
-[src/types.ts:93](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/02b46e2174ba0f4804f6b5ef004ac88414902cc3/packages/sdk-vue/src/types.ts#L93)
+[packages/sdk-vue/src/types.ts:112](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/cd7ae7b9456d5730265cf9895942c3e7263c1c85/packages/sdk-vue/src/types.ts#L112)
 
 ---
 
-### middle_name
+### middle\_name
 
-• `Optional` **middle_name**: `string`
+• `Optional` **middle\_name**: `string`
 
 #### Defined in
 
-[src/types.ts:95](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/02b46e2174ba0f4804f6b5ef004ac88414902cc3/packages/sdk-vue/src/types.ts#L95)
+[packages/sdk-vue/src/types.ts:114](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/cd7ae7b9456d5730265cf9895942c3e7263c1c85/packages/sdk-vue/src/types.ts#L114)
 
 ---
 
@@ -102,17 +102,17 @@ User information returned from FusionAuth.
 
 #### Defined in
 
-[src/types.ts:94](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/02b46e2174ba0f4804f6b5ef004ac88414902cc3/packages/sdk-vue/src/types.ts#L94)
+[packages/sdk-vue/src/types.ts:113](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/cd7ae7b9456d5730265cf9895942c3e7263c1c85/packages/sdk-vue/src/types.ts#L113)
 
 ---
 
-### phone_number
+### phone\_number
 
-• `Optional` **phone_number**: `string`
+• `Optional` **phone\_number**: `string`
 
 #### Defined in
 
-[src/types.ts:96](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/02b46e2174ba0f4804f6b5ef004ac88414902cc3/packages/sdk-vue/src/types.ts#L96)
+[packages/sdk-vue/src/types.ts:115](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/cd7ae7b9456d5730265cf9895942c3e7263c1c85/packages/sdk-vue/src/types.ts#L115)
 
 ---
 
@@ -122,17 +122,17 @@ User information returned from FusionAuth.
 
 #### Defined in
 
-[src/types.ts:97](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/02b46e2174ba0f4804f6b5ef004ac88414902cc3/packages/sdk-vue/src/types.ts#L97)
+[packages/sdk-vue/src/types.ts:116](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/cd7ae7b9456d5730265cf9895942c3e7263c1c85/packages/sdk-vue/src/types.ts#L116)
 
 ---
 
-### preferred_username
+### preferred\_username
 
-• `Optional` **preferred_username**: `string`
+• `Optional` **preferred\_username**: `string`
 
 #### Defined in
 
-[src/types.ts:98](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/02b46e2174ba0f4804f6b5ef004ac88414902cc3/packages/sdk-vue/src/types.ts#L98)
+[packages/sdk-vue/src/types.ts:117](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/cd7ae7b9456d5730265cf9895942c3e7263c1c85/packages/sdk-vue/src/types.ts#L117)
 
 ---
 
@@ -142,7 +142,7 @@ User information returned from FusionAuth.
 
 #### Defined in
 
-[src/types.ts:99](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/02b46e2174ba0f4804f6b5ef004ac88414902cc3/packages/sdk-vue/src/types.ts#L99)
+[packages/sdk-vue/src/types.ts:118](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/cd7ae7b9456d5730265cf9895942c3e7263c1c85/packages/sdk-vue/src/types.ts#L118)
 
 ---
 
@@ -152,7 +152,7 @@ User information returned from FusionAuth.
 
 #### Defined in
 
-[src/types.ts:100](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/02b46e2174ba0f4804f6b5ef004ac88414902cc3/packages/sdk-vue/src/types.ts#L100)
+[packages/sdk-vue/src/types.ts:119](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/cd7ae7b9456d5730265cf9895942c3e7263c1c85/packages/sdk-vue/src/types.ts#L119)
 
 ---
 
@@ -162,7 +162,7 @@ User information returned from FusionAuth.
 
 #### Defined in
 
-[src/types.ts:101](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/02b46e2174ba0f4804f6b5ef004ac88414902cc3/packages/sdk-vue/src/types.ts#L101)
+[packages/sdk-vue/src/types.ts:120](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/cd7ae7b9456d5730265cf9895942c3e7263c1c85/packages/sdk-vue/src/types.ts#L120)
 
 ---
 
@@ -172,4 +172,4 @@ User information returned from FusionAuth.
 
 #### Defined in
 
-[src/types.ts:102](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/02b46e2174ba0f4804f6b5ef004ac88414902cc3/packages/sdk-vue/src/types.ts#L102)
+[packages/sdk-vue/src/types.ts:121](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/cd7ae7b9456d5730265cf9895942c3e7263c1c85/packages/sdk-vue/src/types.ts#L121)

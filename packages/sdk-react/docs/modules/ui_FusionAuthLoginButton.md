@@ -28,4 +28,4 @@ Calls the `startLogin` method from `FusionAuthProviderContext`.
 
 #### Defined in
 
-[packages/sdk-react/src/components/ui/FusionAuthLoginButton/index.tsx:16](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/63efa2d5360c2b7e1392ffa730dac8f5a0bc8e19/packages/sdk-react/src/components/ui/FusionAuthLoginButton/index.tsx#L16)
+[packages/sdk-react/src/components/ui/FusionAuthLoginButton/index.tsx:16](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/cd7ae7b9456d5730265cf9895942c3e7263c1c85/packages/sdk-react/src/components/ui/FusionAuthLoginButton/index.tsx#L16)

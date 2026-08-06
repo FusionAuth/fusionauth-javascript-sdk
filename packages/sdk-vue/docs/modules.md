@@ -70,7 +70,7 @@ Renames and re-exports [FusionAuthLoginButton](modules/FusionAuthLoginButton.md)
 
 #### Defined in
 
-[src/injectionSymbols.ts:1](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/02b46e2174ba0f4804f6b5ef004ac88414902cc3/packages/sdk-vue/src/injectionSymbols.ts#L1)
+[packages/sdk-vue/src/injectionSymbols.ts:1](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/cd7ae7b9456d5730265cf9895942c3e7263c1c85/packages/sdk-vue/src/injectionSymbols.ts#L1)
 
 ---
 
@@ -96,7 +96,7 @@ Renames and re-exports [FusionAuthLoginButton](modules/FusionAuthLoginButton.md)
 
 #### Defined in
 
-[src/createFusionAuth/createFusionAuth.ts:7](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/02b46e2174ba0f4804f6b5ef004ac88414902cc3/packages/sdk-vue/src/createFusionAuth/createFusionAuth.ts#L7)
+[packages/sdk-vue/src/createFusionAuth/createFusionAuth.ts:7](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/cd7ae7b9456d5730265cf9895942c3e7263c1c85/packages/sdk-vue/src/createFusionAuth/createFusionAuth.ts#L7)
 
 ---
 
@@ -116,7 +116,7 @@ Renames and re-exports [FusionAuthLoginButton](modules/FusionAuthLoginButton.md)
 
 #### Defined in
 
-[src/composables/useFusionAuth.ts:5](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/02b46e2174ba0f4804f6b5ef004ac88414902cc3/packages/sdk-vue/src/composables/useFusionAuth.ts#L5)
+[packages/sdk-vue/src/composables/useFusionAuth.ts:5](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/cd7ae7b9456d5730265cf9895942c3e7263c1c85/packages/sdk-vue/src/composables/useFusionAuth.ts#L5)
 
 ## Plugin
 
@@ -146,4 +146,4 @@ Will throw an error if the required options are missing.
 
 #### Defined in
 
-[src/FusionAuthVuePlugin.ts:17](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/02b46e2174ba0f4804f6b5ef004ac88414902cc3/packages/sdk-vue/src/FusionAuthVuePlugin.ts#L17)
+[packages/sdk-vue/src/FusionAuthVuePlugin.ts:17](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/cd7ae7b9456d5730265cf9895942c3e7263c1c85/packages/sdk-vue/src/FusionAuthVuePlugin.ts#L17)

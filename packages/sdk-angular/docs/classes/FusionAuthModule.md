@@ -40,4 +40,4 @@
 
 #### Defined in
 
-[lib/fusion-auth.module.ts:26](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/80c01c9ccb450a2187bc0d2cc65fa8c9c38cfabe/packages/sdk-angular/projects/fusionauth-angular-sdk/src/lib/fusion-auth.module.ts#L26)
+[lib/fusion-auth.module.ts:26](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/cd7ae7b9456d5730265cf9895942c3e7263c1c85/packages/sdk-angular/projects/fusionauth-angular-sdk/src/lib/fusion-auth.module.ts#L26)
