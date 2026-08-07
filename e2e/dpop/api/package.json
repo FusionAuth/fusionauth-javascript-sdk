@@ -1,0 +1,11 @@
+{
+  "name": "dpop-resource-server",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "dependencies": {
+    "cors": "2.8.5",
+    "express": "5.1.0",
+    "jose": "6.1.0"
+  }
+}

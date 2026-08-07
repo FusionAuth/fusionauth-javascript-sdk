@@ -35,7 +35,7 @@
 
 #### Defined in
 
-[lib/components/fusionauth-login.button/fusion-auth-login-button.component.ts:12](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/80c01c9ccb450a2187bc0d2cc65fa8c9c38cfabe/packages/sdk-angular/projects/fusionauth-angular-sdk/src/lib/components/fusionauth-login.button/fusion-auth-login-button.component.ts#L12)
+[lib/components/fusionauth-login.button/fusion-auth-login-button.component.ts:13](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/97b137f4922b7072a3d647cca72fc0a02412325b/packages/sdk-angular/projects/fusionauth-angular-sdk/src/lib/components/fusionauth-login.button/fusion-auth-login-button.component.ts#L13)
 
 ## Properties
 
@@ -45,7 +45,7 @@
 
 #### Defined in
 
-[lib/components/fusionauth-login.button/fusion-auth-login-button.component.ts:12](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/80c01c9ccb450a2187bc0d2cc65fa8c9c38cfabe/packages/sdk-angular/projects/fusionauth-angular-sdk/src/lib/components/fusionauth-login.button/fusion-auth-login-button.component.ts#L12)
+[lib/components/fusionauth-login.button/fusion-auth-login-button.component.ts:13](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/97b137f4922b7072a3d647cca72fc0a02412325b/packages/sdk-angular/projects/fusionauth-angular-sdk/src/lib/components/fusionauth-login.button/fusion-auth-login-button.component.ts#L13)
 
 ---
 
@@ -55,7 +55,7 @@
 
 #### Defined in
 
-[lib/components/fusionauth-login.button/fusion-auth-login-button.component.ts:10](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/80c01c9ccb450a2187bc0d2cc65fa8c9c38cfabe/packages/sdk-angular/projects/fusionauth-angular-sdk/src/lib/components/fusionauth-login.button/fusion-auth-login-button.component.ts#L10)
+[lib/components/fusionauth-login.button/fusion-auth-login-button.component.ts:11](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/97b137f4922b7072a3d647cca72fc0a02412325b/packages/sdk-angular/projects/fusionauth-angular-sdk/src/lib/components/fusionauth-login.button/fusion-auth-login-button.component.ts#L11)
 
 ## Methods
 
@@ -69,4 +69,4 @@
 
 #### Defined in
 
-[lib/components/fusionauth-login.button/fusion-auth-login-button.component.ts:14](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/80c01c9ccb450a2187bc0d2cc65fa8c9c38cfabe/packages/sdk-angular/projects/fusionauth-angular-sdk/src/lib/components/fusionauth-login.button/fusion-auth-login-button.component.ts#L14)
+[lib/components/fusionauth-login.button/fusion-auth-login-button.component.ts:15](https://github.com/FusionAuth/fusionauth-javascript-sdk/blob/97b137f4922b7072a3d647cca72fc0a02412325b/packages/sdk-angular/projects/fusionauth-angular-sdk/src/lib/components/fusionauth-login.button/fusion-auth-login-button.component.ts#L15)

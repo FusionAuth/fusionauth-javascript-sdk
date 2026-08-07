@@ -1,0 +1,69 @@
+name: fusionauth-dpop
+
+services:
+  react:
+    build:
+      context: ../..
+      dockerfile: e2e/dpop/react/Dockerfile
+      args:
+        CLIENT_ID: ${REACT_CLIENT_ID:-replace-with-react-client-id}
+    labels:
+      dev.orbstack.http-port: '80'
+    healthcheck:
+      test: ['CMD', 'wget', '-q', '--spider', 'http://127.0.0.1/']
+      interval: 5s
+      timeout: 2s
+      retries: 10
+
+  vue:
+    build:
+      context: ../..
+      dockerfile: e2e/dpop/vue/Dockerfile
+      args:
+        CLIENT_ID: ${VUE_CLIENT_ID:-replace-with-vue-client-id}
+    labels:
+      dev.orbstack.http-port: '80'
+    healthcheck:
+      test: ['CMD', 'wget', '-q', '--spider', 'http://127.0.0.1/']
+      interval: 5s
+      timeout: 2s
+      retries: 10
+
+  angular:
+    build:
+      context: ../..
+      dockerfile: e2e/dpop/angular/Dockerfile
+      args:
+        CLIENT_ID: ${ANGULAR_CLIENT_ID:-replace-with-angular-client-id}
+    labels:
+      dev.orbstack.http-port: '80'
+    healthcheck:
+      test: ['CMD', 'wget', '-q', '--spider', 'http://127.0.0.1/']
+      interval: 5s
+      timeout: 2s
+      retries: 10
+
+  api:
+    build:
+      context: ../..
+      dockerfile: e2e/dpop/api/Dockerfile
+    environment:
+      API_EXTERNAL_ORIGIN: ${API_EXTERNAL_ORIGIN:-https://api.fusionauth-dpop.orb.local}
+      ANGULAR_CLIENT_ID: ${ANGULAR_CLIENT_ID:-replace-with-angular-client-id}
+      EXPECTED_ISSUER: ${EXPECTED_ISSUER:-https://example.com}
+      FUSIONAUTH_JWKS_URL: ${FUSIONAUTH_JWKS_URL:-http://host.orb.internal:9011/.well-known/jwks.json}
+      REACT_CLIENT_ID: ${REACT_CLIENT_ID:-replace-with-react-client-id}
+      VUE_CLIENT_ID: ${VUE_CLIENT_ID:-replace-with-vue-client-id}
+    labels:
+      dev.orbstack.http-port: '3000'
+    healthcheck:
+      test:
+        [
+          'CMD',
+          'node',
+          '-e',
+          "fetch('http://127.0.0.1:3000/health').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))",
+        ]
+      interval: 5s
+      timeout: 2s
+      retries: 10

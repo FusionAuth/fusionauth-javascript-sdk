@@ -1,0 +1,12 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "ignoreDeprecations": "5.0"
+  },
+  "exclude": ["**/*.spec.ts"],
+  "typedocOptions": {
+    "plugin": ["typedoc-plugin-markdown"],
+    "entryPoints": ["projects/fusionauth-angular-sdk/src/public-api.ts"],
+    "out": "docs"
+  }
+}

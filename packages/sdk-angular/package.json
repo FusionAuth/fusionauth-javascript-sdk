@@ -7,7 +7,7 @@
     "build": "yarn get-sdk-core && ng build && cp README.md dist/fusionauth-angular-sdk/README.md",
     "test": "yarn get-sdk-core && ng test --watch=false",
     "test:watch": "yarn get-sdk-core && ng test",
-    "docs": "typedoc --plugin typedoc-plugin-markdown"
+    "docs": "typedoc --plugin typedoc-plugin-markdown --tsconfig tsconfig.doc.json"
   },
   "private": false,
   "dependencies": {
